@@ -4,7 +4,7 @@ pub enum ZoneUiEvent {
     ReturnToRoot,
 }
 
-pub fn ui(state: &state::ZoneState) -> Option<ZoneUiEvent> {
+pub fn ui(_state: &state::ZoneState) -> Option<ZoneUiEvent> {
     let mut ui_message = None;
 
     egui_macroquad::ui(|egui_ctx| {
