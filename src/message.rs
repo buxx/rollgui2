@@ -1,6 +1,6 @@
-use crate::scene;
+use crate::engine;
 
 pub enum MainMessage {
     Quit,
-    ChangeScene(Box<dyn scene::Scene>),
+    ChangeScene(Box<dyn engine::Engine>),
 }

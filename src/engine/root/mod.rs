@@ -1,13 +1,13 @@
 use crate::{event, message};
 
-use super::Scene;
+use super::Engine;
 
 pub mod scene;
 pub mod ui;
 
 pub struct RootScene {}
 
-impl Scene for RootScene {
+impl Engine for RootScene {
     fn run(&mut self) -> Option<message::MainMessage> {
         // Game
         scene::scene();

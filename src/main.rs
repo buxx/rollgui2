@@ -1,12 +1,12 @@
 use macroquad::prelude::*;
 
+pub mod engine;
 pub mod event;
 pub mod message;
-pub mod scene;
 
 #[macroquad::main("RollGui2")]
 async fn main() {
-    let mut current_scene: Box<dyn scene::Scene> = Box::new(scene::root::RootScene {});
+    let mut current_scene: Box<dyn engine::Engine> = Box::new(engine::root::RootScene {});
 
     loop {
         clear_background(BLACK);
