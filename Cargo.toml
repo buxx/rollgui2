@@ -1,0 +1,10 @@
+[package]
+name = "rollgui2"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+macroquad = "0.3"
+egui = "0.15"
+egui-macroquad = "0.7"
