@@ -1,6 +1,6 @@
-use crate::engine;
-
 pub enum MainMessage {
     Quit,
-    ChangeScene(Box<dyn engine::Engine>),
+    SetRootEngine,
+    SetZoneEngine,
+    // ReplaceSceneWith(Box<dyn engine::Engine>),
 }

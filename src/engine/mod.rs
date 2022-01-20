@@ -1,4 +1,5 @@
 pub mod root;
+pub mod zone;
 
 use crate::message;
 
