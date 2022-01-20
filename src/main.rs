@@ -6,12 +6,12 @@ pub mod scene;
 
 #[macroquad::main("RollGui2")]
 async fn main() {
-    let mut current_scene = scene::Scene::Root;
+    let mut current_scene: Box<dyn scene::Scene> = Box::new(scene::root::RootScene {});
 
     loop {
         clear_background(BLACK);
 
-        if let Some(main_message) = scene::run_scene(&current_scene) {
+        if let Some(main_message) = current_scene.run() {
             match main_message {
                 message::MainMessage::Quit => return,
                 message::MainMessage::ChangeScene(new_scene) => {
