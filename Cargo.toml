@@ -8,3 +8,8 @@ edition = "2021"
 macroquad = "0.3"
 egui = "0.15"
 egui-macroquad = "0.7"
+structopt = "0.3.21"
+rust-ini = "0.17.0"
+serde = {version="1.0.104", features = ["derive"]}
+serde_derive = "1.0.104"
+serde_json = "1.0.44"
