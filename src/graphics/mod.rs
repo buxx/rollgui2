@@ -5,7 +5,7 @@ use crate::tileset;
 #[derive(Clone)]
 pub struct Graphics {
     pub tileset_texture: Texture2D,
-    tiles_mapping: tileset::TileMapping,
+    pub tiles_mapping: tileset::TileMapping,
 }
 
 impl Graphics {

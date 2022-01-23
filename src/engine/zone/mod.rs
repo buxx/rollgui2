@@ -3,7 +3,6 @@ use crate::{graphics, message};
 use super::Engine;
 
 pub mod builder;
-pub mod draw;
 pub mod scene;
 pub mod state;
 pub mod ui;

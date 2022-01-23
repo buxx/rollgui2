@@ -9,10 +9,16 @@ pub fn from_list(
 ) -> TileMapping {
     let mut mapping = HashMap::new();
 
-    for (id, x, y, sprites_count) in source {
+    for (id, row_i, col_i, sprites_count) in source {
         mapping.insert(
             id.to_string(),
-            TileSource::new(x, y, tile_width, tile_height, sprites_count),
+            TileSource::new(
+                tile_width * col_i as f32,
+                tile_height * row_i as f32,
+                tile_width,
+                tile_height,
+                sprites_count,
+            ),
         );
     }
 
