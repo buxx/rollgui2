@@ -1,0 +1,30 @@
+pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
+    [
+        ("UNKNOWN", 0, 0, 1),
+        ("SEA", 7, 0, 1),
+        ("JUNGLE", 7, 4, 1),
+        ("PLAIN", 7, 2, 1),
+        ("HILL", 7, 5, 1),
+        ("MOUNTAIN", 7, 6, 1),
+        ("BEACH", 7, 1, 1),
+        ("BACK_BEACH", 0, 3, 1),
+        ("BACK_PLAIN", 0, 6, 1),
+        ("BACK_JUNGLE", 0, 4, 1),
+        ("BACK_HILL", 0, 4, 1),
+        ("BACK_MOUNTAIN", 0, 5, 1),
+        ("BACK_SEA", 0, 2, 1),
+        ("SAND", 0, 0, 1),
+        ("DRY_BUSH", 2, 8, 1),
+        ("ROCK", 2, 9, 1),
+        ("SEA_WATER", 0, 12, 6),
+        ("FRESH_WATER_TILE", 0, 1, 6),
+        ("SHORT_GRASS", 1, 0, 1),
+        ("HIGH_GRASS", 1, 3, 6),
+        ("ROCKY_GROUND", 0, 0, 1),
+        ("DIRT", 0, 0, 1),
+        ("LEAF_TREE", 1, 7, 1),
+        ("TROPICAL_TREE", 1, 8, 1),
+        ("DEAD_TREE", 1, 9, 1),
+    ]
+    .to_vec()
+}

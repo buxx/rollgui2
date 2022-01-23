@@ -1,6 +1,10 @@
-pub struct ZoneState {}
+use crate::zone;
+pub struct ZoneState {
+    pub map: zone::map::ZoneMap,
+}
+
 impl ZoneState {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(map: zone::map::ZoneMap) -> Self {
+        Self { map }
     }
 }
