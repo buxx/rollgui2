@@ -41,7 +41,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         server_login.clone(),
                         server_password.clone(),
                     )?;
-                    let engine = engine::zone::builder::build_zone_engine(graphics.clone(), config);
+                    let engine =
+                        engine::zone::builder::build_zone_engine(graphics.clone(), config)?;
                     current_scene = Box::new(engine);
                 }
                 message::MainMessage::SetRootEngine => {

@@ -11,3 +11,5 @@
 # Ignore all local history of files
 **/.history
 
+# rollgui2 specific
+config.ini

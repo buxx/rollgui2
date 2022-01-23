@@ -1,11 +1,11 @@
-use super::ZoneMapSource;
+use super::ZoneMapTiles;
 
 pub struct ZoneMap {
-    pub source: ZoneMapSource,
+    pub tiles: ZoneMapTiles,
 }
 
 impl ZoneMap {
-    pub fn new(source: ZoneMapSource) -> Self {
-        Self { source }
+    pub fn new(tiles: ZoneMapTiles) -> Self {
+        Self { tiles }
     }
 }

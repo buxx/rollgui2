@@ -1,5 +1,6 @@
 use crate::tileset;
 
+pub mod load;
 pub mod map;
 
-pub type ZoneMapSource = Vec<Vec<tileset::TileId>>;
+pub type ZoneMapTiles = Vec<Vec<tileset::TileId>>;
