@@ -35,7 +35,8 @@ impl Graphics {
         background_tile_id: Option<&str>,
     ) {
         let camera_dest_x = dest_x / area_width;
-        let camera_dest_y = dest_y / area_height;
+        // Invert the value because the camera is Y inverted
+        let camera_dest_y = -(dest_y / area_height);
 
         // Draw tile background
         if let Some(background_tile_id_) = background_tile_id {
@@ -55,7 +56,7 @@ impl Graphics {
                 DrawTextureParams {
                     source: Some(background_source_rect),
                     dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
-                    flip_y: true,
+                    flip_y: true, // Invert on Y because camera is Y inverted
                     ..Default::default()
                 },
             );
@@ -78,7 +79,7 @@ impl Graphics {
             DrawTextureParams {
                 source: Some(foreground_source_rect),
                 dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
-                flip_y: true,
+                flip_y: true, // Invert on Y because camera is Y inverted
                 ..Default::default()
             },
         );

@@ -3,6 +3,8 @@ use super::ZoneMapTiles;
 pub struct ZoneMap {
     pub tiles: ZoneMapTiles,
     pub background_tile_id: String,
+    pub width: usize,
+    pub height: usize,
     // Computed map width according to tiles width
     pub concrete_width: f32,
     // Computed map width according to tiles height
@@ -28,6 +30,8 @@ impl ZoneMap {
         Self {
             tiles,
             background_tile_id: background_tile_id.to_string(),
+            width: map_width_count as usize,
+            height: map_height_count as usize,
             concrete_width,
             concrete_height,
         }

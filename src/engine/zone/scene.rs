@@ -5,16 +5,10 @@ use macroquad::prelude::*;
 pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState) {
     let map = &state.map;
     let tiles = &state.map.tiles;
+    let player = &state.player;
 
-    let zoom_x = (map.concrete_width / screen_width()) * 2.;
-    let zoom_y = (map.concrete_height / screen_height()) * 2.;
-
-    set_camera(&Camera2D {
-        zoom: Vec2::new(zoom_x, zoom_y),
-        offset: Vec2::new(-1.0, -1.0), // FIXME depending from player
-        ..Default::default()
-    });
-
+    // TODO : draw only visible tiles
+    // Draw zone tiles
     for (row_i, row) in tiles.iter().enumerate() {
         for (col_i, tile_id) in row.iter().enumerate() {
             if tile_id == "UNKNOWN" || tile_id == "NOTHING" {
@@ -33,4 +27,16 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState) {
             );
         }
     }
+
+    // Draw player
+    let dest_x = player.display_x;
+    let dest_y = player.display_y;
+    graphics.draw_tile_in_camera(
+        map.concrete_width,
+        map.concrete_height,
+        dest_x,
+        dest_y,
+        "CHARACTER",
+        None,
+    );
 }

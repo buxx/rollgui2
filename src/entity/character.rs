@@ -7,6 +7,8 @@ pub struct Character {
     pub zone_col_i: i32,
     pub avatar_uuid: Option<String>,
     pub avatar_is_validated: bool,
+    pub display_x: f32,
+    pub display_y: f32,
 }
 
 impl Character {
@@ -16,6 +18,8 @@ impl Character {
         zone_col_i: i32,
         avatar_uuid: Option<String>,
         avatar_is_validated: bool,
+        display_x: f32,
+        display_y: f32,
     ) -> Self {
         Self {
             id,
@@ -23,6 +27,8 @@ impl Character {
             zone_col_i,
             avatar_uuid,
             avatar_is_validated,
+            display_x,
+            display_y,
         }
     }
 }
