@@ -1,3 +1,5 @@
+use macroquad::prelude::*;
+
 use crate::{graphics, message};
 
 use super::Engine;
@@ -24,6 +26,7 @@ impl Engine for ZoneEngine {
         scene::scene(&self.graphics, &self.state);
 
         // Ui
+        set_default_camera();
         if let Some(event) = ui::ui(&self.state) {
             match event {
                 ui::ZoneUiEvent::ReturnToRoot => {

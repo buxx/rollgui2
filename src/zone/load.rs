@@ -3,7 +3,11 @@ use std::collections::HashMap;
 use super::{map, ZoneMapTiles};
 use crate::zone;
 
-pub fn from_txt_map(source: &str) -> Result<map::ZoneMap, String> {
+pub fn from_txt_map(
+    source: &str,
+    tiles_width: f32,
+    tiles_height: f32,
+) -> Result<map::ZoneMap, String> {
     let mapping: HashMap<char, &str> = [
         (' ', "NOTHING"),
         ('⡩', "SAND"),
@@ -42,5 +46,10 @@ pub fn from_txt_map(source: &str) -> Result<map::ZoneMap, String> {
         }
         tiles.push(row_tiles);
     }
-    Ok(zone::map::ZoneMap::new(tiles))
+    Ok(zone::map::ZoneMap::new(
+        tiles,
+        "DIRT",
+        tiles_width,
+        tiles_height,
+    ))
 }
