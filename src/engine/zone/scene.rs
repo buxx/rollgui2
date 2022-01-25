@@ -2,7 +2,7 @@ use crate::{engine::zone::state, graphics};
 
 use macroquad::prelude::*;
 
-pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState) {
+pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i16) {
     let map = &state.map;
     let tiles = &state.map.tiles;
     let player = &state.player;
@@ -24,6 +24,7 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState) {
                 dest_y,
                 tile_id,
                 Some(&state.map.background_tile_id),
+                tick_i,
             );
         }
     }
@@ -38,5 +39,6 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState) {
         dest_y,
         "CHARACTER",
         None,
+        tick_i,
     );
 }

@@ -33,6 +33,7 @@ impl Graphics {
         dest_y: f32,
         foreground_tile_id: &str,
         background_tile_id: Option<&str>,
+        tick_i: i16,
     ) {
         let camera_dest_x = dest_x / area_width;
         // Invert the value because the camera is Y inverted
@@ -44,7 +45,7 @@ impl Graphics {
                 .tiles_mapping
                 .get(background_tile_id_)
                 .expect(&format!("Tile id {} is unknown", background_tile_id_));
-            let background_source_rect = background_source.to_rect(None);
+            let background_source_rect = background_source.to_rect(tick_i);
 
             let dest_size_x = self.tile_width / area_width;
             let dest_size_y = self.tile_height / area_height;
@@ -67,7 +68,7 @@ impl Graphics {
             .tiles_mapping
             .get(foreground_tile_id)
             .expect(&format!("Tile id {} is unknown", foreground_tile_id));
-        let foreground_source_rect = foreground_source.to_rect(None);
+        let foreground_source_rect = foreground_source.to_rect(tick_i);
 
         let dest_size_x = self.tile_width / area_width;
         let dest_size_y = self.tile_height / area_height;

@@ -1,26 +1,54 @@
 use macroquad::prelude::*;
 
-#[derive(Clone)]
-pub struct TileSource {
+#[derive(Clone, Debug)]
+pub struct Sprite {
     x: f32,
     y: f32,
+}
+
+#[derive(Clone, Debug)]
+pub struct TileSource {
+    sprites: Vec<Sprite>,
     width: f32,
     height: f32,
-    sprites_count: i16,
 }
 
 impl TileSource {
-    pub fn new(x: f32, y: f32, width: f32, height: f32, sprites_count: i16) -> Self {
+    pub fn new(
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+        real_sprites_count: i16,
+        required_sprites_count: i16,
+    ) -> Self {
+        let mut sprites = vec![];
+
+        for i in 0..required_sprites_count + 1 {
+            let sprite_x = if real_sprites_count > i {
+                x + (width * i as f32)
+            } else {
+                x
+            };
+            let sprite_y = y;
+            sprites.push(Sprite {
+                x: sprite_x,
+                y: sprite_y,
+            });
+        }
+
         Self {
-            x,
-            y,
+            sprites,
             width,
             height,
-            sprites_count,
         }
     }
 
-    pub fn to_rect(&self, _sprite_index: Option<usize>) -> Rect {
-        Rect::new(self.x, self.y, self.width, self.height)
+    pub fn to_rect(&self, sprite_index: i16) -> Rect {
+        let sprite = self
+            .sprites
+            .get(sprite_index as usize)
+            .expect(&format!("Sprite index {} out of bounds", sprite_index));
+        Rect::new(sprite.x, sprite.y, self.width, self.height)
     }
 }
