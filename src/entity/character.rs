@@ -1,3 +1,4 @@
+use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -9,6 +10,8 @@ pub struct Character {
     pub avatar_is_validated: bool,
     pub display_x: f32,
     pub display_y: f32,
+    pub display_rotation: f32,
+    // pub velocity: Vec2,
 }
 
 impl Character {
@@ -29,6 +32,8 @@ impl Character {
             avatar_is_validated,
             display_x,
             display_y,
+            display_rotation: 0.,
+            // velocity: Vec2::new(0., 0.),
         }
     }
 }

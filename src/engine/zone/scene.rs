@@ -15,6 +15,12 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
                 continue;
             }
 
+            let foreground_rotation = if tile_id == "DIRT" {
+                0.
+            } else {
+                -state.player.display_rotation.to_radians()
+            };
+
             let dest_x = col_i as f32 * graphics.tile_width;
             let dest_y = row_i as f32 * graphics.tile_height;
             graphics.draw_tile_in_camera(
@@ -25,6 +31,8 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
                 tile_id,
                 Some(&state.map.background_tile_id),
                 tick_i,
+                0.,
+                foreground_rotation,
             );
         }
     }
@@ -40,5 +48,7 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
         "CHARACTER",
         None,
         tick_i,
+        0.,
+        -player.display_rotation.to_radians(),
     );
 }

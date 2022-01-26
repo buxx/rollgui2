@@ -24,6 +24,8 @@ pub fn build_zone_engine(
         avatar_is_validated: false,
         display_x: player_zone_col_i as f32 * 32.,
         display_y: player_zone_row_i as f32 * 32.,
+        display_rotation: 0.,
+        // velocity: Vec2::new(0., 0.),
     };
     let state = ZoneState::new(map, characters, player);
     Ok(ZoneEngine::new(graphics, state))

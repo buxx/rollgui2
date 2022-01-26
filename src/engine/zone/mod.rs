@@ -42,16 +42,18 @@ impl ZoneEngine {
         // FIXME: player moves depending on the zone/tiles
         // Player movements
         if is_key_down(KeyCode::Down) {
-            self.state.player.display_y += 1.;
+            // self.state.player.display_y += 1.;
         }
         if is_key_down(KeyCode::Up) {
-            self.state.player.display_y -= 1.;
+            let rotation_radians = self.state.player.display_rotation.to_radians();
+            self.state.player.display_x += rotation_radians.sin();
+            self.state.player.display_y -= rotation_radians.cos();
         }
         if is_key_down(KeyCode::Left) {
-            self.state.player.display_x -= 1.;
+            self.state.player.display_rotation -= 5.;
         }
         if is_key_down(KeyCode::Right) {
-            self.state.player.display_x += 1.;
+            self.state.player.display_rotation += 5.;
         }
     }
 
@@ -67,7 +69,7 @@ impl ZoneEngine {
             zoom: Vec2::new(zoom_x, zoom_y),
             target: Vec2::new(target_x, target_y),
             // offset: Vec2::new(-2.45, -3.2),
-            // rotation: 180.,
+            rotation: self.state.player.display_rotation,
             ..Default::default()
         });
     }
@@ -80,7 +82,6 @@ impl ZoneEngine {
 impl Engine for ZoneEngine {
     fn run(&mut self) -> Option<message::MainMessage> {
         self.update_tick_i();
-        println!("{}", self.tick_i);
 
         self.inputs();
         self.camera();

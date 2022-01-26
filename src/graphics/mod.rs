@@ -34,6 +34,8 @@ impl Graphics {
         foreground_tile_id: &str,
         background_tile_id: Option<&str>,
         tick_i: i16,
+        background_rotation: f32,
+        foreground_rotation: f32,
     ) {
         let camera_dest_x = dest_x / area_width;
         // Invert the value because the camera is Y inverted
@@ -58,6 +60,7 @@ impl Graphics {
                     source: Some(background_source_rect),
                     dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
                     flip_y: true, // Invert on Y because camera is Y inverted
+                    rotation: background_rotation,
                     ..Default::default()
                 },
             );
@@ -81,6 +84,7 @@ impl Graphics {
                 source: Some(foreground_source_rect),
                 dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
                 flip_y: true, // Invert on Y because camera is Y inverted
+                rotation: foreground_rotation,
                 ..Default::default()
             },
         );
