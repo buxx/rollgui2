@@ -1,4 +1,5 @@
-use ini::Ini;
+// FIXME macroquad storage
+// use ini::Ini;
 
 pub const SPRITES_COUNT: i16 = 6;
 pub struct Config {
@@ -13,15 +14,17 @@ impl Config {
         server_login: String,
         server_password: String,
     ) -> Result<Self, String> {
-        let config_file_ini = match Ini::load_from_file(config_file_path) {
-            Ok(config_file_ini) => config_file_ini,
-            Err(e) => return Err(format!("Failed to load config file: {}", e.to_string())),
-        };
+        // FIXME macroquad storage
+        // let config_file_ini = match Ini::load_from_file(config_file_path) {
+        //     Ok(config_file_ini) => config_file_ini,
+        //     Err(e) => return Err(format!("Failed to load config file: {}", e.to_string())),
+        // };
 
-        let server_url = match config_file_ini.get_from(Some("server"), "url") {
-            Some(server_url) => server_url.to_string(),
-            None => return Err(format!("Failed to load config file: server.url not found")),
-        };
+        // let server_url = match config_file_ini.get_from(Some("server"), "url") {
+        //     Some(server_url) => server_url.to_string(),
+        //     None => return Err(format!("Failed to load config file: server.url not found")),
+        // };
+        let server_url = "".to_string();
 
         Ok(Self {
             server_url,

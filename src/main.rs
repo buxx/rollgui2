@@ -36,6 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match main_message {
                 message::MainMessage::Quit => return Ok(()),
                 message::MainMessage::SetZoneEngine => {
+                    // FIXME BS NOW : Not compatible with web browser
                     let config = config::Config::from_config_file(
                         config_file_path.clone(),
                         server_login.clone(),
