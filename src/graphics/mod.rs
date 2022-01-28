@@ -34,8 +34,8 @@ impl Graphics {
         foreground_tile_id: &str,
         background_tile_id: Option<&str>,
         tick_i: i16,
-        background_rotation: f32,
-        foreground_rotation: f32,
+        background_params: Option<DrawTextureParams>,
+        foreground_params: Option<DrawTextureParams>,
     ) {
         let camera_dest_x = dest_x / area_width;
         // Invert the value because the camera is Y inverted
@@ -51,18 +51,21 @@ impl Graphics {
 
             let dest_size_x = self.tile_width / area_width;
             let dest_size_y = self.tile_height / area_height;
+
+            let mut background_params = match background_params {
+                Some(background_params) => background_params,
+                None => DrawTextureParams::default(),
+            };
+            background_params.source = Some(background_source_rect);
+            background_params.dest_size = Some(Vec2::new(dest_size_x, dest_size_y));
+            background_params.flip_y = true; // Invert on Y because camera is Y inverted
+
             draw_texture_ex(
                 self.tileset_texture,
                 camera_dest_x,
                 camera_dest_y,
                 WHITE,
-                DrawTextureParams {
-                    source: Some(background_source_rect),
-                    dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
-                    flip_y: true, // Invert on Y because camera is Y inverted
-                    rotation: background_rotation,
-                    ..Default::default()
-                },
+                background_params,
             );
         }
 
@@ -75,18 +78,21 @@ impl Graphics {
 
         let dest_size_x = self.tile_width / area_width;
         let dest_size_y = self.tile_height / area_height;
+
+        let mut foreground_params = match foreground_params {
+            Some(foreground_params) => foreground_params,
+            None => DrawTextureParams::default(),
+        };
+        foreground_params.source = Some(foreground_source_rect);
+        foreground_params.dest_size = Some(Vec2::new(dest_size_x, dest_size_y));
+        foreground_params.flip_y = true; // Invert on Y because camera is Y inverted
+
         draw_texture_ex(
             self.tileset_texture,
             camera_dest_x,
             camera_dest_y,
             WHITE,
-            DrawTextureParams {
-                source: Some(foreground_source_rect),
-                dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
-                flip_y: true, // Invert on Y because camera is Y inverted
-                rotation: foreground_rotation,
-                ..Default::default()
-            },
+            foreground_params,
         );
     }
 }

@@ -1,6 +1,6 @@
 use ini::Ini;
 
-pub const SPRITES_COUNT: i16 = 5;
+pub const SPRITES_COUNT: i16 = 6;
 pub struct Config {
     pub server_url: String,
     pub server_login: String,

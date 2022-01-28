@@ -39,21 +39,35 @@ impl ZoneEngine {
     }
 
     fn inputs(&mut self) {
-        // FIXME: player moves depending on the zone/tiles
         // Player movements
-        if is_key_down(KeyCode::Down) {
-            // self.state.player.display_y += 1.;
-        }
+        // TODO: player moves depending on the zone tiles
+        let rotation_radians = self.state.player_display.rotation.to_radians();
+        let mut acceleration = -self.state.player_display.velocity / 2.5;
+
         if is_key_down(KeyCode::Up) {
-            let rotation_radians = self.state.player.display_rotation.to_radians();
-            self.state.player.display_x += rotation_radians.sin();
-            self.state.player.display_y -= rotation_radians.cos();
+            acceleration = Vec2::new(rotation_radians.sin(), -rotation_radians.cos()) / 3.;
+        }
+        if is_key_down(KeyCode::Down) {
+            acceleration = Vec2::new(-rotation_radians.sin(), rotation_radians.cos()) / 3.;
         }
         if is_key_down(KeyCode::Left) {
-            self.state.player.display_rotation -= 5.;
+            self.state.player_display.rotation -= 2.5;
         }
         if is_key_down(KeyCode::Right) {
-            self.state.player.display_rotation += 5.;
+            self.state.player_display.rotation += 2.5;
+        }
+
+        self.state.player_display.velocity += acceleration;
+        if self.state.player_display.velocity.length() > 2. {
+            self.state.player_display.velocity =
+                self.state.player_display.velocity.normalize() * 2.;
+        }
+        self.state.player_display.position += self.state.player_display.velocity;
+
+        if self.state.player_display.velocity.length() > 0.25 {
+            self.state.player_display.moving = true;
+        } else {
+            self.state.player_display.moving = false;
         }
     }
 
@@ -61,15 +75,15 @@ impl ZoneEngine {
         let zoom_x = (self.state.map.concrete_width / screen_width()) * 2.;
         let zoom_y = (self.state.map.concrete_height / screen_height()) * 2.;
 
-        let target_x = self.state.player.display_x / self.state.map.concrete_width;
+        let target_x = self.state.player_display.position.x / self.state.map.concrete_width;
         // Invert Y axis because the camera is Y inverted
-        let target_y = -(self.state.player.display_y / self.state.map.concrete_height);
+        let target_y = -(self.state.player_display.position.y / self.state.map.concrete_height);
 
         set_camera(&Camera2D {
             zoom: Vec2::new(zoom_x, zoom_y),
             target: Vec2::new(target_x, target_y),
             // offset: Vec2::new(-2.45, -3.2),
-            rotation: self.state.player.display_rotation,
+            rotation: self.state.player_display.rotation,
             ..Default::default()
         });
     }

@@ -26,6 +26,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("TROPICAL_TREE", 1, 8, 1),
         ("DEAD_TREE", 1, 9, 1),
         ("CHARACTER", 6, 0, 1),
+        ("CHARACTER_RUNNING", 6, 1, 6),
     ]
     .to_vec()
 }
