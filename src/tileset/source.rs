@@ -49,6 +49,11 @@ impl TileSource {
             .sprites
             .get(sprite_index as usize)
             .expect(&format!("Sprite index {} out of bounds", sprite_index));
-        Rect::new(sprite.x, sprite.y, self.width, self.height)
+        Rect::new(
+            sprite.x + 1.,
+            sprite.y + 1.,
+            self.width - 2.,
+            self.height - 2.,
+        )
     }
 }
