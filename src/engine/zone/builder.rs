@@ -29,6 +29,15 @@ pub fn build_zone_engine(
         ),
         ..Default::default()
     };
-    let state = super::state::ZoneState::new(map, characters, player, player_display);
+    let builds = hardcoded::builds();
+    let state = super::state::ZoneState::new(
+        map,
+        characters,
+        player,
+        player_display,
+        vec![],
+        vec![],
+        builds,
+    );
     Ok(super::ZoneEngine::new(graphics, state))
 }

@@ -1,5 +1,3 @@
-use std::time::{Duration, SystemTime};
-
 use macroquad::prelude::*;
 
 use crate::{config, graphics, message};
@@ -14,7 +12,7 @@ pub mod ui;
 pub struct ZoneEngine {
     pub graphics: graphics::Graphics,
     pub state: state::ZoneState,
-    pub tick_last: SystemTime,
+    pub tick_last: f64,
     pub tick_i: i16,
 }
 
@@ -23,41 +21,46 @@ impl ZoneEngine {
         Self {
             graphics,
             state,
-            tick_last: SystemTime::now(),
+            tick_last: get_time(),
             tick_i: 0,
         }
     }
 
     fn update_tick_i(&mut self) {
-        if SystemTime::now().duration_since(self.tick_last).unwrap() >= Duration::from_millis(166) {
+        let now = get_time();
+        if now - self.tick_last >= 0.166 {
             self.tick_i += 1;
-            self.tick_last = SystemTime::now();
+            self.tick_last = now;
             if self.tick_i >= config::SPRITES_COUNT {
                 self.tick_i = 0;
             }
         }
     }
 
-    fn inputs(&mut self) {
+    fn update(&mut self) {
         // Player movements
         // TODO: player moves depending on the zone tiles
-        let rotation_radians = self.state.player_display.rotation.to_radians();
-        let mut acceleration = -self.state.player_display.velocity / 2.5;
+        let mut player_acceleration = -self.state.player_display.velocity / 2.5;
+        let mut player_running: Option<PlayerRunning> = None;
 
         if is_key_down(KeyCode::Up) {
-            acceleration = Vec2::new(rotation_radians.sin(), -rotation_radians.cos()) / 3.;
+            player_acceleration += Vec2::new(0., -1.);
+            player_running = Some(PlayerRunning::Top);
         }
         if is_key_down(KeyCode::Down) {
-            acceleration = Vec2::new(-rotation_radians.sin(), rotation_radians.cos()) / 3.;
+            player_acceleration += Vec2::new(0., 1.);
+            player_running = Some(PlayerRunning::Down);
         }
         if is_key_down(KeyCode::Left) {
-            self.state.player_display.rotation -= 2.5;
+            player_acceleration += Vec2::new(-1., 0.);
+            player_running = Some(PlayerRunning::Left);
         }
         if is_key_down(KeyCode::Right) {
-            self.state.player_display.rotation += 2.5;
+            player_acceleration += Vec2::new(1., 0.);
+            player_running = Some(PlayerRunning::Right);
         }
 
-        self.state.player_display.velocity += acceleration;
+        self.state.player_display.velocity += player_acceleration;
         if self.state.player_display.velocity.length() > 2. {
             self.state.player_display.velocity =
                 self.state.player_display.velocity.normalize() * 2.;
@@ -65,9 +68,9 @@ impl ZoneEngine {
         self.state.player_display.position += self.state.player_display.velocity;
 
         if self.state.player_display.velocity.length() > 0.25 {
-            self.state.player_display.moving = true;
+            self.state.player_display.running = player_running;
         } else {
-            self.state.player_display.moving = false;
+            self.state.player_display.running = None;
         }
     }
 
@@ -82,8 +85,6 @@ impl ZoneEngine {
         set_camera(&Camera2D {
             zoom: Vec2::new(zoom_x, zoom_y),
             target: Vec2::new(target_x, target_y),
-            // offset: Vec2::new(-2.45, -3.2),
-            rotation: self.state.player_display.rotation,
             ..Default::default()
         });
     }
@@ -97,7 +98,7 @@ impl Engine for ZoneEngine {
     fn run(&mut self) -> Option<message::MainMessage> {
         self.update_tick_i();
 
-        self.inputs();
+        self.update();
         self.camera();
 
         // Game
@@ -115,4 +116,11 @@ impl Engine for ZoneEngine {
 
         None
     }
+}
+
+pub enum PlayerRunning {
+    Top,
+    Down,
+    Right,
+    Left,
 }

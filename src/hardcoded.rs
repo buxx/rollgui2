@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use crate::entity;
+
 pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
     [
         ("UNKNOWN", 0, 0, 1),
@@ -25,8 +29,14 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("LEAF_TREE", 1, 7, 1),
         ("TROPICAL_TREE", 1, 8, 1),
         ("DEAD_TREE", 1, 9, 1),
-        ("CHARACTER", 6, 0, 1),
-        ("CHARACTER_RUNNING", 6, 1, 6),
+        ("CHARACTER", 16, 0, 1),
+        ("CHARACTER_RUNNING_TOP", 17, 0, 6),
+        ("CHARACTER_RUNNING_DOWN", 18, 0, 6),
+        ("CHARACTER_RUNNING_RIGHT", 19, 0, 6),
+        ("CHARACTER_RUNNING_LEFT", 20, 0, 6),
+        ("STONE_WALL", 4, 3, 1),
+        ("DOOR", 4, 12, 1),
+        ("RAW_CLAY_FLOOR", 0, 6, 1),
     ]
     .to_vec()
 }
@@ -65,4 +75,85 @@ pub fn get_map_source() -> &'static str {
   ؛⁖⁖߉⁖⁖؛⁖؛⁖؛⁖؛⁖⁖ፆ        
    ߉߉ፆ⁖ፆ⁖⁖ፆ⁖⁖⁖؛؛߉         
     ⁖؛⁖؛ፆ⁖⁖⁖⁖⁖؛⁖          "
+}
+
+pub fn builds() -> Vec<entity::build::Build> {
+    let mut builds = vec![];
+    let mut id = 0;
+    for coordinates in [
+        (15, 8),
+        (15, 7),
+        (15, 6),
+        (15, 5),
+        (14, 5),
+        (13, 5),
+        (11, 5),
+        (10, 5),
+        (10, 6),
+        (10, 7),
+        (10, 8),
+        (10, 9),
+        (11, 9),
+        (12, 9),
+        (13, 9),
+        (14, 9),
+        (15, 9),
+        (14, 9),
+        (13, 9),
+        (12, 9),
+        (11, 9),
+    ]
+    .iter()
+    {
+        id += 1;
+        builds.push(entity::build::Build {
+            id: id,
+            build_id: "STONE_WALL".to_string(),
+            row_i: coordinates.0,
+            col_i: coordinates.1,
+            classes: vec![],
+            traversable: HashMap::new(),
+            is_floor: false,
+        });
+    }
+
+    builds.push(entity::build::Build {
+        id: id,
+        build_id: "DOOR".to_string(),
+        row_i: 12,
+        col_i: 5,
+        classes: vec![],
+        traversable: HashMap::new(),
+        is_floor: false,
+    });
+
+    for coordinates in [
+        (11, 7),
+        (12, 7),
+        (13, 7),
+        (14, 7),
+        (11, 6),
+        (12, 6),
+        (13, 6),
+        (14, 6),
+        (11, 8),
+        (12, 8),
+        (13, 8),
+        (14, 8),
+    ]
+    .iter()
+    {
+        id += 1;
+        builds.push(entity::build::Build {
+            id: id,
+            build_id: "RAW_CLAY_FLOOR".to_string(),
+            row_i: coordinates.0,
+            col_i: coordinates.1,
+            classes: vec![],
+            traversable: HashMap::new(),
+            is_floor: true,
+        });
+    }
+
+    builds
 }
