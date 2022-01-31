@@ -1,8 +1,9 @@
 use macroquad::prelude::*;
 
-use crate::{config, graphics, message};
+use crate::{config, graphics, message, util};
 
 use super::Engine;
+use crate::gui;
 
 pub mod builder;
 pub mod scene;
@@ -10,6 +11,7 @@ pub mod state;
 pub mod ui;
 
 const DEFAULT_PLAYER_VELOCITY_DIVIDER: f32 = 2.5;
+const LEFT_PANEL_WIDTH: i32 = 250;
 
 pub struct ZoneEngine {
     pub graphics: graphics::Graphics,
@@ -18,6 +20,9 @@ pub struct ZoneEngine {
     pub tick_i: i16,
     pub zoom_mode: ZoomMode,
     pub last_limited_user_input: f64,
+    pub disable_all_user_input_until: f64,
+    pub disable_all_user_input: bool,
+    pub user_inputs: Vec<UserInput>,
 }
 
 impl ZoneEngine {
@@ -29,6 +34,9 @@ impl ZoneEngine {
             tick_i: 0,
             zoom_mode: ZoomMode::Normal,
             last_limited_user_input: get_time(),
+            disable_all_user_input_until: get_time(),
+            disable_all_user_input: false,
+            user_inputs: vec![],
         }
     }
 
@@ -43,14 +51,14 @@ impl ZoneEngine {
         }
     }
 
-    fn update(&mut self, user_inputs: Vec<UserInput>) {
+    fn update(&mut self) {
         // Player movements
         // TODO: player moves depending on the zone tiles
         let mut player_acceleration =
             -self.state.player_display.velocity / DEFAULT_PLAYER_VELOCITY_DIVIDER;
         let mut player_running: Option<PlayerRunning> = None;
 
-        for user_input in user_inputs {
+        while let Some(user_input) = self.user_inputs.pop() {
             match user_input {
                 UserInput::MovePlayerBy(vector) => {
                     player_acceleration += vector;
@@ -99,41 +107,48 @@ impl ZoneEngine {
         self.state.player_display.running = player_running;
     }
 
-    fn user_inputs(&mut self) -> Vec<UserInput> {
-        let mut user_inputs = Vec::new();
+    fn user_inputs(&mut self) {
+        if self.disable_all_user_input_until > get_time() || self.disable_all_user_input {
+            return;
+        }
 
         // Keyboard inputs without repetition limitation
         if is_key_down(KeyCode::Up) {
-            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(0., -1.)));
+            self.user_inputs
+                .push(UserInput::MovePlayerBy(Vec2::new(0., -1.)));
         }
         if is_key_down(KeyCode::Down) {
-            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(0., 1.)));
+            self.user_inputs
+                .push(UserInput::MovePlayerBy(Vec2::new(0., 1.)));
         }
         if is_key_down(KeyCode::Left) {
-            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(-1., 0.)));
+            self.user_inputs
+                .push(UserInput::MovePlayerBy(Vec2::new(-1., 0.)));
         }
         if is_key_down(KeyCode::Right) {
-            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(1., 0.)));
+            self.user_inputs
+                .push(UserInput::MovePlayerBy(Vec2::new(1., 0.)));
         }
 
         // Keyboard inputs with repetition limitation
         if get_time() - self.last_limited_user_input > 0.5 {
             if is_key_down(KeyCode::I) {
-                user_inputs.push(UserInput::ZoomIn);
+                self.user_inputs.push(UserInput::ZoomIn);
                 self.last_limited_user_input = get_time();
             }
             if is_key_down(KeyCode::O) {
-                user_inputs.push(UserInput::ZoomOut);
+                self.user_inputs.push(UserInput::ZoomOut);
                 self.last_limited_user_input = get_time();
             }
         }
 
         // Mouse inputs
         if is_mouse_button_down(MouseButton::Left) {
-            user_inputs.push(UserInput::MovePlayerBy(mouse_position_local() * 2.0));
+            let (pixels_x, pixels_y) = mouse_position();
+            let position_local = util::convert_to_local(Vec2::new(pixels_x, pixels_y));
+            self.user_inputs
+                .push(UserInput::MovePlayerBy(position_local * 2.0));
         }
-
-        user_inputs
     }
 
     fn camera(&self) {
@@ -160,14 +175,33 @@ impl ZoneEngine {
     pub fn scene(&self) {
         scene::scene(&self.graphics, &self.state, self.tick_i);
     }
+
+    pub fn draw_left_panel(&self) {
+        gui::panel::draw_panel_background(&self.graphics);
+    }
+
+    pub fn draw_buttons(&mut self) {
+        if gui::button::draw_zoom_button(&self.graphics) {
+            if util::mouse_clicked() {
+                match self.zoom_mode {
+                    ZoomMode::Normal => self.user_inputs.push(UserInput::ZoomIn),
+                    ZoomMode::Large => self.user_inputs.push(UserInput::ZoomIn),
+                    ZoomMode::Double => self.user_inputs.push(UserInput::ZoomOut),
+                }
+                self.disable_all_user_input_until = get_time() + 0.25;
+            }
+
+            self.disable_all_user_input = true;
+        }
+    }
 }
 
 impl Engine for ZoneEngine {
     fn run(&mut self) -> Option<message::MainMessage> {
         self.update_tick_i();
 
-        let user_inputs = self.user_inputs();
-        self.update(user_inputs);
+        self.user_inputs();
+        self.update();
 
         self.camera();
 
@@ -176,6 +210,10 @@ impl Engine for ZoneEngine {
 
         // Ui
         set_default_camera();
+
+        self.disable_all_user_input = false;
+        self.draw_left_panel();
+        self.draw_buttons();
         if let Some(event) = ui::ui(&self.state) {
             match event {
                 ui::ZoneUiEvent::ReturnToRoot => {

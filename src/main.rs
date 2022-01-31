@@ -4,9 +4,11 @@ pub mod config;
 pub mod engine;
 pub mod entity;
 pub mod graphics;
+pub mod gui;
 pub mod hardcoded;
 pub mod message;
 pub mod tileset;
+pub mod util;
 pub mod zone;
 
 use structopt::StructOpt;
@@ -17,6 +19,8 @@ pub struct Opt {
     #[structopt(name = "config_file_path", default_value = "config.ini")]
     pub config_file_path: String,
 }
+
+const SERVER_ADDRESS: &'static str = env!("SERVER_ADDRESS");
 
 #[macroquad::main("RollGui2")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
