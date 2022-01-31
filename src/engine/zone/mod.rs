@@ -48,10 +48,7 @@ impl ZoneEngine {
 
         for user_input in user_inputs {
             match user_input {
-                UserInput::InstantMovePlayerTo(vector) => {
-                    player_acceleration += vector;
-                }
-                UserInput::PushMovePlayerTo(vector) => {
+                UserInput::MovePlayerBy(vector) => {
                     player_acceleration += vector;
                 }
             }
@@ -68,7 +65,6 @@ impl ZoneEngine {
         self.state.player_display.position += self.state.player_display.velocity;
 
         // Update player running animation
-        println!("{:?}", player_acceleration);
         if self.state.player_display.velocity.length() > 0.05 {
             player_running = if player_acceleration.y < -0.05 {
                 Some(PlayerRunning::Top)
@@ -90,21 +86,21 @@ impl ZoneEngine {
 
         // Keyboard inputs
         if is_key_down(KeyCode::Up) {
-            user_inputs.push(UserInput::InstantMovePlayerTo(Vec2::new(0., -1.)));
+            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(0., -1.)));
         }
         if is_key_down(KeyCode::Down) {
-            user_inputs.push(UserInput::InstantMovePlayerTo(Vec2::new(0., 1.)));
+            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(0., 1.)));
         }
         if is_key_down(KeyCode::Left) {
-            user_inputs.push(UserInput::InstantMovePlayerTo(Vec2::new(-1., 0.)));
+            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(-1., 0.)));
         }
         if is_key_down(KeyCode::Right) {
-            user_inputs.push(UserInput::InstantMovePlayerTo(Vec2::new(1., 0.)));
+            user_inputs.push(UserInput::MovePlayerBy(Vec2::new(1., 0.)));
         }
 
         // Mouse inputs
         if is_mouse_button_down(MouseButton::Left) {
-            user_inputs.push(UserInput::PushMovePlayerTo(mouse_position_local() * 2.0));
+            user_inputs.push(UserInput::MovePlayerBy(mouse_position_local() * 2.0));
         }
 
         user_inputs
@@ -164,6 +160,5 @@ pub enum PlayerRunning {
 }
 
 pub enum UserInput {
-    InstantMovePlayerTo(Vec2),
-    PushMovePlayerTo(Vec2),
+    MovePlayerBy(Vec2),
 }
