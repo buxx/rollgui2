@@ -11,6 +11,8 @@ pub mod state;
 pub mod ui;
 
 const DEFAULT_PLAYER_VELOCITY_DIVIDER: f32 = 2.5;
+const DEFAULT_PLAYER_VELOCITY_LIMIT: f32 = 2.0;
+const RUNNING_PLAYER_VELOCITY_LIMIT: f32 = 5.0;
 const LEFT_PANEL_WIDTH: i32 = 250;
 
 pub struct ZoneEngine {
@@ -23,6 +25,7 @@ pub struct ZoneEngine {
     pub disable_all_user_input_until: f64,
     pub disable_all_user_input: bool,
     pub user_inputs: Vec<UserInput>,
+    pub running_mode: bool,
 }
 
 impl ZoneEngine {
@@ -37,6 +40,7 @@ impl ZoneEngine {
             disable_all_user_input_until: get_time(),
             disable_all_user_input: false,
             user_inputs: vec![],
+            running_mode: false,
         }
     }
 
@@ -77,14 +81,22 @@ impl ZoneEngine {
                         ZoomMode::Large => ZoomMode::Large,
                     }
                 }
+                UserInput::SwitchRunningMode => self.running_mode = !self.running_mode,
+                UserInput::InRunningMode => self.running_mode = true,
+                UserInput::InWalkingMode => self.running_mode = false,
             }
         }
 
         // Update player velocity and limit its maximum speed
+        let player_velocity_limit = if self.running_mode {
+            RUNNING_PLAYER_VELOCITY_LIMIT
+        } else {
+            DEFAULT_PLAYER_VELOCITY_LIMIT
+        };
         self.state.player_display.velocity += player_acceleration;
-        if self.state.player_display.velocity.length() > 2. {
+        if self.state.player_display.velocity.length() > player_velocity_limit {
             self.state.player_display.velocity =
-                self.state.player_display.velocity.normalize() * 2.;
+                self.state.player_display.velocity.normalize() * player_velocity_limit;
         }
 
         // Update player position according to its velocity
@@ -92,13 +104,13 @@ impl ZoneEngine {
 
         // Update player running animation
         if self.state.player_display.velocity.length() > 0.05 {
-            player_running = if player_acceleration.y < -0.05 {
+            player_running = if self.state.player_display.velocity.y < -0.05 {
                 Some(PlayerRunning::Top)
-            } else if player_acceleration.y > 0.05 {
+            } else if self.state.player_display.velocity.y > 0.05 {
                 Some(PlayerRunning::Down)
-            } else if player_acceleration.x > 0.05 {
+            } else if self.state.player_display.velocity.x > 0.05 {
                 Some(PlayerRunning::Right)
-            } else if player_acceleration.x < -0.05 {
+            } else if self.state.player_display.velocity.x < -0.05 {
                 Some(PlayerRunning::Left)
             } else {
                 None
@@ -128,6 +140,12 @@ impl ZoneEngine {
         if is_key_down(KeyCode::Right) {
             self.user_inputs
                 .push(UserInput::MovePlayerBy(Vec2::new(1., 0.)));
+        }
+        if is_key_down(KeyCode::LeftShift) || is_key_down(KeyCode::RightShift) {
+            self.user_inputs.push(UserInput::InRunningMode);
+        }
+        if is_key_released(KeyCode::LeftShift) || is_key_released(KeyCode::RightShift) {
+            self.user_inputs.push(UserInput::InWalkingMode);
         }
 
         // Keyboard inputs with repetition limitation
@@ -181,13 +199,23 @@ impl ZoneEngine {
     }
 
     pub fn draw_buttons(&mut self) {
-        if gui::button::draw_zoom_button(&self.graphics) {
+        let zoom_in = self.zoom_mode == ZoomMode::Double;
+        if gui::button::draw_zoom_button(&self.graphics, zoom_in) {
             if util::mouse_clicked() {
                 match self.zoom_mode {
                     ZoomMode::Normal => self.user_inputs.push(UserInput::ZoomIn),
                     ZoomMode::Large => self.user_inputs.push(UserInput::ZoomIn),
                     ZoomMode::Double => self.user_inputs.push(UserInput::ZoomOut),
                 }
+                self.disable_all_user_input_until = get_time() + 0.25;
+            }
+
+            self.disable_all_user_input = true;
+        }
+
+        if gui::button::draw_run_button(&self.graphics, self.running_mode) {
+            if util::mouse_clicked() {
+                self.user_inputs.push(UserInput::SwitchRunningMode);
                 self.disable_all_user_input_until = get_time() + 0.25;
             }
 
@@ -237,8 +265,12 @@ pub enum UserInput {
     MovePlayerBy(Vec2),
     ZoomIn,
     ZoomOut,
+    SwitchRunningMode,
+    InRunningMode,
+    InWalkingMode,
 }
 
+#[derive(PartialEq)]
 pub enum ZoomMode {
     Normal,
     Double,
