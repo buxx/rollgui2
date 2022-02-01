@@ -1,5 +1,4 @@
-use ehttp;
-use poll_promise::Promise;
+use quad_net::http_request::{Request, RequestBuilder};
 
 use crate::message;
 
@@ -10,32 +9,31 @@ pub mod ui;
 
 pub struct RootScene {
     state: state::RootState,
-    do_login_promise: Option<Promise<ehttp::Result<ehttp::Response>>>,
+    do_login_request: Option<Request>,
 }
 
 impl RootScene {
     pub fn new() -> Self {
         Self {
             state: state::RootState::new("bux", ""),
-            do_login_promise: None,
+            do_login_request: None,
         }
     }
 
-    fn manage_do_login_promise(&mut self) -> bool {
-        if let Some(promise) = &self.do_login_promise {
-            if let Some(result) = promise.ready() {
-                match result {
-                    Ok(resource) => {
+    fn manage_do_login(&mut self) -> bool {
+        if let Some(do_login_request) = self.do_login_request.as_mut() {
+            if let Some(data) = do_login_request.try_recv() {
+                match data {
+                    Ok(_data) => {
                         println!("OK!");
+                        self.state.error_message = None
                     }
-                    Err(error) => {
-                        self.state.error_message = Some(format!("Erreur : {}", error));
-                    }
-                };
-                self.do_login_promise = None;
-            } else {
-                return true;
+                    Err(error) => self.state.error_message = Some(format!("Error : {}", error)),
+                }
+
+                self.do_login_request = None;
             }
+            return true;
         }
 
         return false;
@@ -44,7 +42,7 @@ impl RootScene {
 
 impl Engine for RootScene {
     fn run(&mut self) -> Option<message::MainMessage> {
-        let loading = self.manage_do_login_promise();
+        let loading = self.manage_do_login();
 
         if let Some(event) = ui::ui(&mut self.state, loading) {
             match event {
@@ -55,10 +53,7 @@ impl Engine for RootScene {
                     return Some(message::MainMessage::SetZoneEngine);
                 }
                 ui::RootUiEvent::DoLogin => {
-                    let (sender, promise) = Promise::new();
-                    let request = ehttp::Request::get("https://bux.fr");
-                    ehttp::fetch(request, move |response| sender.send(response));
-                    self.do_login_promise = Some(promise);
+                    self.do_login_request = Some(RequestBuilder::new("http://bux.fr").send());
                 }
             }
         }
