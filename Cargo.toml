@@ -8,9 +8,11 @@ opt-level = 3
 
 [dependencies]
 macroquad = "0.3"
-egui = "0.15"
-egui-macroquad = "0.7"
+egui = "0.16.1"
+egui-macroquad = "0.8.0"
+ehttp = "0.2.0"
 structopt = "0.3.21"
 serde = {version="1.0.104", features = ["derive"]}
 serde_derive = "1.0.104"
 serde_json = "1.0.44"
+poll-promise = "0.1.0"
