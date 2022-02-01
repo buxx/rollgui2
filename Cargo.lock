@@ -1103,6 +1103,7 @@ dependencies = [
 name = "rollgui2"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "egui",
  "egui-macroquad",
  "macroquad",
@@ -1111,6 +1112,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "structopt",
+ "ureq",
 ]
 
 [[package]]

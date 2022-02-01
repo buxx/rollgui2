@@ -5,6 +5,7 @@
         "egui",
         "ehttp",
         "macroquad",
-        "tileset"
+        "tileset",
+        "ureq"
     ]
 }

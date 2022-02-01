@@ -1,6 +1,5 @@
-use quad_net::http_request::{Request, RequestBuilder};
-
-use crate::message;
+use crate::{client, message};
+use quad_net::http_request::{HttpError, Request, RequestBuilder};
 
 use super::Engine;
 
@@ -24,9 +23,18 @@ impl RootScene {
         if let Some(do_login_request) = self.do_login_request.as_mut() {
             if let Some(data) = do_login_request.try_recv() {
                 match data {
-                    Ok(_data) => {
-                        println!("OK!");
+                    Ok(data) => {
+                        println!("OK! {}", data);
                         self.state.error_message = None
+                    }
+                    Err(HttpError::UreqError(ureq::Error::Status(status_code, _))) => {
+                        if status_code == 401 {
+                            self.state.error_message =
+                                Some("Erreur d'authentification".to_string());
+                        } else {
+                            // TODO : error line print
+                            self.state.error_message = Some("Erreur serveur !".to_string())
+                        }
                     }
                     Err(error) => self.state.error_message = Some(format!("Error : {}", error)),
                 }
@@ -53,7 +61,11 @@ impl Engine for RootScene {
                     return Some(message::MainMessage::SetZoneEngine);
                 }
                 ui::RootUiEvent::DoLogin => {
-                    self.do_login_request = Some(RequestBuilder::new("http://bux.fr").send());
+                    let request = client::Client::get_current_character_id_request(
+                        &self.state.login,
+                        &self.state.password,
+                    );
+                    self.do_login_request = Some(request);
                 }
             }
         }
