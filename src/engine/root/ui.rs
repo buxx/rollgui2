@@ -1,13 +1,7 @@
 use crate::engine::root::state;
 use egui;
 
-pub enum RootUiEvent {
-    QuitGame,
-    OpenZone,
-    DoLogin,
-}
-
-pub fn ui(state: &mut state::RootState, loading: bool) -> Option<RootUiEvent> {
+pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
     let mut event = None;
 
     egui_macroquad::ui(|egui_ctx| {
@@ -19,7 +13,7 @@ pub fn ui(state: &mut state::RootState, loading: bool) -> Option<RootUiEvent> {
         }
 
         egui::CentralPanel::default().show(&egui_ctx, |ui| {
-            if loading {
+            if state.loading {
                 ui.colored_label(egui::Color32::LIGHT_GRAY, "Chargement ...");
             } else {
                 if let Some(error_message) = &state.error_message {
@@ -41,7 +35,7 @@ pub fn ui(state: &mut state::RootState, loading: bool) -> Option<RootUiEvent> {
 
             ui.horizontal(|ui| {
                 if ui.button("Se connecter").clicked() {
-                    event = Some(RootUiEvent::DoLogin);
+                    event = Some(super::RootEvent::DoLogin);
                 }
                 if ui.button("Mot de passe perdu").clicked() {
                     // take some action here

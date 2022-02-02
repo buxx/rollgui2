@@ -3,6 +3,7 @@ pub struct RootState {
     pub login: String,
     pub password: String,
     pub error_message: Option<String>,
+    pub loading: bool,
 }
 
 impl RootState {
@@ -12,6 +13,7 @@ impl RootState {
             login: login.to_string(),
             password: password.to_string(),
             error_message: None,
+            loading: false,
         }
     }
 }
