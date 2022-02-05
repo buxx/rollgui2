@@ -18,7 +18,6 @@ impl ZoneState {
         map: zone::map::ZoneMap,
         characters: Vec<entity::character::Character>,
         player: entity::character::Character,
-        player_display: PlayerDisplay,
         stuffs: Vec<entity::stuff::Stuff>,
         resources: Vec<entity::resource::Resource>,
         builds: Vec<entity::build::Build>,
@@ -32,6 +31,9 @@ impl ZoneState {
         for stuff in stuffs {
             stuffs_.insert(stuff.id.clone(), stuff);
         }
+
+        // FIXME
+        let player_display = PlayerDisplay::default();
 
         Self {
             map,

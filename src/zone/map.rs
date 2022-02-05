@@ -1,5 +1,6 @@
 use super::ZoneMapTiles;
 
+#[derive(Clone)]
 pub struct ZoneMap {
     pub tiles: ZoneMapTiles,
     pub background_tile_id: String,

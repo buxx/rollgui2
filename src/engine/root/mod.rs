@@ -1,5 +1,4 @@
 use crate::{client, engine::root::util::auth_failed, message};
-use macroquad::prelude::*;
 use quad_net::http_request::Request;
 
 use super::Engine;
@@ -16,7 +15,7 @@ pub struct RootScene {
 impl RootScene {
     pub fn new() -> Self {
         Self {
-            state: state::RootState::new("bux", ""),
+            state: state::RootState::new("", ""),
             do_login_request: None,
         }
     }
@@ -26,12 +25,24 @@ impl RootScene {
 
         if let Some(do_login_request) = self.do_login_request.as_mut() {
             if let Some(data) = do_login_request.try_recv() {
-                match auth_failed(data) {
+                match auth_failed(&data) {
                     Ok(auth_failed_) => {
                         if auth_failed_ {
                             self.state.error_message = Some("Authentification échoué".to_string());
                         } else {
-                            events.push(RootEvent::OpenZone);
+                            let character_id = &data.unwrap_or("".to_string());
+                            if character_id == "" {
+                                events.push(RootEvent::GoToCreateCharacter(
+                                    self.state.login.clone(),
+                                    self.state.password.clone(),
+                                ));
+                            } else {
+                                events.push(RootEvent::GoToZone(
+                                    self.state.login.clone(),
+                                    self.state.password.clone(),
+                                    character_id.clone(),
+                                ));
+                            }
                         }
                     }
                     Err(error) => {
@@ -49,7 +60,8 @@ impl RootScene {
 }
 
 impl Engine for RootScene {
-    fn run(&mut self) -> Option<message::MainMessage> {
+    fn run(&mut self) -> Vec<message::MainMessage> {
+        let mut messages = vec![];
         let mut events = vec![];
 
         events.extend(self.manage_do_login());
@@ -58,10 +70,19 @@ impl Engine for RootScene {
         for event in events {
             match event {
                 RootEvent::QuitGame => {
-                    return Some(message::MainMessage::Quit);
+                    messages.push(message::MainMessage::Quit);
                 }
-                RootEvent::OpenZone => {
-                    return Some(message::MainMessage::SetZoneEngine);
+                RootEvent::GoToZone(login, password, character_id) => {
+                    messages.push(message::MainMessage::SetLoadZoneEngine(
+                        login,
+                        password,
+                        character_id,
+                    ));
+                }
+                RootEvent::GoToCreateCharacter(login, password) => {
+                    messages.push(message::MainMessage::SetCreateCharacterEngine(
+                        login, password,
+                    ));
                 }
                 RootEvent::DoLogin => {
                     let request = client::Client::get_current_character_id_request(
@@ -75,12 +96,13 @@ impl Engine for RootScene {
         }
 
         self.state.first_frame = false;
-        None
+        messages
     }
 }
 
 pub enum RootEvent {
     QuitGame,
-    OpenZone,
+    GoToCreateCharacter(String, String),
+    GoToZone(String, String, String),
     DoLogin,
 }

@@ -1,6 +1,10 @@
+use crate::engine;
+
 pub enum MainMessage {
     Quit,
     SetRootEngine,
-    SetZoneEngine,
-    // ReplaceSceneWith(Box<dyn engine::Engine>),
+    SetLoadZoneEngine(String, String, String),
+    SetCreateCharacterEngine(String, String),
+    SetErrorEngine(String),
+    SetEngine(Box<dyn engine::Engine>),
 }

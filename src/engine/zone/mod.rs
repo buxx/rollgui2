@@ -225,7 +225,9 @@ impl ZoneEngine {
 }
 
 impl Engine for ZoneEngine {
-    fn run(&mut self) -> Option<message::MainMessage> {
+    fn run(&mut self) -> Vec<message::MainMessage> {
+        let mut messages = vec![];
+
         self.update_tick_i();
 
         self.user_inputs();
@@ -245,12 +247,12 @@ impl Engine for ZoneEngine {
         if let Some(event) = ui::ui(&self.state) {
             match event {
                 ui::ZoneUiEvent::ReturnToRoot => {
-                    return Some(message::MainMessage::SetRootEngine);
+                    messages.push(message::MainMessage::SetRootEngine);
                 }
             }
         }
 
-        None
+        messages
     }
 }
 

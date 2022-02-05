@@ -1,24 +1,24 @@
 use quad_net::http_request::HttpError;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn auth_failed(result: Result<String, HttpError>) -> Result<bool, HttpError> {
+pub fn auth_failed(result: &Result<String, HttpError>) -> Result<bool, String> {
     match result {
-        Ok(data) => Ok(false),
+        Ok(_) => Ok(false),
         Err(error) => match error {
             HttpError::UreqError(ureq::Error::Status(status_code, _)) => {
-                if status_code == 401 {
+                if *status_code == 401 {
                     Ok(true)
                 } else {
                     Ok(false)
                 }
             }
-            _ => Err(error),
+            _ => Err(format!("{}", error)),
         },
     }
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn auth_failed(result: Result<String, HttpError>) -> Result<bool, HttpError> {
+pub fn auth_failed(result: &Result<String, HttpError>) -> Result<bool, String> {
     match result {
         Ok(data) => {
             if data == "__AUTH_REQUIRED__" {
@@ -27,6 +27,6 @@ pub fn auth_failed(result: Result<String, HttpError>) -> Result<bool, HttpError>
                 Ok(false)
             }
         }
-        Err(error) => Err(error),
+        Err(error) => Err(format!("{}", error)),
     }
 }
