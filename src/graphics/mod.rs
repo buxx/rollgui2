@@ -25,6 +25,15 @@ impl Graphics {
         }
     }
 
+    pub fn find_tile_id_from_classes(&self, classes: &Vec<String>) -> String {
+        for class in classes.iter().rev() {
+            if self.tiles_mapping.contains_key(class) {
+                return class.clone();
+            }
+        }
+        return "UNKNOWN".to_string();
+    }
+
     pub fn draw_tile_in_camera(
         &self,
         area_width: f32,

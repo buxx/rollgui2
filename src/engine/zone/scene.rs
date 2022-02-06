@@ -52,6 +52,63 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
         );
     }
 
+    // TODO : draw only visible tiles
+    // Draw resource tiles
+    for resource in &state.resources {
+        let dest_x = resource.zone_col_i as f32 * graphics.tile_width;
+        let dest_y = resource.zone_row_i as f32 * graphics.tile_height;
+
+        graphics.draw_tile_in_camera(
+            map.concrete_width,
+            map.concrete_height,
+            dest_x,
+            dest_y,
+            &resource.id,
+            None,
+            tick_i,
+            None,
+            None,
+        );
+    }
+
+    // TODO : draw only visible tiles
+    // Draw stuff tiles
+    for (_, stuff) in &state.stuffs {
+        let dest_x = stuff.zone_col_i as f32 * graphics.tile_width;
+        let dest_y = stuff.zone_row_i as f32 * graphics.tile_height;
+
+        // TODO : optimize by compute each stuff_id / tile_id a zone creation
+        let tile_id = graphics.find_tile_id_from_classes(&stuff.classes);
+        graphics.draw_tile_in_camera(
+            map.concrete_width,
+            map.concrete_height,
+            dest_x,
+            dest_y,
+            &tile_id,
+            None,
+            tick_i,
+            None,
+            None,
+        );
+    }
+
+    for character in &state.characters {
+        let dest_x = character.zone_col_i as f32 * graphics.tile_width;
+        let dest_y = character.zone_row_i as f32 * graphics.tile_height;
+
+        graphics.draw_tile_in_camera(
+            map.concrete_width,
+            map.concrete_height,
+            dest_x,
+            dest_y,
+            "CHARACTER",
+            None,
+            tick_i,
+            None,
+            None,
+        );
+    }
+
     // Draw player
     let character_tile_id = match state.player_display.running {
         Some(super::PlayerRunning::Top) => "CHARACTER_RUNNING_TOP",
