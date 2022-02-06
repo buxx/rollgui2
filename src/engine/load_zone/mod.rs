@@ -352,9 +352,14 @@ impl Engine for LoadZoneEngine {
                 resources.clone(),
                 builds.clone(),
             );
-            messages.push(message::MainMessage::SetEngine(Box::new(
-                super::zone::ZoneEngine::new(self.graphics.clone(), state),
-            )));
+            match super::zone::ZoneEngine::new(self.graphics.clone(), state) {
+                Ok(engine) => {
+                    messages.push(message::MainMessage::SetEngine(Box::new(engine)));
+                }
+                Err(error) => {
+                    messages.push(message::MainMessage::SetErrorEngine(error));
+                }
+            };
         }
 
         egui_macroquad::ui(|egui_ctx| {

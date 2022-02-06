@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
+use quad_net::quad_socket::client::QuadSocket;
 
-use crate::{config, graphics, message, util};
+use crate::{config, graphics, message, util, SERVER_ADDRESS};
 
 use super::Engine;
 use crate::gui;
@@ -18,6 +19,7 @@ const LEFT_PANEL_WIDTH: i32 = 250;
 pub struct ZoneEngine {
     pub graphics: graphics::Graphics,
     pub state: state::ZoneState,
+    pub socket: Option<QuadSocket>,
     pub tick_last: f64,
     pub tick_i: i16,
     pub zoom_mode: ZoomMode,
@@ -29,10 +31,11 @@ pub struct ZoneEngine {
 }
 
 impl ZoneEngine {
-    pub fn new(graphics: graphics::Graphics, state: state::ZoneState) -> Self {
-        Self {
+    pub fn new(graphics: graphics::Graphics, state: state::ZoneState) -> Result<Self, String> {
+        Ok(Self {
             graphics,
             state,
+            socket: None,
             tick_last: get_time(),
             tick_i: 0,
             zoom_mode: ZoomMode::Normal,
@@ -41,7 +44,7 @@ impl ZoneEngine {
             disable_all_user_input: false,
             user_inputs: vec![],
             running_mode: false,
-        }
+        })
     }
 
     fn update_tick_i(&mut self) {
@@ -225,6 +228,43 @@ impl ZoneEngine {
 }
 
 impl Engine for ZoneEngine {
+    fn init(&mut self) -> Vec<message::MainMessage> {
+        let ws_url = format!(
+            "{}/ws/zones/{}/{}/events?character_id={}",
+            SERVER_ADDRESS
+                .replace("http://", "")
+                .replace("https://", ""),
+            self.state.player.world_row_i,
+            self.state.player.world_col_i,
+            self.state.player.id,
+        );
+        info!("Connect web socket at {}", ws_url);
+        #[cfg(not(target_arch = "wasm32"))]
+        let mut socket = match QuadSocket::connect(&ws_url) {
+            Ok(socket_) => socket_,
+            Err(error) => {
+                return vec![message::MainMessage::SetErrorEngine(format!("{:?}", error))]
+            }
+        };
+        #[cfg(target_arch = "wasm32")]
+        let mut socket = match QuadSocket::connect(format!("ws://{}", &ws_url)) {
+            Ok(socket_) => socket_,
+            Err(error) => {
+                return vec![message::MainMessage::SetErrorEngine(format!("{:?}", error))]
+            }
+        };
+
+        // #[cfg(target_arch = "wasm32")]
+        // {
+        //     while socket.is_wasm_websocket_connected() == false {
+        //         next_frame().await;
+        //     }
+        // }
+
+        self.socket = Some(socket);
+        vec![]
+    }
+
     fn tick(&mut self) -> Vec<message::MainMessage> {
         let mut messages = vec![];
 
