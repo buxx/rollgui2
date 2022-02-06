@@ -225,7 +225,7 @@ impl ZoneEngine {
 }
 
 impl Engine for ZoneEngine {
-    fn run(&mut self) -> Vec<message::MainMessage> {
+    fn tick(&mut self) -> Vec<message::MainMessage> {
         let mut messages = vec![];
 
         self.update_tick_i();

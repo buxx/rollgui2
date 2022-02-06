@@ -6,5 +6,5 @@ pub mod zone;
 use crate::message;
 
 pub trait Engine {
-    fn run(&mut self) -> Vec<message::MainMessage>;
+    fn tick(&mut self) -> Vec<message::MainMessage>;
 }

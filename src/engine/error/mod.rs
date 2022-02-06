@@ -13,7 +13,7 @@ impl ErrorEngine {
 }
 
 impl Engine for ErrorEngine {
-    fn run(&mut self) -> Vec<message::MainMessage> {
+    fn tick(&mut self) -> Vec<message::MainMessage> {
         egui_macroquad::ui(|egui_ctx| {
             egui::CentralPanel::default().show(&egui_ctx, |ui| {
                 ui.colored_label(egui::Color32::RED, &self.error_message);

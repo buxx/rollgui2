@@ -60,7 +60,7 @@ impl RootScene {
 }
 
 impl Engine for RootScene {
-    fn run(&mut self) -> Vec<message::MainMessage> {
+    fn tick(&mut self) -> Vec<message::MainMessage> {
         let mut messages = vec![];
         let mut events = vec![];
 

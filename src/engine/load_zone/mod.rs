@@ -311,7 +311,7 @@ impl LoadZoneEngine {
 }
 
 impl Engine for LoadZoneEngine {
-    fn run(&mut self) -> Vec<crate::message::MainMessage> {
+    fn tick(&mut self) -> Vec<crate::message::MainMessage> {
         let mut messages = vec![];
 
         messages.extend(self.make_player_request());

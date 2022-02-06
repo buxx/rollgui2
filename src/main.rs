@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         clear_background(BLACK);
-        let messages = current_scene.run();
+        let messages = current_scene.tick();
 
         for message in messages {
             match message {
