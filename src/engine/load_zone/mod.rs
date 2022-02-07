@@ -185,7 +185,6 @@ impl LoadZoneEngine {
                             return vec![message::MainMessage::SetErrorEngine(error.to_string())];
                         }
                     }
-                    self.get_zone_request = None;
                 }
             };
         }

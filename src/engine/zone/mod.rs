@@ -1,15 +1,18 @@
 use macroquad::prelude::*;
-use quad_net::quad_socket::client::QuadSocket;
+use quad_net::web_socket::WebSocket;
 
-use crate::{config, graphics, message, util, SERVER_ADDRESS};
+use crate::{config, event as base_event, graphics, message, util as base_util};
 
 use super::Engine;
 use crate::gui;
 
-pub mod builder;
+// pub mod event;
+pub mod event;
 pub mod scene;
+pub mod socket;
 pub mod state;
 pub mod ui;
+pub mod util;
 
 const DEFAULT_PLAYER_VELOCITY_DIVIDER: f32 = 2.5;
 const DEFAULT_PLAYER_VELOCITY_LIMIT: f32 = 2.0;
@@ -19,7 +22,8 @@ const LEFT_PANEL_WIDTH: i32 = 250;
 pub struct ZoneEngine {
     pub graphics: graphics::Graphics,
     pub state: state::ZoneState,
-    pub socket: Option<QuadSocket>,
+    pub socket: WebSocket,
+    pub socket_is_new: bool,
     pub tick_last: f64,
     pub tick_i: i16,
     pub zoom_mode: ZoomMode,
@@ -28,14 +32,17 @@ pub struct ZoneEngine {
     pub disable_all_user_input: bool,
     pub user_inputs: Vec<UserInput>,
     pub running_mode: bool,
+    pub quick_actions: Vec<base_event::CharacterActionLink>,
 }
 
 impl ZoneEngine {
     pub fn new(graphics: graphics::Graphics, state: state::ZoneState) -> Result<Self, String> {
+        let socket = socket::get_socket(&state)?;
         Ok(Self {
             graphics,
             state,
-            socket: None,
+            socket,
+            socket_is_new: true,
             tick_last: get_time(),
             tick_i: 0,
             zoom_mode: ZoomMode::Normal,
@@ -44,6 +51,7 @@ impl ZoneEngine {
             disable_all_user_input: false,
             user_inputs: vec![],
             running_mode: false,
+            quick_actions: vec![],
         })
     }
 
@@ -122,6 +130,17 @@ impl ZoneEngine {
         self.state.player_display.running = player_running;
     }
 
+    fn recv(&mut self) -> Vec<message::MainMessage> {
+        while let Some(data) = self.socket.try_recv() {
+            match base_event::ZoneEvent::from_u8(data) {
+                Ok(event) => self.event(event),
+                Err(error) => return vec![message::MainMessage::SetErrorEngine(error)],
+            }
+        }
+
+        vec![]
+    }
+
     fn user_inputs(&mut self) {
         if self.disable_all_user_input_until > get_time() || self.disable_all_user_input {
             return;
@@ -166,7 +185,7 @@ impl ZoneEngine {
         // Mouse inputs
         if is_mouse_button_down(MouseButton::Left) {
             let (pixels_x, pixels_y) = mouse_position();
-            let position_local = util::convert_to_local(Vec2::new(pixels_x, pixels_y));
+            let position_local = base_util::convert_to_local(Vec2::new(pixels_x, pixels_y));
             self.user_inputs
                 .push(UserInput::MovePlayerBy(position_local * 2.0));
         }
@@ -204,7 +223,7 @@ impl ZoneEngine {
     pub fn draw_buttons(&mut self) {
         let zoom_in = self.zoom_mode == ZoomMode::Double;
         if gui::button::draw_zoom_button(&self.graphics, zoom_in) {
-            if util::mouse_clicked() {
+            if base_util::mouse_clicked() {
                 match self.zoom_mode {
                     ZoomMode::Normal => self.user_inputs.push(UserInput::ZoomIn),
                     ZoomMode::Large => self.user_inputs.push(UserInput::ZoomIn),
@@ -217,7 +236,7 @@ impl ZoneEngine {
         }
 
         if gui::button::draw_run_button(&self.graphics, self.running_mode) {
-            if util::mouse_clicked() {
+            if base_util::mouse_clicked() {
                 self.user_inputs.push(UserInput::SwitchRunningMode);
                 self.disable_all_user_input_until = get_time() + 0.25;
             }
@@ -225,54 +244,37 @@ impl ZoneEngine {
             self.disable_all_user_input = true;
         }
     }
+
+    fn manage_fresh_socket(&mut self) -> bool {
+        if self.socket_is_new {
+            // Socket just connected
+            if self.socket.connected() {
+                self.socket_is_new = false;
+                self.socket
+                    .send_text(&util::require_around_event(&self.state));
+                return false;
+            }
+
+            // Indicate to do nothing while socket is not connected
+            return true;
+        }
+        return false;
+    }
 }
 
 impl Engine for ZoneEngine {
-    fn init(&mut self) -> Vec<message::MainMessage> {
-        let ws_url = format!(
-            "{}/ws/zones/{}/{}/events?character_id={}",
-            SERVER_ADDRESS
-                .replace("http://", "")
-                .replace("https://", ""),
-            self.state.player.world_row_i,
-            self.state.player.world_col_i,
-            self.state.player.id,
-        );
-        info!("Connect web socket at {}", ws_url);
-        #[cfg(not(target_arch = "wasm32"))]
-        let mut socket = match QuadSocket::connect(&ws_url) {
-            Ok(socket_) => socket_,
-            Err(error) => {
-                return vec![message::MainMessage::SetErrorEngine(format!("{:?}", error))]
-            }
-        };
-        #[cfg(target_arch = "wasm32")]
-        let mut socket = match QuadSocket::connect(format!("ws://{}", &ws_url)) {
-            Ok(socket_) => socket_,
-            Err(error) => {
-                return vec![message::MainMessage::SetErrorEngine(format!("{:?}", error))]
-            }
-        };
-
-        // #[cfg(target_arch = "wasm32")]
-        // {
-        //     while socket.is_wasm_websocket_connected() == false {
-        //         next_frame().await;
-        //     }
-        // }
-
-        self.socket = Some(socket);
-        vec![]
-    }
-
     fn tick(&mut self) -> Vec<message::MainMessage> {
+        // wasm web socket connection must be awaited
+        if self.manage_fresh_socket() {
+            return vec![];
+        }
+
         let mut messages = vec![];
 
         self.update_tick_i();
-
         self.user_inputs();
         self.update();
-
+        messages.extend(self.recv());
         self.camera();
 
         // Game
