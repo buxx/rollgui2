@@ -344,6 +344,7 @@ impl Engine for LoadZoneEngine {
             self.builds.as_mut(),
         ) {
             let state = super::zone::state::ZoneState::new(
+                &self.graphics,
                 map.clone(),
                 characters.clone(),
                 player.clone(),

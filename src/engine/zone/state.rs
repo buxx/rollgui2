@@ -15,6 +15,7 @@ pub struct ZoneState {
 
 impl ZoneState {
     pub fn new(
+        graphics: &crate::graphics::Graphics,
         map: zone::map::ZoneMap,
         characters: Vec<entity::character::Character>,
         player: entity::character::Character,
@@ -32,8 +33,13 @@ impl ZoneState {
             stuffs_.insert(stuff.id.clone(), stuff);
         }
 
-        // FIXME
-        let player_display = CharacterDisplay::default();
+        let player_display = CharacterDisplay {
+            position: Vec2::new(
+                player.zone_col_i as f32 * graphics.tile_width,
+                player.zone_row_i as f32 * graphics.tile_height,
+            ),
+            ..Default::default()
+        };
 
         Self {
             map,
