@@ -7,7 +7,7 @@ pub struct ZoneState {
     pub map: zone::map::ZoneMap,
     pub characters: Vec<entity::character::Character>,
     pub player: entity::character::Character,
-    pub player_display: PlayerDisplay,
+    pub player_display: CharacterDisplay,
     pub stuffs: HashMap<i32, entity::stuff::Stuff>,
     pub resources: Vec<entity::resource::Resource>,
     pub builds: HashMap<i32, entity::build::Build>,
@@ -33,7 +33,7 @@ impl ZoneState {
         }
 
         // FIXME
-        let player_display = PlayerDisplay::default();
+        let player_display = CharacterDisplay::default();
 
         Self {
             map,
@@ -47,13 +47,13 @@ impl ZoneState {
     }
 }
 
-pub struct PlayerDisplay {
+pub struct CharacterDisplay {
     pub position: Vec2,
     pub velocity: Vec2,
     pub running: Option<super::PlayerRunning>,
 }
 
-impl Default for PlayerDisplay {
+impl Default for CharacterDisplay {
     fn default() -> Self {
         Self {
             position: Vec2::new(0., 0.),
