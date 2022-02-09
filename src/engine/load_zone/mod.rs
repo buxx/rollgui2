@@ -352,7 +352,7 @@ impl Engine for LoadZoneEngine {
                 resources.clone(),
                 builds.clone(),
             );
-            match super::zone::ZoneEngine::new(self.graphics.clone(), state) {
+            match super::zone::ZoneEngine::new(self.client.clone(), self.graphics.clone(), state) {
                 Ok(engine) => {
                     messages.push(message::MainMessage::SetEngine(Box::new(engine)));
                 }

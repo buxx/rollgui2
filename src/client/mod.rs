@@ -1,8 +1,9 @@
 use macroquad::prelude::*;
-use quad_net::http_request::{Request, RequestBuilder};
+use quad_net::http_request::{Method, Request, RequestBuilder};
 
 use crate::SERVER_ADDRESS;
 
+#[derive(Clone)]
 pub struct Client {
     login: String,
     password: String,
@@ -95,6 +96,24 @@ impl Client {
 
         RequestBuilder::new(&url)
             .header("Authorization", &self.basic_auth_value())
+            .send()
+    }
+
+    pub fn get_quick_action_request(
+        &self,
+        post_url: &str,
+        zone_row_i: i32,
+        zone_col_i: i32,
+    ) -> Request {
+        let url = format!(
+            "{}{}&zone_row_i={}&zone_col_i={}",
+            SERVER_ADDRESS, post_url, zone_row_i, zone_col_i,
+        );
+        info!("Post quick action with {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Post)
             .send()
     }
 }

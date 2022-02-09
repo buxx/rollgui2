@@ -1,12 +1,16 @@
 use macroquad::prelude::*;
 use quad_net::web_socket::WebSocket;
 
-use crate::{action, config, event as base_event, graphics, message, util as base_util};
+use crate::{
+    action as base_action, client, config, event as base_event, graphics, message,
+    util as base_util,
+};
 
 use super::Engine;
 use crate::gui;
 
 // pub mod event;
+pub mod action;
 pub mod event;
 pub mod scene;
 pub mod socket;
@@ -21,6 +25,7 @@ const LEFT_PANEL_WIDTH: i32 = 250;
 const QUICK_ACTION_MARGIN: f32 = 10.;
 
 pub struct ZoneEngine {
+    pub client: client::Client,
     pub graphics: graphics::Graphics,
     pub state: state::ZoneState,
     pub socket: WebSocket,
@@ -34,17 +39,23 @@ pub struct ZoneEngine {
     pub user_inputs: Vec<UserInput>,
     pub running_mode: bool,
     pub last_require_around_coordinate: (i32, i32),
-    pub quick_actions: Vec<action::quick::QuickAction>,
+    pub quick_actions: Vec<base_action::quick::QuickAction>,
     pub selected_quick_action: Option<usize>,
-    pub current_action: Option<action::Action>,
+    pub current_action: Option<base_action::Action>,
     pub pending_exploitable_tiles: Vec<usize>,
     pub mouse_zone_position: Vec2,
+    pub quick_action_requests: Vec<quad_net::http_request::Request>,
 }
 
 impl ZoneEngine {
-    pub fn new(graphics: graphics::Graphics, state: state::ZoneState) -> Result<Self, String> {
+    pub fn new(
+        client: client::Client,
+        graphics: graphics::Graphics,
+        state: state::ZoneState,
+    ) -> Result<Self, String> {
         let socket = socket::get_socket(&state)?;
         Ok(Self {
+            client,
             graphics,
             state,
             socket,
@@ -63,6 +74,7 @@ impl ZoneEngine {
             current_action: None,
             pending_exploitable_tiles: vec![],
             mouse_zone_position: Vec2::new(0., 0.),
+            quick_action_requests: vec![],
         })
     }
 
@@ -170,7 +182,7 @@ impl ZoneEngine {
         }
     }
 
-    fn recv(&mut self) -> Vec<message::MainMessage> {
+    fn recv_events(&mut self) -> Vec<message::MainMessage> {
         while let Some(data) = self.socket.try_recv() {
             match base_event::ZoneEvent::from_u8(data) {
                 Ok(event) => self.event(event),
@@ -179,6 +191,30 @@ impl ZoneEngine {
         }
 
         vec![]
+    }
+
+    fn proceed_quick_action_requests(&mut self) {
+        let mut requests_to_removes: Vec<&quad_net::http_request::Request> = vec![];
+
+        for (i, request) in self.quick_action_requests.iter_mut().enumerate() {
+            if let Some(data) = request.try_recv() {
+                match data {
+                    Ok(description) => {
+                        info!("Quick action response : {:?}", description);
+                    }
+                    Err(error) => {
+                        info!("Quick action response ERROR : {}", error);
+                    }
+                }
+                requests_to_removes.push(request);
+            }
+        }
+
+        // FIXME BS NOW : find solution to remove requests
+        // for request_to_remove in requests_to_removes {
+        //     self.quick_action_requests
+        //         .retain(|r| !std::ptr::eq(r, request_to_remove));
+        // }
     }
 
     fn user_inputs(&mut self) {
@@ -270,85 +306,6 @@ impl ZoneEngine {
         gui::panel::draw_panel_background(&self.graphics);
     }
 
-    fn draw_quick_actions(&mut self, action_clicked: bool) {
-        let start_draw_x = LEFT_PANEL_WIDTH as f32 + QUICK_ACTION_MARGIN;
-        let start_draw_y = screen_height() - gui::quick::BUTTON_HEIGHT - QUICK_ACTION_MARGIN;
-        let mut quick_action_just_clicked = false;
-
-        for (i, quick_action) in self.quick_actions.iter().enumerate() {
-            let decal = i as f32 * (gui::quick::BUTTON_WIDTH + QUICK_ACTION_MARGIN);
-            let draw_x = start_draw_x + decal;
-            let draw_y = start_draw_y;
-            // TODO : optimize ?
-            let tile_id = self
-                .graphics
-                .find_tile_id_from_classes(&quick_action.classes);
-
-            let active = if let Some(selected_quick_action) = self.selected_quick_action {
-                selected_quick_action == i
-            } else {
-                false
-            };
-
-            if gui::quick::draw_quick_action_button(
-                &self.graphics,
-                active,
-                &tile_id,
-                draw_x,
-                draw_y,
-                self.tick_i,
-            ) {
-                if base_util::mouse_clicked() {
-                    self.current_action = Some(action::Action::from_quick_action(&quick_action));
-                    self.selected_quick_action = Some(i);
-                    self.pending_exploitable_tiles = vec![];
-                    quick_action_just_clicked = true;
-                }
-                self.disable_all_user_input = true;
-            }
-        }
-
-        if base_util::mouse_clicked() && !quick_action_just_clicked && !action_clicked {
-            self.selected_quick_action = None;
-            self.current_action = None;
-            self.pending_exploitable_tiles = vec![];
-        }
-    }
-
-    fn draw_current_action(&mut self) -> bool {
-        let mut exploitable_tile_clicked: Option<usize> = None;
-
-        if let Some(current_action) = &self.current_action {
-            for (i, exploitable_tile) in current_action.exploitable_tiles.iter().enumerate() {
-                let exploitable_tile_blinking = self.pending_exploitable_tiles.contains(&i);
-                if gui::action::draw_action_tile_in_camera(
-                    &self.graphics,
-                    &self.state,
-                    exploitable_tile,
-                    self.tick_i,
-                    self.mouse_zone_position,
-                    exploitable_tile_blinking,
-                ) {
-                    if base_util::mouse_clicked() {
-                        exploitable_tile_clicked = Some(i);
-                        info!("Action tile clicked");
-                    }
-                }
-            }
-
-            if let Some(exploitable_tile_clicked_) = exploitable_tile_clicked {
-                if current_action.all_tiles_at_once {
-                    self.pending_exploitable_tiles =
-                        (0..current_action.exploitable_tiles.len()).collect();
-                } else {
-                    self.pending_exploitable_tiles = vec![exploitable_tile_clicked_];
-                }
-            }
-        }
-
-        exploitable_tile_clicked.is_some()
-    }
-
     pub fn draw_buttons(&mut self) {
         let zoom_in = self.zoom_mode == ZoomMode::Double;
         if gui::button::draw_zoom_button(&self.graphics, zoom_in) {
@@ -405,7 +362,8 @@ impl Engine for ZoneEngine {
         self.update_tick_i();
         self.user_inputs();
         self.update();
-        messages.extend(self.recv());
+        self.proceed_quick_action_requests();
+        messages.extend(self.recv_events());
         self.camera();
 
         // Game
