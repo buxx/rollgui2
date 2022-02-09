@@ -7,6 +7,7 @@ pub fn draw_action_tile_in_camera(
     exploitable_tile: &action::ExploitableTile,
     tick_i: i16,
     mouse_zone_position: Vec2,
+    exploitable_tile_blinking: bool,
 ) -> bool {
     let map = &state.map;
 
@@ -39,19 +40,22 @@ pub fn draw_action_tile_in_camera(
         None,
     );
 
-    // Draw the exploitable tile class
-    let exploitable_tile_id = graphics.find_tile_id_from_classes(&exploitable_tile.classes);
-    graphics.draw_tile_in_camera(
-        map.concrete_width,
-        map.concrete_height,
-        dest_x,
-        dest_y,
-        &exploitable_tile_id,
-        None,
-        0,
-        None,
-        None,
-    );
+    // Draw the exploitable tile class if is not blinking
+    let draw_tile = !exploitable_tile_blinking || (exploitable_tile_blinking && tick_i % 2 == 0);
+    if draw_tile {
+        let exploitable_tile_id = graphics.find_tile_id_from_classes(&exploitable_tile.classes);
+        graphics.draw_tile_in_camera(
+            map.concrete_width,
+            map.concrete_height,
+            dest_x,
+            dest_y,
+            &exploitable_tile_id,
+            None,
+            0,
+            None,
+            None,
+        );
+    }
 
     mouse_hover
 }

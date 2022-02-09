@@ -37,6 +37,7 @@ pub struct ZoneEngine {
     pub quick_actions: Vec<action::quick::QuickAction>,
     pub selected_quick_action: Option<usize>,
     pub current_action: Option<action::Action>,
+    pub pending_exploitable_tiles: Vec<usize>,
     pub mouse_zone_position: Vec2,
 }
 
@@ -60,6 +61,7 @@ impl ZoneEngine {
             quick_actions: vec![],
             selected_quick_action: None,
             current_action: None,
+            pending_exploitable_tiles: vec![],
             mouse_zone_position: Vec2::new(0., 0.),
         })
     }
@@ -299,6 +301,7 @@ impl ZoneEngine {
                 if base_util::mouse_clicked() {
                     self.current_action = Some(action::Action::from_quick_action(&quick_action));
                     self.selected_quick_action = Some(i);
+                    self.pending_exploitable_tiles = vec![];
                     quick_action_just_clicked = true;
                 }
                 self.disable_all_user_input = true;
@@ -308,30 +311,42 @@ impl ZoneEngine {
         if base_util::mouse_clicked() && !quick_action_just_clicked && !action_clicked {
             self.selected_quick_action = None;
             self.current_action = None;
+            self.pending_exploitable_tiles = vec![];
         }
     }
 
     fn draw_current_action(&mut self) -> bool {
-        let mut action_just_clicked = false;
+        let mut exploitable_tile_clicked: Option<usize> = None;
 
         if let Some(current_action) = &self.current_action {
-            for exploitable_tile in &current_action.exploitable_tiles {
+            for (i, exploitable_tile) in current_action.exploitable_tiles.iter().enumerate() {
+                let exploitable_tile_blinking = self.pending_exploitable_tiles.contains(&i);
                 if gui::action::draw_action_tile_in_camera(
                     &self.graphics,
                     &self.state,
                     exploitable_tile,
                     self.tick_i,
                     self.mouse_zone_position,
+                    exploitable_tile_blinking,
                 ) {
                     if base_util::mouse_clicked() {
-                        action_just_clicked = true;
+                        exploitable_tile_clicked = Some(i);
                         info!("Action tile clicked");
                     }
                 }
             }
+
+            if let Some(exploitable_tile_clicked_) = exploitable_tile_clicked {
+                if current_action.all_tiles_at_once {
+                    self.pending_exploitable_tiles =
+                        (0..current_action.exploitable_tiles.len()).collect();
+                } else {
+                    self.pending_exploitable_tiles = vec![exploitable_tile_clicked_];
+                }
+            }
         }
 
-        action_just_clicked
+        exploitable_tile_clicked.is_some()
     }
 
     pub fn draw_buttons(&mut self) {
