@@ -8,6 +8,7 @@ pub const BUTTON_HEIGHT: f32 = 64.;
 
 pub fn draw_quick_action_button(
     graphics: &graphics::Graphics,
+    active: bool,
     tile_id: &str,
     draw_x: f32,
     draw_y: f32,
@@ -57,6 +58,10 @@ pub fn draw_quick_action_button(
         WHITE,
         tile_params,
     );
+
+    if active {
+        draw_rectangle_lines(draw_x, draw_y, BUTTON_WIDTH, BUTTON_HEIGHT, 2.0, BLUE);
+    }
 
     let (mouse_x, mouse_y) = mouse_position();
     mouse_x >= draw_x && mouse_x <= draw_end_x && mouse_y >= draw_y && mouse_y <= draw_end_y

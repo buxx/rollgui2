@@ -33,7 +33,9 @@ pub struct ZoneEngine {
     pub disable_all_user_input: bool,
     pub user_inputs: Vec<UserInput>,
     pub running_mode: bool,
+    pub last_require_around_coordinate: (i32, i32),
     pub quick_actions: Vec<action::quick::QuickAction>,
+    pub selected_quick_action: Option<usize>,
     pub current_action: Option<action::Action>,
     pub mouse_zone_position: Vec2,
 }
@@ -54,7 +56,9 @@ impl ZoneEngine {
             disable_all_user_input: false,
             user_inputs: vec![],
             running_mode: false,
+            last_require_around_coordinate: (0, 0),
             quick_actions: vec![],
+            selected_quick_action: None,
             current_action: None,
             mouse_zone_position: Vec2::new(0., 0.),
         })
@@ -135,11 +139,33 @@ impl ZoneEngine {
         }
 
         if was_running && player_running.is_none() {
-            let event = util::require_around_event(&self.state);
-            self.socket.send_text(&event);
+            let coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
+            if coordinates != self.last_require_around_coordinate {
+                let event = util::require_around_event(&self.state);
+                self.socket.send_text(&event);
+                self.last_require_around_coordinate = coordinates;
+            }
         }
 
         self.state.player_display.running = player_running;
+
+        // Update player zone coordinates if changed
+        let half_size_width = self.graphics.tile_width / 2.;
+        let half_size_height = self.graphics.tile_height / 2.;
+        let player_center_x = self.state.player_display.position.x + half_size_width;
+        let player_center_y = self.state.player_display.position.y + half_size_height;
+
+        let current_player_row_i = (player_center_y / self.graphics.tile_height) as i32;
+        let current_player_col_i = (player_center_x / self.graphics.tile_width) as i32;
+
+        if current_player_row_i != self.state.player.zone_row_i
+            || current_player_col_i != self.state.player.zone_col_i
+        {
+            self.state.player.zone_row_i = current_player_row_i;
+            self.state.player.zone_col_i = current_player_col_i;
+            let player_move_event = util::player_move_event(&self.state);
+            self.socket.send_text(&player_move_event);
+        }
     }
 
     fn recv(&mut self) -> Vec<message::MainMessage> {
@@ -196,10 +222,13 @@ impl ZoneEngine {
 
         // Mouse inputs
         if is_mouse_button_down(MouseButton::Left) {
-            let (pixels_x, pixels_y) = mouse_position();
-            let position_local = base_util::convert_to_local(Vec2::new(pixels_x, pixels_y));
-            self.user_inputs
-                .push(UserInput::MovePlayerBy(position_local * 2.0));
+            // Avoid player move by click if currently in action
+            if self.current_action.is_none() {
+                let (pixels_x, pixels_y) = mouse_position();
+                let position_local = base_util::convert_to_local(Vec2::new(pixels_x, pixels_y));
+                self.user_inputs
+                    .push(UserInput::MovePlayerBy(position_local * 2.0));
+            }
         }
     }
 
@@ -239,9 +268,10 @@ impl ZoneEngine {
         gui::panel::draw_panel_background(&self.graphics);
     }
 
-    fn draw_quick_actions(&mut self) {
+    fn draw_quick_actions(&mut self, action_clicked: bool) {
         let start_draw_x = LEFT_PANEL_WIDTH as f32 + QUICK_ACTION_MARGIN;
         let start_draw_y = screen_height() - gui::quick::BUTTON_HEIGHT - QUICK_ACTION_MARGIN;
+        let mut quick_action_just_clicked = false;
 
         for (i, quick_action) in self.quick_actions.iter().enumerate() {
             let decal = i as f32 * (gui::quick::BUTTON_WIDTH + QUICK_ACTION_MARGIN);
@@ -252,27 +282,38 @@ impl ZoneEngine {
                 .graphics
                 .find_tile_id_from_classes(&quick_action.classes);
 
+            let active = if let Some(selected_quick_action) = self.selected_quick_action {
+                selected_quick_action == i
+            } else {
+                false
+            };
+
             if gui::quick::draw_quick_action_button(
                 &self.graphics,
+                active,
                 &tile_id,
                 draw_x,
                 draw_y,
                 self.tick_i,
             ) {
                 if base_util::mouse_clicked() {
-                    self.current_action = Some(action::Action {
-                        post_url: quick_action.base_url.clone(),
-                        cursor_class: None,
-                        exploitable_tiles: quick_action.exploitable_tiles.clone(),
-                        all_tiles_at_once: quick_action.all_tiles_at_once,
-                    });
+                    self.current_action = Some(action::Action::from_quick_action(&quick_action));
+                    self.selected_quick_action = Some(i);
+                    quick_action_just_clicked = true;
                 }
                 self.disable_all_user_input = true;
             }
         }
+
+        if base_util::mouse_clicked() && !quick_action_just_clicked && !action_clicked {
+            self.selected_quick_action = None;
+            self.current_action = None;
+        }
     }
 
-    fn draw_current_action(&mut self) {
+    fn draw_current_action(&mut self) -> bool {
+        let mut action_just_clicked = false;
+
         if let Some(current_action) = &self.current_action {
             for exploitable_tile in &current_action.exploitable_tiles {
                 if gui::action::draw_action_tile_in_camera(
@@ -282,10 +323,15 @@ impl ZoneEngine {
                     self.tick_i,
                     self.mouse_zone_position,
                 ) {
-                    info!("Action tile clicked");
+                    if base_util::mouse_clicked() {
+                        action_just_clicked = true;
+                        info!("Action tile clicked");
+                    }
                 }
             }
         }
+
+        action_just_clicked
     }
 
     pub fn draw_buttons(&mut self) {
@@ -320,6 +366,8 @@ impl ZoneEngine {
                 self.socket_is_new = false;
                 let event = util::require_around_event(&self.state);
                 self.socket.send_text(&event);
+                let new_coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
+                self.last_require_around_coordinate = new_coordinates;
                 return false;
             }
 
@@ -347,13 +395,13 @@ impl Engine for ZoneEngine {
 
         // Game
         self.scene();
-        self.draw_current_action();
+        let action_clicked = self.draw_current_action();
 
         // Ui
         set_default_camera();
         self.disable_all_user_input = false;
         self.draw_left_panel();
-        self.draw_quick_actions();
+        self.draw_quick_actions(action_clicked);
         self.draw_buttons();
         if let Some(event) = ui::ui(&self.state) {
             match event {

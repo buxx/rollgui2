@@ -164,6 +164,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("BRONZE_SHIELD", 10, 17, 1),
         ("IRON_SHIELD_HEATER", 10, 18, 1),
         ("TILE_SELECTION", 6, 0, 6),
+        ("TILE_HOVER", 6, 6, 1),
     ]
     .to_vec()
 }

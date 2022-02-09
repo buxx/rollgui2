@@ -13,29 +13,42 @@ pub fn draw_action_tile_in_camera(
     let dest_x = exploitable_tile.zone_col_i as f32 * graphics.tile_width;
     let dest_y = exploitable_tile.zone_row_i as f32 * graphics.tile_height;
 
-    let concrete_mouse_x = mouse_zone_position.x * state.map.width as f32;
-    let concrete_mouse_y = mouse_zone_position.y * state.map.height as f32;
-
-    info!(
-        "{}.{} vs {}.{}",
-        dest_x, dest_y, concrete_mouse_x, concrete_mouse_y
-    );
+    let concrete_mouse_x = mouse_zone_position.x * state.map.concrete_width as f32;
+    let concrete_mouse_y = mouse_zone_position.y * state.map.concrete_height as f32;
 
     let mouse_hover = concrete_mouse_x >= dest_x
         && concrete_mouse_x <= dest_x + graphics.tile_width
-        && concrete_mouse_y >= dest_y
-        && concrete_mouse_y <= dest_y + graphics.tile_height;
+        && concrete_mouse_y <= dest_y
+        && concrete_mouse_y >= dest_y - graphics.tile_height;
 
-    let tick_i_ = if mouse_hover { 0 } else { tick_i };
+    let tile_id = if mouse_hover {
+        "TILE_HOVER"
+    } else {
+        "TILE_SELECTION"
+    };
 
     graphics.draw_tile_in_camera(
         map.concrete_width,
         map.concrete_height,
         dest_x,
         dest_y,
-        "TILE_SELECTION",
+        tile_id,
         None,
-        tick_i_,
+        tick_i,
+        None,
+        None,
+    );
+
+    // Draw the exploitable tile class
+    let exploitable_tile_id = graphics.find_tile_id_from_classes(&exploitable_tile.classes);
+    graphics.draw_tile_in_camera(
+        map.concrete_width,
+        map.concrete_height,
+        dest_x,
+        dest_y,
+        &exploitable_tile_id,
+        None,
+        0,
         None,
         None,
     );

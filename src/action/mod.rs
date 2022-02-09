@@ -15,3 +15,14 @@ pub struct Action {
     pub exploitable_tiles: Vec<ExploitableTile>,
     pub all_tiles_at_once: bool,
 }
+
+impl Action {
+    pub fn from_quick_action(quick_action: &quick::QuickAction) -> Action {
+        Self {
+            post_url: quick_action.base_url.clone(),
+            cursor_class: None,
+            exploitable_tiles: quick_action.exploitable_tiles.clone(),
+            all_tiles_at_once: quick_action.all_tiles_at_once,
+        }
+    }
+}
