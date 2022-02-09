@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use quad_net::web_socket::WebSocket;
 
-use crate::{config, event as base_event, graphics, message, util as base_util};
+use crate::{action, config, event as base_event, graphics, message, util as base_util};
 
 use super::Engine;
 use crate::gui;
@@ -18,6 +18,7 @@ const DEFAULT_PLAYER_VELOCITY_DIVIDER: f32 = 2.5;
 const DEFAULT_PLAYER_VELOCITY_LIMIT: f32 = 2.0;
 const RUNNING_PLAYER_VELOCITY_LIMIT: f32 = 5.0;
 const LEFT_PANEL_WIDTH: i32 = 250;
+const QUICK_ACTION_MARGIN: f32 = 10.;
 
 pub struct ZoneEngine {
     pub graphics: graphics::Graphics,
@@ -32,7 +33,9 @@ pub struct ZoneEngine {
     pub disable_all_user_input: bool,
     pub user_inputs: Vec<UserInput>,
     pub running_mode: bool,
-    pub quick_actions: Vec<base_event::CharacterActionLink>,
+    pub quick_actions: Vec<action::quick::QuickAction>,
+    pub current_action: Option<action::Action>,
+    pub mouse_zone_position: Vec2,
 }
 
 impl ZoneEngine {
@@ -52,6 +55,8 @@ impl ZoneEngine {
             user_inputs: vec![],
             running_mode: false,
             quick_actions: vec![],
+            current_action: None,
+            mouse_zone_position: Vec2::new(0., 0.),
         })
     }
 
@@ -114,6 +119,7 @@ impl ZoneEngine {
         self.state.player_display.position += self.state.player_display.velocity;
 
         // Update player running animation
+        let was_running = self.state.player_display.running.is_some();
         if self.state.player_display.velocity.length() > 0.05 {
             player_running = if self.state.player_display.velocity.y < -0.05 {
                 Some(PlayerRunning::Top)
@@ -127,6 +133,12 @@ impl ZoneEngine {
                 None
             };
         }
+
+        if was_running && player_running.is_none() {
+            let event = util::require_around_event(&self.state);
+            self.socket.send_text(&event);
+        }
+
         self.state.player_display.running = player_running;
     }
 
@@ -191,7 +203,7 @@ impl ZoneEngine {
         }
     }
 
-    fn camera(&self) {
+    fn camera(&mut self) {
         let zoom_multiplier = match self.zoom_mode {
             ZoomMode::Large => 1.,
             ZoomMode::Normal => 2.,
@@ -200,16 +212,23 @@ impl ZoneEngine {
 
         let zoom_x = (self.state.map.concrete_width / screen_width()) * zoom_multiplier;
         let zoom_y = (self.state.map.concrete_height / screen_height()) * zoom_multiplier;
+        let zoom = Vec2::new(zoom_x, zoom_y);
 
         let target_x = self.state.player_display.position.x / self.state.map.concrete_width;
         // Invert Y axis because the camera is Y inverted
         let target_y = -(self.state.player_display.position.y / self.state.map.concrete_height);
+        let target = Vec2::new(target_x, target_y);
 
         set_camera(&Camera2D {
-            zoom: Vec2::new(zoom_x, zoom_y),
-            target: Vec2::new(target_x, target_y),
+            zoom: zoom,
+            target: target,
             ..Default::default()
         });
+
+        let mut mouse_zone_position = mouse_position_local() / zoom;
+        mouse_zone_position.x += target.x;
+        mouse_zone_position.y -= target.y;
+        self.mouse_zone_position = mouse_zone_position;
     }
 
     pub fn scene(&self) {
@@ -218,6 +237,55 @@ impl ZoneEngine {
 
     pub fn draw_left_panel(&self) {
         gui::panel::draw_panel_background(&self.graphics);
+    }
+
+    fn draw_quick_actions(&mut self) {
+        let start_draw_x = LEFT_PANEL_WIDTH as f32 + QUICK_ACTION_MARGIN;
+        let start_draw_y = screen_height() - gui::quick::BUTTON_HEIGHT - QUICK_ACTION_MARGIN;
+
+        for (i, quick_action) in self.quick_actions.iter().enumerate() {
+            let decal = i as f32 * (gui::quick::BUTTON_WIDTH + QUICK_ACTION_MARGIN);
+            let draw_x = start_draw_x + decal;
+            let draw_y = start_draw_y;
+            // TODO : optimize ?
+            let tile_id = self
+                .graphics
+                .find_tile_id_from_classes(&quick_action.classes);
+
+            if gui::quick::draw_quick_action_button(
+                &self.graphics,
+                &tile_id,
+                draw_x,
+                draw_y,
+                self.tick_i,
+            ) {
+                if base_util::mouse_clicked() {
+                    self.current_action = Some(action::Action {
+                        post_url: quick_action.base_url.clone(),
+                        cursor_class: None,
+                        exploitable_tiles: quick_action.exploitable_tiles.clone(),
+                        all_tiles_at_once: quick_action.all_tiles_at_once,
+                    });
+                }
+                self.disable_all_user_input = true;
+            }
+        }
+    }
+
+    fn draw_current_action(&mut self) {
+        if let Some(current_action) = &self.current_action {
+            for exploitable_tile in &current_action.exploitable_tiles {
+                if gui::action::draw_action_tile_in_camera(
+                    &self.graphics,
+                    &self.state,
+                    exploitable_tile,
+                    self.tick_i,
+                    self.mouse_zone_position,
+                ) {
+                    info!("Action tile clicked");
+                }
+            }
+        }
     }
 
     pub fn draw_buttons(&mut self) {
@@ -250,8 +318,8 @@ impl ZoneEngine {
             // Socket just connected
             if self.socket.connected() {
                 self.socket_is_new = false;
-                self.socket
-                    .send_text(&util::require_around_event(&self.state));
+                let event = util::require_around_event(&self.state);
+                self.socket.send_text(&event);
                 return false;
             }
 
@@ -279,12 +347,13 @@ impl Engine for ZoneEngine {
 
         // Game
         self.scene();
+        self.draw_current_action();
 
         // Ui
         set_default_camera();
-
         self.disable_all_user_input = false;
         self.draw_left_panel();
+        self.draw_quick_actions();
         self.draw_buttons();
         if let Some(event) = ui::ui(&self.state) {
             match event {

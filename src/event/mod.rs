@@ -67,7 +67,7 @@ pub enum ZoneEventType {
         resource_count: i32,
         build_count: i32,
         character_count: i32,
-        quick_actions: Vec<CharacterActionLink>,
+        quick_actions: Vec<crate::action::quick::QuickAction>,
     },
     ClickActionEvent {
         action_type: String,
@@ -200,7 +200,7 @@ impl ZoneEvent {
                 let resource_count: i32 = data["resource_count"].as_i64().unwrap() as i32;
                 let build_count: i32 = data["build_count"].as_i64().unwrap() as i32;
                 let character_count: i32 = data["character_count"].as_i64().unwrap() as i32;
-                let quick_actions: Vec<CharacterActionLink> =
+                let quick_actions: Vec<crate::action::quick::QuickAction> =
                     serde_json::from_value(data["quick_actions"].clone()).unwrap();
 
                 Ok(ZoneEvent {

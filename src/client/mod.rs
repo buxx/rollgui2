@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use quad_net::http_request::{Request, RequestBuilder};
 
-use crate::{entity, util, SERVER_ADDRESS};
+use crate::SERVER_ADDRESS;
 
 pub struct Client {
     login: String,

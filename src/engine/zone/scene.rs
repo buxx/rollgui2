@@ -39,12 +39,14 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
         let dest_x = build.col_i as f32 * graphics.tile_width;
         let dest_y = build.row_i as f32 * graphics.tile_height;
 
+        // TODO : optimize by compute each stuff_id / tile_id a zone creation
+        let tile_id = graphics.find_tile_id_from_classes(&build.classes);
         graphics.draw_tile_in_camera(
             map.concrete_width,
             map.concrete_height,
             dest_x,
             dest_y,
-            &build.build_id,
+            &tile_id,
             None,
             tick_i,
             None,
