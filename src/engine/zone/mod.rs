@@ -217,12 +217,59 @@ impl ZoneEngine {
                                         description.title.unwrap_or("".to_string())
                                     }),
                                 );
+
                                 // Clean exploitable tile blinking
                                 if let (Some(current_action), Some(action_uuid)) =
                                     (&self.current_action, &description.action_uuid)
                                 {
                                     if &current_action.uuid == action_uuid {
                                         self.pending_exploitable_tiles = vec![];
+                                    }
+                                }
+
+                                // Animate exploitable tile if have to
+                                if let Some(exploited_tile_position) =
+                                    description.exploitable_success
+                                {
+                                    if let Some(current_action) = &self.current_action {
+                                        for (i, exploitable_tile) in
+                                            current_action.exploitable_tiles.iter().enumerate()
+                                        {
+                                            if exploitable_tile.zone_row_i
+                                                == exploited_tile_position.0
+                                                && exploitable_tile.zone_col_i
+                                                    == exploited_tile_position.1
+                                            {
+                                                self.pending_exploitable_tiles.retain(|x| x != &i);
+
+                                                let tile_id =
+                                                    self.graphics.find_tile_id_from_classes(
+                                                        &exploitable_tile.classes,
+                                                    );
+                                                let pop_animation =
+                                                    match animation::pop::TilePopAnimation::new(
+                                                        &self.graphics,
+                                                        &self.state.map,
+                                                        &tile_id,
+                                                        exploitable_tile.zone_row_i,
+                                                        exploitable_tile.zone_col_i,
+                                                        // TODO: experimental
+                                                        self.frame_i + 60,
+                                                    ) {
+                                                        Ok(pop_animation_) => pop_animation_,
+                                                        Err(error) => {
+                                                            error!(
+                                                                "Error during pop animation : {}",
+                                                                error
+                                                            );
+                                                            return;
+                                                        }
+                                                    };
+                                                self.animations.push(Box::new(pop_animation));
+
+                                                break;
+                                            }
+                                        }
                                     }
                                 }
                             }

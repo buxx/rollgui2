@@ -60,6 +60,7 @@ pub struct Description {
     pub quick_action_response: Option<String>,
     pub action_uuid: Option<String>,
     pub not_enough_ap: bool,
+    pub exploitable_success: Option<(i32, i32)>,
 }
 
 impl Description {
