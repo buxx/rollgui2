@@ -37,6 +37,7 @@ pub enum TopBarMessageType {
     ERROR,
 }
 
+// TODO : Must use struct to simplify deserialization
 #[derive(SerializeDerive, DeserializeDerive, Debug)]
 #[serde(untagged)]
 pub enum ZoneEventType {
@@ -80,6 +81,9 @@ pub enum ZoneEventType {
     },
     NewBuild {
         build: Build,
+        produced_resource_id: Option<String>,
+        produced_stuff_id: Option<String>,
+        producer_character_id: Option<String>,
     },
     RequestChat {
         character_id: String,
@@ -244,6 +248,19 @@ impl ZoneEvent {
                         .unwrap(),
                 );
 
+                let produced_resource_id = match data["produced_resource_id"].as_str() {
+                    Some(produced_resource_id) => Some(produced_resource_id.to_string()),
+                    None => None,
+                };
+                let produced_stuff_id = match data["produced_stuff_id"].as_str() {
+                    Some(produced_stuff_id) => Some(produced_stuff_id.to_string()),
+                    None => None,
+                };
+                let producer_character_id = match data["producer_character_id"].as_str() {
+                    Some(producer_character_id) => Some(producer_character_id.to_string()),
+                    None => None,
+                };
+
                 Ok(ZoneEvent {
                     event_type_name: String::from(NEW_BUILD),
                     event_type: ZoneEventType::NewBuild {
@@ -256,6 +273,9 @@ impl ZoneEvent {
                             traversable,
                             is_floor: build_data["is_floor"].as_bool().unwrap(),
                         },
+                        produced_resource_id,
+                        produced_stuff_id,
+                        producer_character_id,
                     },
                 })
             }

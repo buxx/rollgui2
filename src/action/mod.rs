@@ -10,6 +10,7 @@ pub struct ExploitableTile {
 }
 
 pub struct Action {
+    pub uuid: String,
     pub post_url: String,
     pub cursor_class: Option<String>,
     pub exploitable_tiles: Vec<ExploitableTile>,
@@ -19,6 +20,7 @@ pub struct Action {
 impl Action {
     pub fn from_quick_action(quick_action: &quick::QuickAction) -> Action {
         Self {
+            uuid: quick_action.uuid.clone(),
             post_url: quick_action.base_url.clone(),
             cursor_class: None,
             exploitable_tiles: quick_action.exploitable_tiles.clone(),

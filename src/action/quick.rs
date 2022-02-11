@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 
 pub struct QuickAction {
+    pub uuid: String,
     pub name: String,
     pub base_url: String,
     pub classes: Vec<String>,

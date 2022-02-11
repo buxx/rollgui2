@@ -101,13 +101,14 @@ impl Client {
 
     pub fn get_quick_action_request(
         &self,
+        uuid: &str,
         post_url: &str,
         zone_row_i: i32,
         zone_col_i: i32,
     ) -> Request {
         let url = format!(
-            "{}{}&zone_row_i={}&zone_col_i={}",
-            SERVER_ADDRESS, post_url, zone_row_i, zone_col_i,
+            "{}{}&zone_row_i={}&zone_col_i={}&action_uuid={}&quick_action=1",
+            SERVER_ADDRESS, post_url, zone_row_i, zone_col_i, uuid,
         );
         info!("Post quick action with {}", url);
 

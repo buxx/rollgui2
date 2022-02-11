@@ -2,8 +2,8 @@ use macroquad::prelude::*;
 use quad_net::web_socket::WebSocket;
 
 use crate::{
-    action as base_action, client, config, event as base_event, graphics, message,
-    util as base_util,
+    action as base_action, animation, client, config, entity, event as base_event, graphics,
+    message, util as base_util,
 };
 
 use super::Engine;
@@ -11,6 +11,7 @@ use crate::gui;
 
 // pub mod event;
 pub mod action;
+pub mod animations;
 pub mod event;
 pub mod scene;
 pub mod socket;
@@ -32,7 +33,9 @@ pub struct ZoneEngine {
     pub socket_is_new: bool,
     pub tick_last: f64,
     pub tick_i: i16,
+    pub frame_i: i64,
     pub zoom_mode: ZoomMode,
+    pub animations: Vec<Box<dyn animation::Animation>>,
     pub last_limited_user_input: f64,
     pub disable_all_user_input_until: f64,
     pub disable_all_user_input: bool,
@@ -62,7 +65,9 @@ impl ZoneEngine {
             socket_is_new: true,
             tick_last: get_time(),
             tick_i: 0,
+            frame_i: 0,
             zoom_mode: ZoomMode::Normal,
+            animations: vec![],
             last_limited_user_input: get_time(),
             disable_all_user_input_until: get_time(),
             disable_all_user_input: false,
@@ -87,6 +92,10 @@ impl ZoneEngine {
                 self.tick_i = 0;
             }
         }
+    }
+
+    fn update_frame_i(&mut self) {
+        self.frame_i += 1;
     }
 
     fn update(&mut self) {
@@ -194,27 +203,54 @@ impl ZoneEngine {
     }
 
     fn proceed_quick_action_requests(&mut self) {
-        let mut requests_to_removes: Vec<&quad_net::http_request::Request> = vec![];
+        let mut to_removes: Vec<usize> = vec![];
 
         for (i, request) in self.quick_action_requests.iter_mut().enumerate() {
             if let Some(data) = request.try_recv() {
                 match data {
-                    Ok(description) => {
-                        info!("Quick action response : {:?}", description);
+                    Ok(description_string) => {
+                        match entity::description::Description::from_string(&description_string) {
+                            Ok(description) => {
+                                info!(
+                                    "Quick action response : {}",
+                                    &description.quick_action_response.unwrap_or_else(|| {
+                                        description.title.unwrap_or("".to_string())
+                                    }),
+                                );
+                                // Clean exploitable tile blinking
+                                if let (Some(current_action), Some(action_uuid)) =
+                                    (&self.current_action, &description.action_uuid)
+                                {
+                                    if &current_action.uuid == action_uuid {
+                                        self.pending_exploitable_tiles = vec![];
+                                    }
+                                }
+                            }
+                            Err(error) => {
+                                error!(
+                                    "Quick action response description decoding ERROR : {}",
+                                    error
+                                );
+                            }
+                        };
+                        // Quick action probably changes now
+                        let event = util::require_around_event(&self.state);
+                        self.socket.send_text(&event);
                     }
                     Err(error) => {
-                        info!("Quick action response ERROR : {}", error);
+                        error!("Quick action response ERROR : {}", error);
                     }
-                }
-                requests_to_removes.push(request);
+                };
+                to_removes.push(i);
             }
         }
 
-        // FIXME BS NOW : find solution to remove requests
-        // for request_to_remove in requests_to_removes {
-        //     self.quick_action_requests
-        //         .retain(|r| !std::ptr::eq(r, request_to_remove));
-        // }
+        // Remove finished requests
+        to_removes.sort();
+        to_removes.reverse();
+        for request_i_to_remove in to_removes {
+            self.quick_action_requests.remove(request_i_to_remove);
+        }
     }
 
     fn user_inputs(&mut self) {
@@ -360,6 +396,7 @@ impl Engine for ZoneEngine {
         let mut messages = vec![];
 
         self.update_tick_i();
+        self.update_frame_i();
         self.user_inputs();
         self.update();
         self.proceed_quick_action_requests();
@@ -368,6 +405,7 @@ impl Engine for ZoneEngine {
 
         // Game
         self.scene();
+        self.animations();
         let action_clicked = self.draw_current_action();
 
         // Ui
