@@ -41,7 +41,7 @@ impl ZoneState {
             ..Default::default()
         };
 
-        let resources_: HashMap<(i32, i32), Vec<entity::resource::Resource>> = HashMap::new();
+        let mut resources_: HashMap<(i32, i32), Vec<entity::resource::Resource>> = HashMap::new();
         for resource in &resources {
             resources_
                 .entry((resource.zone_row_i, resource.zone_col_i))

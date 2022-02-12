@@ -56,21 +56,23 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
 
     // TODO : draw only visible tiles
     // Draw resource tiles
-    for resource in state.resources.values() {
-        let dest_x = resource.zone_col_i as f32 * graphics.tile_width;
-        let dest_y = resource.zone_row_i as f32 * graphics.tile_height;
+    for resources in state.resources.values() {
+        for resource in resources {
+            let dest_x = resource.zone_col_i as f32 * graphics.tile_width;
+            let dest_y = resource.zone_row_i as f32 * graphics.tile_height;
 
-        graphics.draw_tile_in_camera(
-            map.concrete_width,
-            map.concrete_height,
-            dest_x,
-            dest_y,
-            &resource.id,
-            None,
-            tick_i,
-            None,
-            None,
-        );
+            graphics.draw_tile_in_camera(
+                map.concrete_width,
+                map.concrete_height,
+                dest_x,
+                dest_y,
+                &resource.id,
+                None,
+                tick_i,
+                None,
+                None,
+            );
+        }
     }
 
     // TODO : draw only visible tiles
