@@ -37,4 +37,12 @@ impl ZoneMap {
             concrete_height,
         }
     }
+
+    pub fn replace_tile(&mut self, row_i: i16, col_i: i16, new_tile_id: String) {
+        if let Some(row) = self.tiles.get_mut(row_i as usize) {
+            if let Some(tile) = row.get_mut(col_i as usize) {
+                *tile = new_tile_id;
+            }
+        }
+    }
 }

@@ -5,11 +5,11 @@ use macroquad::prelude::*;
 
 pub struct ZoneState {
     pub map: zone::map::ZoneMap,
-    pub characters: Vec<entity::character::Character>,
+    pub characters: HashMap<String, entity::character::Character>,
     pub player: entity::character::Character,
     pub player_display: CharacterDisplay,
     pub stuffs: HashMap<i32, entity::stuff::Stuff>,
-    pub resources: Vec<entity::resource::Resource>,
+    pub resources: HashMap<(i32, i32), Vec<entity::resource::Resource>>,
     pub builds: HashMap<i32, entity::build::Build>,
 }
 
@@ -41,13 +41,25 @@ impl ZoneState {
             ..Default::default()
         };
 
+        let resources_: HashMap<(i32, i32), Vec<entity::resource::Resource>> = HashMap::new();
+        for resource in &resources {
+            resources_
+                .entry((resource.zone_row_i, resource.zone_col_i))
+                .or_insert(vec![])
+                .push(resource.clone());
+        }
+        let characters: HashMap<String, entity::character::Character> = characters
+            .iter()
+            .map(|c| (c.id.clone(), c.clone()))
+            .collect();
+
         Self {
             map,
             characters,
             player,
             player_display,
             stuffs: stuffs_,
-            resources,
+            resources: resources_,
             builds: builds_,
         }
     }

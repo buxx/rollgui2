@@ -13,24 +13,15 @@ pub struct Character {
 }
 
 impl Character {
-    // TODO : still required ?
-    pub fn new(
-        id: String,
-        world_row_i: i32,
-        world_col_i: i32,
-        zone_row_i: i32,
-        zone_col_i: i32,
-        avatar_uuid: Option<String>,
-        avatar_is_validated: bool,
-    ) -> Self {
+    pub fn minimal(id: String, zone_row_i: i32, zone_col_i: i32) -> Self {
         Self {
             id,
-            world_row_i,
-            world_col_i,
+            world_row_i: 0,
+            world_col_i: 0,
             zone_row_i,
             zone_col_i,
-            avatar_uuid,
-            avatar_is_validated,
+            avatar_uuid: None,
+            avatar_is_validated: false,
         }
     }
 }

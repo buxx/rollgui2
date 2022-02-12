@@ -56,7 +56,7 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
 
     // TODO : draw only visible tiles
     // Draw resource tiles
-    for resource in &state.resources {
+    for resource in state.resources.values() {
         let dest_x = resource.zone_col_i as f32 * graphics.tile_width;
         let dest_y = resource.zone_row_i as f32 * graphics.tile_height;
 
@@ -94,7 +94,7 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
         );
     }
 
-    for character in &state.characters {
+    for character in state.characters.values() {
         let dest_x = character.zone_col_i as f32 * graphics.tile_width;
         let dest_y = character.zone_row_i as f32 * graphics.tile_height;
 
