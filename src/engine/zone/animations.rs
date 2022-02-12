@@ -15,7 +15,6 @@ impl super::ZoneEngine {
         to_removes.sort();
         to_removes.reverse();
         for animation_i_to_remove in to_removes {
-            info!("DELETE");
             self.animations.remove(animation_i_to_remove);
         }
     }

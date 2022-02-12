@@ -82,7 +82,13 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
         let dest_y = stuff.zone_row_i as f32 * graphics.tile_height;
 
         // TODO : optimize by compute each stuff_id / tile_id a zone creation
-        let tile_id = graphics.find_tile_id_from_classes(&stuff.classes);
+        // TODO : clone here is bad performance
+        let classes = vec![stuff.classes.clone(), vec![stuff.stuff_id.clone()]]
+            .into_iter()
+            .flatten()
+            .collect();
+
+        let tile_id = graphics.find_tile_id_from_classes(&classes);
         graphics.draw_tile_in_camera(
             map.concrete_width,
             map.concrete_height,

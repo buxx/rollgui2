@@ -12,8 +12,11 @@ impl super::ZoneEngine {
                 character_count,
                 quick_actions,
             } => {
-                debug!("New quick actions ({})", quick_actions.len());
+                debug!("New quick actions ({:?})", quick_actions);
                 self.quick_actions = quick_actions;
+                // Keep only rollgui2 quick actions (where there is exploitable tiles)
+                self.quick_actions
+                    .retain(|a| a.exploitable_tiles.len() != 0);
                 self.update_current_action_according_new_quick_actions();
             }
             event::ZoneEventType::NewBuild {
