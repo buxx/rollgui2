@@ -65,7 +65,11 @@ impl super::ZoneEngine {
         for (i, user_log) in self.user_logs.iter().rev().enumerate() {
             let draw_x = start_draw_message_x;
             let draw_y = start_draw_message_y + (i as f32 * LOG_LINE_HEIGHT);
-            draw_text(&user_log.message, draw_x, draw_y, LOG_LINE_FONT_SIZE, BLACK);
+            let color = match user_log.level {
+                UserLogLevel::Info => BLACK,
+                UserLogLevel::Error => RED,
+            };
+            draw_text(&user_log.message, draw_x, draw_y, LOG_LINE_FONT_SIZE, color);
         }
     }
 }
