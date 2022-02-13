@@ -38,11 +38,21 @@ impl ZoneEngine {
                 self.tick_i,
             ) {
                 if base_util::mouse_clicked() {
-                    self.current_action =
-                        Some(base_action::Action::from_quick_action(&quick_action));
-                    self.selected_quick_action = Some(i);
-                    self.pending_exploitable_tiles = vec![];
-                    quick_action_just_clicked = true;
+                    if !quick_action.direct_action {
+                        self.current_action =
+                            Some(base_action::Action::from_quick_action(&quick_action));
+                        self.selected_quick_action = Some(i);
+                        self.pending_exploitable_tiles = vec![];
+                        quick_action_just_clicked = true;
+                    } else {
+                        self.quick_action_requests
+                            .push(self.client.get_quick_action_request(
+                                &quick_action.uuid,
+                                &quick_action.base_url,
+                                None,
+                                None,
+                            ));
+                    }
                 }
                 self.disable_all_user_input = true;
             }
@@ -75,8 +85,8 @@ impl ZoneEngine {
                             .push(self.client.get_quick_action_request(
                                 &current_action.uuid,
                                 &current_action.post_url,
-                                exploitable_tile.zone_row_i,
-                                exploitable_tile.zone_col_i,
+                                Some(exploitable_tile.zone_row_i),
+                                Some(exploitable_tile.zone_col_i),
                             ));
                     }
                 }

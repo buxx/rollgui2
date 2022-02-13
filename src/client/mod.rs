@@ -103,13 +103,21 @@ impl Client {
         &self,
         uuid: &str,
         post_url: &str,
-        zone_row_i: i32,
-        zone_col_i: i32,
+        zone_row_i: Option<i32>,
+        zone_col_i: Option<i32>,
     ) -> Request {
-        let url = format!(
-            "{}{}&zone_row_i={}&zone_col_i={}&action_uuid={}&quick_action=1",
-            SERVER_ADDRESS, post_url, zone_row_i, zone_col_i, uuid,
-        );
+        let url = if let (Some(zone_row_i), Some(zone_col_i)) = (zone_row_i, zone_col_i) {
+            format!(
+                "{}{}&zone_row_i={}&zone_col_i={}&action_uuid={}&quick_action=1",
+                SERVER_ADDRESS, post_url, zone_row_i, zone_col_i, uuid,
+            )
+        } else {
+            format!(
+                "{}{}&action_uuid={}&quick_action=1",
+                SERVER_ADDRESS, post_url, uuid,
+            )
+        };
+
         info!("Post quick action with {}", url);
 
         RequestBuilder::new(&url)

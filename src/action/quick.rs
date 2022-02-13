@@ -10,4 +10,5 @@ pub struct QuickAction {
     pub classes2: Vec<String>,
     pub exploitable_tiles: Vec<super::ExploitableTile>,
     pub all_tiles_at_once: bool,
+    pub direct_action: bool,
 }
