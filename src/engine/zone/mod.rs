@@ -13,6 +13,7 @@ use crate::gui;
 pub mod action;
 pub mod animations;
 pub mod event;
+pub mod log;
 pub mod scene;
 pub mod socket;
 pub mod state;
@@ -24,6 +25,7 @@ const DEFAULT_PLAYER_VELOCITY_LIMIT: f32 = 2.0;
 const RUNNING_PLAYER_VELOCITY_LIMIT: f32 = 5.0;
 const LEFT_PANEL_WIDTH: i32 = 250;
 const QUICK_ACTION_MARGIN: f32 = 10.;
+pub const DISPLAY_USER_LOG_COUNT: usize = 5;
 
 pub struct ZoneEngine {
     pub client: client::Client,
@@ -48,6 +50,7 @@ pub struct ZoneEngine {
     pub pending_exploitable_tiles: Vec<usize>,
     pub mouse_zone_position: Vec2,
     pub quick_action_requests: Vec<quad_net::http_request::Request>,
+    pub user_logs: Vec<log::UserLog>,
 }
 
 impl ZoneEngine {
@@ -80,6 +83,7 @@ impl ZoneEngine {
             pending_exploitable_tiles: vec![],
             mouse_zone_position: Vec2::new(0., 0.),
             quick_action_requests: vec![],
+            user_logs: vec![],
         })
     }
 
@@ -189,6 +193,11 @@ impl ZoneEngine {
             let player_move_event = util::player_move_event(&self.state);
             self.socket.send_text(&player_move_event);
         }
+
+        // User logs
+        if self.user_logs.len() > DISPLAY_USER_LOG_COUNT {
+            self.user_logs.remove(0);
+        }
     }
 
     fn recv_events(&mut self) -> Vec<message::MainMessage> {
@@ -211,12 +220,18 @@ impl ZoneEngine {
                     Ok(description_string) => {
                         match entity::description::Description::from_string(&description_string) {
                             Ok(description) => {
-                                info!(
-                                    "Quick action response : {}",
-                                    &description.quick_action_response.unwrap_or_else(|| {
-                                        description.title.unwrap_or("".to_string())
-                                    }),
-                                );
+                                let message = &description
+                                    .quick_action_response
+                                    .unwrap_or_else(|| description.title.unwrap_or("".to_string()));
+                                let message_level = if description.is_error {
+                                    log::UserLogLevel::Error
+                                } else {
+                                    log::UserLogLevel::Info
+                                };
+                                info!("Quick action response ({}) : {}", &message_level, &message,);
+
+                                self.user_logs
+                                    .push(log::UserLog::new(message.clone(), message_level));
 
                                 // Clean exploitable tile blinking
                                 if let (Some(current_action), Some(action_uuid)) =
@@ -459,6 +474,7 @@ impl Engine for ZoneEngine {
         set_default_camera();
         self.disable_all_user_input = false;
         self.draw_left_panel();
+        self.draw_user_logs();
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();
         if let Some(event) = ui::ui(&self.state) {

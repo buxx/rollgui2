@@ -61,6 +61,7 @@ pub struct Description {
     pub action_uuid: Option<String>,
     pub not_enough_ap: bool,
     pub exploitable_success: Option<(i32, i32)>,
+    pub is_error: bool,
 }
 
 impl Description {

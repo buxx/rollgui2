@@ -1,5 +1,3 @@
-use macroquad::prelude::*;
-
 impl super::ZoneEngine {
     pub fn animations(&mut self) {
         let mut to_removes: Vec<usize> = vec![];
