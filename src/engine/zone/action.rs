@@ -15,9 +15,12 @@ impl ZoneEngine {
             let draw_x = start_draw_x + decal;
             let draw_y = start_draw_y;
             // TODO : optimize ?
-            let tile_id = self
+            let tile_id1 = self
                 .graphics
-                .find_tile_id_from_classes(&quick_action.classes);
+                .find_tile_id_from_classes(&quick_action.classes1);
+            let tile_id2 = self
+                .graphics
+                .find_tile_id_from_classes(&quick_action.classes2);
 
             let active = if let Some(selected_quick_action) = self.selected_quick_action {
                 selected_quick_action == i
@@ -28,7 +31,8 @@ impl ZoneEngine {
             if gui::quick::draw_quick_action_button(
                 &self.graphics,
                 active,
-                &tile_id,
+                &tile_id1,
+                &tile_id2,
                 draw_x,
                 draw_y,
                 self.tick_i,

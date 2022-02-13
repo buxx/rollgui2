@@ -9,7 +9,8 @@ pub const BUTTON_HEIGHT: f32 = 64.;
 pub fn draw_quick_action_button(
     graphics: &graphics::Graphics,
     active: bool,
-    tile_id: &str,
+    tile_id1: &str,
+    tile_id2: &str,
     draw_x: f32,
     draw_y: f32,
     tick_i: i16,
@@ -32,19 +33,19 @@ pub fn draw_quick_action_button(
         },
     );
 
-    // Draw tile
-    let background_source = graphics
+    // Draw tile 1
+    let tile1_source = graphics
         .tiles_mapping
-        .get(tile_id)
-        .expect(&format!("Tile id {} is unknown", tile_id));
-    let background_source_rect = background_source.to_rect(tick_i);
+        .get(tile_id1)
+        .expect(&format!("Tile id {} is unknown", tile_id1));
+    let tile1_source_rect = tile1_source.to_rect(tick_i);
 
     let dest_size_x = graphics.tile_width * 1.5;
     let dest_size_y = graphics.tile_height * 1.5;
 
-    let tile_params = DrawTextureParams {
+    let tile1_params = DrawTextureParams {
         dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
-        source: Some(background_source_rect),
+        source: Some(tile1_source_rect),
         ..Default::default()
     };
 
@@ -56,7 +57,34 @@ pub fn draw_quick_action_button(
         tile_draw_x,
         tile_draw_y,
         WHITE,
-        tile_params,
+        tile1_params,
+    );
+
+    // Draw tile 2
+    let tile2_source = graphics
+        .tiles_mapping
+        .get(tile_id2)
+        .expect(&format!("Tile id {} is unknown", tile_id2));
+    let tile2_source_rect = tile2_source.to_rect(tick_i);
+
+    let dest_size_x = graphics.tile_width * 1.5;
+    let dest_size_y = graphics.tile_height * 1.5;
+
+    let tile2_params = DrawTextureParams {
+        dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
+        source: Some(tile2_source_rect),
+        ..Default::default()
+    };
+
+    let tile_draw_x = draw_x + 50.;
+    let tile_draw_y = draw_y + 5.;
+
+    draw_texture_ex(
+        graphics.tileset_texture,
+        tile_draw_x,
+        tile_draw_y,
+        WHITE,
+        tile2_params,
     );
 
     if active {

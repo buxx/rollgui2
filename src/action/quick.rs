@@ -6,7 +6,8 @@ pub struct QuickAction {
     pub uuid: String,
     pub name: String,
     pub base_url: String,
-    pub classes: Vec<String>,
+    pub classes1: Vec<String>,
+    pub classes2: Vec<String>,
     pub exploitable_tiles: Vec<super::ExploitableTile>,
     pub all_tiles_at_once: bool,
 }
