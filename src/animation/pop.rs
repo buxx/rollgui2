@@ -6,14 +6,12 @@ pub struct TilePopAnimation {
     source: tileset::source::TileSource,
     camera_dest: Vec2,
     camera_dest_size: Vec2,
-    // TODO : experimental
-    end_frame_i: i64,
 }
 
 impl super::Animation for TilePopAnimation {
-    fn update(&mut self, frame_i: i64) -> bool {
+    fn update(&mut self, _frame_i: i64) -> bool {
         self.camera_dest_size *= 1.1;
-        frame_i >= self.end_frame_i
+        self.camera_dest_size.length() > 2.0
     }
 
     fn draw_in_camera(&self, graphics: &graphics::Graphics) {
@@ -41,7 +39,6 @@ impl TilePopAnimation {
         tile_id: &str,
         row_i: i32,
         col_i: i32,
-        end_frame_i: i64,
     ) -> Result<Self, String> {
         let source = match graphics.tiles_mapping.get(tile_id) {
             Some(background_source_) => background_source_.clone(),
@@ -62,7 +59,6 @@ impl TilePopAnimation {
             source,
             camera_dest: Vec2::new(camera_dest_x, camera_dest_y),
             camera_dest_size: Vec2::new(dest_size_x, dest_size_y),
-            end_frame_i,
         })
     }
 }

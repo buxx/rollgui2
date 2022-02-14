@@ -39,8 +39,6 @@ impl super::ZoneEngine {
                         &tile_id_,
                         build.row_i,
                         build.col_i,
-                        // TODO: experimental
-                        self.frame_i + 60,
                     ) {
                         Ok(pop_animation_) => pop_animation_,
                         Err(error) => {

@@ -267,8 +267,6 @@ impl ZoneEngine {
                                                     &tile_id,
                                                     exploitable_tile.zone_row_i,
                                                     exploitable_tile.zone_col_i,
-                                                    // TODO: experimental
-                                                    self.frame_i + 60,
                                                 ) {
                                                     Ok(animation) => {
                                                         self.animations.push(Box::new(animation))
@@ -298,8 +296,6 @@ impl ZoneEngine {
                                         &tile_id,
                                         zone_row_i,
                                         zone_col_i,
-                                        // TODO: experimental
-                                        self.frame_i + 60,
                                     ) {
                                         Ok(animation) => self.animations.push(Box::new(animation)),
                                         Err(error) => {
