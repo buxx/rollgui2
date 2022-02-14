@@ -61,7 +61,8 @@ pub struct Description {
     pub action_uuid: Option<String>,
     pub not_enough_ap: bool,
     pub exploitable_success: Option<(i32, i32)>,
-    pub is_error: bool,
+    pub is_quick_error: bool,
+    pub deposit_success: Option<((i32, i32), Vec<String>)>,
 }
 
 impl Description {

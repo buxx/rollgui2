@@ -52,6 +52,20 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
             None,
             None,
         );
+
+        if build.under_construction {
+            graphics.draw_tile_in_camera(
+                map.concrete_width,
+                map.concrete_height,
+                dest_x,
+                dest_y,
+                "LITTLE_SHOVEL",
+                None,
+                tick_i,
+                None,
+                None,
+            );
+        }
     }
 
     // TODO : draw only visible tiles

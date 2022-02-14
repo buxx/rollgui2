@@ -272,6 +272,7 @@ impl ZoneEvent {
                             classes,
                             traversable,
                             is_floor: build_data["is_floor"].as_bool().unwrap(),
+                            under_construction: build_data["under_construction"].as_bool().unwrap(),
                         },
                         produced_resource_id,
                         produced_stuff_id,

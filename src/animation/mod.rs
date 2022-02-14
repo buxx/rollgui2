@@ -1,3 +1,4 @@
+pub mod drop;
 pub mod pop;
 
 use crate::graphics;

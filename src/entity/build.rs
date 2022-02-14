@@ -10,6 +10,7 @@ pub struct Build {
     pub classes: Vec<String>,
     pub traversable: HashMap<String, bool>,
     pub is_floor: bool,
+    pub under_construction: bool,
 }
 
 impl Build {

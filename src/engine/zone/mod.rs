@@ -223,7 +223,7 @@ impl ZoneEngine {
                                 let message = &description
                                     .quick_action_response
                                     .unwrap_or_else(|| description.title.unwrap_or("".to_string()));
-                                let message_level = if description.is_error {
+                                let message_level = if description.is_quick_error {
                                     log::UserLogLevel::Error
                                 } else {
                                     log::UserLogLevel::Info
@@ -261,31 +261,51 @@ impl ZoneEngine {
                                                     self.graphics.find_tile_id_from_classes(
                                                         &exploitable_tile.classes,
                                                     );
-                                                let pop_animation =
-                                                    match animation::pop::TilePopAnimation::new(
-                                                        &self.graphics,
-                                                        &self.state.map,
-                                                        &tile_id,
-                                                        exploitable_tile.zone_row_i,
-                                                        exploitable_tile.zone_col_i,
-                                                        // TODO: experimental
-                                                        self.frame_i + 60,
-                                                    ) {
-                                                        Ok(pop_animation_) => pop_animation_,
-                                                        Err(error) => {
-                                                            error!(
-                                                                "Error during pop animation : {}",
-                                                                error
-                                                            );
-                                                            return;
-                                                        }
-                                                    };
-                                                self.animations.push(Box::new(pop_animation));
+                                                match animation::pop::TilePopAnimation::new(
+                                                    &self.graphics,
+                                                    &self.state.map,
+                                                    &tile_id,
+                                                    exploitable_tile.zone_row_i,
+                                                    exploitable_tile.zone_col_i,
+                                                    // TODO: experimental
+                                                    self.frame_i + 60,
+                                                ) {
+                                                    Ok(animation) => {
+                                                        self.animations.push(Box::new(animation))
+                                                    }
+                                                    Err(error) => {
+                                                        error!(
+                                                            "Error during pop animation : {}",
+                                                            error
+                                                        );
+                                                    }
+                                                };
 
                                                 break;
                                             }
                                         }
                                     }
+                                }
+
+                                // Animate deposit tile if have to
+                                if let Some(((zone_row_i, zone_col_i), classes)) =
+                                    description.deposit_success
+                                {
+                                    let tile_id = self.graphics.find_tile_id_from_classes(&classes);
+                                    match animation::drop::TileDropAnimation::new(
+                                        &self.graphics,
+                                        &self.state.map,
+                                        &tile_id,
+                                        zone_row_i,
+                                        zone_col_i,
+                                        // TODO: experimental
+                                        self.frame_i + 60,
+                                    ) {
+                                        Ok(animation) => self.animations.push(Box::new(animation)),
+                                        Err(error) => {
+                                            error!("Error during deposit animation : {}", error);
+                                        }
+                                    };
                                 }
                             }
                             Err(error) => {
