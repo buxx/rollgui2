@@ -71,4 +71,8 @@ impl Description {
             serde_json::from_str(description_string).map_err(|e| e.to_string())?;
         Ok(description)
     }
+
+    pub fn title(&self) -> String {
+        self.title.clone().unwrap_or_default()
+    }
 }

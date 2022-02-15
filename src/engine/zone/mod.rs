@@ -7,12 +7,12 @@ use crate::{
 };
 
 use super::Engine;
-use crate::gui;
 
-// pub mod event;
 pub mod action;
 pub mod animations;
 pub mod event;
+pub mod gui;
+pub mod left_panel;
 pub mod log;
 pub mod scene;
 pub mod socket;
@@ -23,9 +23,10 @@ pub mod util;
 const DEFAULT_PLAYER_VELOCITY_DIVIDER: f32 = 2.5;
 const DEFAULT_PLAYER_VELOCITY_LIMIT: f32 = 2.0;
 const RUNNING_PLAYER_VELOCITY_LIMIT: f32 = 5.0;
-const LEFT_PANEL_WIDTH: i32 = 250;
+const LEFT_PANEL_WIDTH: f32 = 250.;
 const QUICK_ACTION_MARGIN: f32 = 10.;
 pub const DISPLAY_USER_LOG_COUNT: usize = 5;
+const HELPER_TEXT_FONT_SIZE: f32 = 23.;
 
 pub struct ZoneEngine {
     pub client: client::Client,
@@ -51,6 +52,10 @@ pub struct ZoneEngine {
     pub mouse_zone_position: Vec2,
     pub quick_action_requests: Vec<quad_net::http_request::Request>,
     pub user_logs: Vec<log::UserLog>,
+    pub helper_text: Option<String>,
+    pub description_request: Option<quad_net::http_request::Request>,
+    pub current_left_panel_button: Option<gui::panel::Button>,
+    pub current_description: Option<entity::description::Description>,
 }
 
 impl ZoneEngine {
@@ -84,6 +89,10 @@ impl ZoneEngine {
             mouse_zone_position: Vec2::new(0., 0.),
             quick_action_requests: vec![],
             user_logs: vec![],
+            helper_text: None,
+            description_request: None,
+            current_left_panel_button: None,
+            current_description: None,
         })
     }
 
@@ -331,8 +340,32 @@ impl ZoneEngine {
         }
     }
 
+    fn proceed_description_requests(&mut self) {
+        if let Some(request) = self.description_request.as_mut() {
+            if let Some(data) = request.try_recv() {
+                match data {
+                    Ok(description_string) => {
+                        match entity::description::Description::from_string(&description_string) {
+                            Ok(description) => self.current_description = Some(description),
+                            Err(error) => {
+                                error!("Error while decoding description : {}", error);
+                            }
+                        };
+                    }
+                    Err(error) => {
+                        error!("Error while requiring description : {}", error);
+                    }
+                }
+                self.current_left_panel_button = None;
+            }
+        }
+    }
+
     fn user_inputs(&mut self) {
-        if self.disable_all_user_input_until > get_time() || self.disable_all_user_input {
+        if self.disable_all_user_input_until > get_time()
+            || self.disable_all_user_input
+            || self.current_description.is_some()
+        {
             return;
         }
 
@@ -416,10 +449,6 @@ impl ZoneEngine {
         scene::scene(&self.graphics, &self.state, self.tick_i);
     }
 
-    pub fn draw_left_panel(&self) {
-        gui::panel::draw_panel_background(&self.graphics);
-    }
-
     pub fn draw_buttons(&mut self) {
         let zoom_in = self.zoom_mode == ZoomMode::Double;
         if gui::button::draw_zoom_button(&self.graphics, zoom_in) {
@@ -478,6 +507,7 @@ impl Engine for ZoneEngine {
         self.user_inputs();
         self.update();
         self.proceed_quick_action_requests();
+        self.proceed_description_requests();
         messages.extend(self.recv_events());
         self.camera();
 
@@ -493,13 +523,15 @@ impl Engine for ZoneEngine {
         self.draw_user_logs();
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();
-        if let Some(event) = ui::ui(&self.state) {
+        if let Some(event) = ui::ui(&self.state, &self.current_description) {
             match event {
                 ui::ZoneUiEvent::ReturnToRoot => {
                     messages.push(message::MainMessage::SetRootEngine);
                 }
             }
         }
+        self.draw_helper_text();
+        self.helper_text = None;
 
         messages
     }

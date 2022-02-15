@@ -1,12 +1,10 @@
-use crate::gui;
-
-use super::{ZoneEngine, LEFT_PANEL_WIDTH, QUICK_ACTION_MARGIN};
+use super::{gui, ZoneEngine, LEFT_PANEL_WIDTH, QUICK_ACTION_MARGIN};
 use crate::{action as base_action, util as base_util};
 use macroquad::prelude::*;
 
 impl ZoneEngine {
     pub fn draw_quick_actions(&mut self, action_clicked: bool) {
-        let start_draw_x = LEFT_PANEL_WIDTH as f32 + QUICK_ACTION_MARGIN;
+        let start_draw_x = LEFT_PANEL_WIDTH + QUICK_ACTION_MARGIN;
         let start_draw_y = screen_height() - gui::quick::BUTTON_HEIGHT - QUICK_ACTION_MARGIN;
         let mut quick_action_just_clicked = false;
 
@@ -37,6 +35,7 @@ impl ZoneEngine {
                 draw_y,
                 self.tick_i,
             ) {
+                self.helper_text = Some(quick_action.name.clone());
                 if base_util::mouse_clicked() {
                     if !quick_action.direct_action {
                         self.current_action =

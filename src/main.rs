@@ -8,7 +8,6 @@ pub mod engine;
 pub mod entity;
 pub mod event;
 pub mod graphics;
-pub mod gui;
 pub mod hardcoded;
 pub mod message;
 pub mod tileset;

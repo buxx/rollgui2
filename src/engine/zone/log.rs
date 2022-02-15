@@ -1,10 +1,10 @@
 use macroquad::prelude::*;
 
-const LOG_BOX_MARGIN: f32 = 10.0;
-const LOG_LINE_HEIGHT: f32 = 20.0;
-const LOG_LINE_FONT_SIZE: f32 = 20.0;
-const LOG_BOX_HEIGHT: f32 = super::DISPLAY_USER_LOG_COUNT as f32 * LOG_LINE_HEIGHT;
-const LOG_BOX_WIDTH: f32 = 230.0;
+pub const LOG_BOX_MARGIN: f32 = 10.0;
+pub const LOG_LINE_HEIGHT: f32 = 20.0;
+pub const LOG_LINE_FONT_SIZE: f32 = 20.0;
+pub const LOG_BOX_HEIGHT: f32 = super::DISPLAY_USER_LOG_COUNT as f32 * LOG_LINE_HEIGHT;
+pub const LOG_BOX_WIDTH: f32 = 230.0;
 
 pub struct UserLog {
     level: UserLogLevel,

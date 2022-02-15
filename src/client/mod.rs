@@ -125,4 +125,15 @@ impl Client {
             .method(Method::Post)
             .send()
     }
+
+    pub fn get_description_request(&self, url: String) -> Request {
+        let url = format!("{}{}", SERVER_ADDRESS, url);
+
+        info!("Request description on {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Post)
+            .send()
+    }
 }
