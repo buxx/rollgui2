@@ -45,7 +45,7 @@ impl Button {
     pub fn action(&self, state: &engine::zone::state::ZoneState) -> ButtonAction {
         match self {
             Button::Actions => ButtonAction::OpenDescription(format!(
-                "/_describe/character/{}/on_place_actions",
+                "/_describe/character/{}/main_actions",
                 state.player.id
             )),
             Button::World => todo!(),

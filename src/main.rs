@@ -4,6 +4,7 @@ pub mod action;
 pub mod animation;
 pub mod client;
 pub mod config;
+pub mod description;
 pub mod engine;
 pub mod entity;
 pub mod event;

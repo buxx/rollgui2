@@ -2,8 +2,8 @@ use macroquad::prelude::*;
 use quad_net::web_socket::WebSocket;
 
 use crate::{
-    action as base_action, animation, client, config, entity, event as base_event, graphics,
-    message, util as base_util,
+    action as base_action, animation, client, config, description, entity, event as base_event,
+    graphics, message, util as base_util,
 };
 
 use super::Engine;
@@ -17,7 +17,6 @@ pub mod log;
 pub mod scene;
 pub mod socket;
 pub mod state;
-pub mod ui;
 pub mod util;
 
 const DEFAULT_PLAYER_VELOCITY_DIVIDER: f32 = 2.5;
@@ -55,7 +54,7 @@ pub struct ZoneEngine {
     pub helper_text: Option<String>,
     pub description_request: Option<quad_net::http_request::Request>,
     pub current_left_panel_button: Option<gui::panel::Button>,
-    pub current_description: Option<entity::description::Description>,
+    pub current_description: Option<description::UiDescription>,
 }
 
 impl ZoneEngine {
@@ -346,7 +345,10 @@ impl ZoneEngine {
                 match data {
                     Ok(description_string) => {
                         match entity::description::Description::from_string(&description_string) {
-                            Ok(description) => self.current_description = Some(description),
+                            Ok(description) => {
+                                self.current_description =
+                                    Some(description::UiDescription::new(description))
+                            }
                             Err(error) => {
                                 error!("Error while decoding description : {}", error);
                             }
@@ -523,15 +525,39 @@ impl Engine for ZoneEngine {
         self.draw_user_logs();
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();
-        if let Some(event) = ui::ui(&self.state, &self.current_description) {
-            match event {
-                ui::ZoneUiEvent::ReturnToRoot => {
-                    messages.push(message::MainMessage::SetRootEngine);
-                }
-            }
-        }
         self.draw_helper_text();
         self.helper_text = None;
+
+        egui_macroquad::ui(|egui_ctx| {
+            if let Some(description) = self.current_description.as_mut() {
+                let screen_width = screen_width();
+                let screen_height = screen_height();
+                let draw_to_x = 50.;
+                let draw_to_y = 50.;
+                let mut ui_message = None;
+
+                egui::Window::new(&description.title())
+                    .resizable(false)
+                    .default_pos((draw_to_x, draw_to_y))
+                    .default_size((screen_width - 50., screen_height - 50.))
+                    .show(egui_ctx, |ui| {
+                        ui_message = description.draw(egui_ctx, ui);
+                    });
+
+                if let Some(ui_message_) = ui_message {
+                    match ui_message_ {
+                        description::UiDescriptionEvent::CloseDescription => {
+                            self.current_description = None
+                        }
+                        description::UiDescriptionEvent::FollowUrl(url) => {
+                            self.description_request =
+                                Some(self.client.get_description_request(url));
+                            description.loading = true;
+                        }
+                    }
+                }
+            }
+        });
 
         messages
     }

@@ -63,6 +63,7 @@ pub struct Description {
     pub exploitable_success: Option<(i32, i32)>,
     pub is_quick_error: bool,
     pub deposit_success: Option<((i32, i32), Vec<String>)>,
+    pub is_grid: bool,
 }
 
 impl Description {
@@ -74,5 +75,17 @@ impl Description {
 
     pub fn title(&self) -> String {
         self.title.clone().unwrap_or_default()
+    }
+}
+
+impl Part {
+    pub fn label(&self) -> String {
+        match &self.label {
+            Some(label) => label.clone(),
+            None => match &self.text {
+                Some(text) => text.clone(),
+                None => "__NO_LABEL__".to_string(),
+            },
+        }
     }
 }
