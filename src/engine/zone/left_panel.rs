@@ -10,7 +10,7 @@ impl ZoneEngine {
             gui::panel::draw_buttons(&self.graphics, &self.current_left_panel_button)
         {
             self.disable_all_user_input = true;
-            if base_util::mouse_clicked() {
+            if base_util::mouse_clicked() && self.current_description.is_none() {
                 match button.action(&self.state) {
                     gui::panel::ButtonAction::OpenDescription(url) => {
                         self.description_request = Some(self.client.get_description_request(url));

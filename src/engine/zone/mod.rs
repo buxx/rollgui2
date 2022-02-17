@@ -55,6 +55,7 @@ pub struct ZoneEngine {
     pub description_request: Option<quad_net::http_request::Request>,
     pub current_left_panel_button: Option<gui::panel::Button>,
     pub current_description: Option<description::UiDescription>,
+    pub current_description_state: Option<description::UiDescriptionState>,
 }
 
 impl ZoneEngine {
@@ -92,6 +93,7 @@ impl ZoneEngine {
             description_request: None,
             current_left_panel_button: None,
             current_description: None,
+            current_description_state: None,
         })
     }
 
@@ -347,7 +349,9 @@ impl ZoneEngine {
                         match entity::description::Description::from_string(&description_string) {
                             Ok(description) => {
                                 self.current_description =
-                                    Some(description::UiDescription::new(description))
+                                    Some(description::UiDescription::new(description));
+                                self.current_description_state =
+                                    Some(description::UiDescriptionState::default());
                             }
                             Err(error) => {
                                 error!("Error while decoding description : {}", error);
@@ -529,7 +533,10 @@ impl Engine for ZoneEngine {
         self.helper_text = None;
 
         egui_macroquad::ui(|egui_ctx| {
-            if let Some(description) = self.current_description.as_mut() {
+            if let (Some(description), Some(description_state)) = (
+                self.current_description.as_mut(),
+                self.current_description_state.as_mut(),
+            ) {
                 let screen_width = screen_width();
                 let screen_height = screen_height();
                 let draw_to_x = 50.;
@@ -541,13 +548,14 @@ impl Engine for ZoneEngine {
                     .default_pos((draw_to_x, draw_to_y))
                     .default_size((screen_width - 50., screen_height - 50.))
                     .show(egui_ctx, |ui| {
-                        ui_message = description.draw(egui_ctx, ui);
+                        ui_message = description.draw(egui_ctx, ui, description_state);
                     });
 
                 if let Some(ui_message_) = ui_message {
                     match ui_message_ {
                         description::UiDescriptionEvent::CloseDescription => {
-                            self.current_description = None
+                            self.current_description = None;
+                            self.current_description_state = None;
                         }
                         description::UiDescriptionEvent::FollowUrl(url) => {
                             self.description_request =

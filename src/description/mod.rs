@@ -9,11 +9,22 @@ pub mod helper;
 
 pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 
+pub struct UiDescriptionState {
+    pub input_text_values: HashMap<String, String>,
+}
+
+impl Default for UiDescriptionState {
+    fn default() -> Self {
+        Self {
+            input_text_values: HashMap::new(),
+        }
+    }
+}
+
 pub struct UiDescription {
     description: entity::description::Description,
     is_first_frame: bool,
     pub loading: bool,
-    pub input_text_values: HashMap<String, String>,
 }
 
 pub enum UiDescriptionEvent {
@@ -27,7 +38,6 @@ impl UiDescription {
             description,
             is_first_frame: true,
             loading: false,
-            input_text_values: HashMap::new(),
         }
     }
 
@@ -35,6 +45,7 @@ impl UiDescription {
         &mut self,
         egui_ctx: &egui::CtxRef,
         ui: &mut egui::Ui,
+        state: &mut UiDescriptionState,
     ) -> Option<UiDescriptionEvent> {
         self.check_init(egui_ctx, ui);
         let mut ui_message = None;
@@ -44,11 +55,11 @@ impl UiDescription {
         }
 
         if self.description.is_grid {
-            if let Some(ui_message_) = self.draw_grid(ui) {
+            if let Some(ui_message_) = self.draw_grid(ui, state) {
                 ui_message = Some(ui_message_);
             }
         } else {
-            if let Some(ui_message_) = self.draw_default(ui) {
+            if let Some(ui_message_) = self.draw_default(ui, state) {
                 ui_message = Some(ui_message_);
             }
         }
@@ -60,15 +71,17 @@ impl UiDescription {
         ui_message
     }
 
-    pub fn draw_default(&mut self, ui: &mut egui::Ui) -> Option<UiDescriptionEvent> {
+    pub fn draw_default(
+        &self,
+        ui: &mut egui::Ui,
+        state: &mut UiDescriptionState,
+    ) -> Option<UiDescriptionEvent> {
         let mut event = None;
 
         for (i, part) in self.description.items.iter().enumerate() {
-            if part.is_link() {
-                match self.draw_part(ui, part) {
-                    Some(event_) => event = Some(event_),
-                    None => {}
-                }
+            match self.draw_part(ui, part, state) {
+                Some(event_) => event = Some(event_),
+                None => {}
             }
         }
 
@@ -76,21 +89,29 @@ impl UiDescription {
     }
 
     pub fn draw_part(
-        &mut self,
+        &self,
         ui: &mut egui::Ui,
         part: &entity::description::Part,
+        state: &mut UiDescriptionState,
     ) -> Option<UiDescriptionEvent> {
         let mut event = None;
 
         if part.is_link() {
-            match self.draw_button(ui, part) {
+            match self.draw_button(ui, part, state) {
                 Some(event_) => event = Some(event_),
                 None => {}
             }
         } else if part.is_text() {
             ui.label(part.label());
         } else if part.is_input() {
-            self.draw_input(ui, part);
+            self.draw_input(ui, part, state);
+        } else if part.is_form {
+            for form_part in &part.items {
+                match self.draw_part(ui, form_part, state) {
+                    Some(event_) => event = Some(event_),
+                    None => {}
+                }
+            }
         }
 
         event

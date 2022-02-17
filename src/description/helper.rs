@@ -25,6 +25,7 @@ impl UiDescription {
         &self,
         ui: &mut egui::Ui,
         part: &entity::description::Part,
+        state: &mut super::UiDescriptionState,
     ) -> Option<super::UiDescriptionEvent> {
         let mut event = None;
 
@@ -41,14 +42,18 @@ impl UiDescription {
     }
 
     pub fn draw_input(
-        &mut self,
+        &self,
         ui: &mut egui::Ui,
         part: &entity::description::Part,
+        state: &mut super::UiDescriptionState,
     ) -> Option<super::UiDescriptionEvent> {
         let mut event = None;
 
         let name = part.name.clone().unwrap();
-        let value = self.input_text_values.get_mut(&name).unwrap();
+        let value = state
+            .input_text_values
+            .entry(name)
+            .or_insert("".to_string());
         ui.label(part.label());
         ui.add(egui::TextEdit::singleline(value).hint_text("Write something here"));
 
