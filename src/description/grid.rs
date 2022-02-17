@@ -9,7 +9,7 @@ impl super::UiDescription {
             let columns = screen_width() as usize / super::BIG_BUTTON_SIZE.0 as usize;
 
             for (i, part) in self.description.items.iter().enumerate() {
-                match self.draw_button(ui, part) {
+                match self.draw_part(ui, part) {
                     Some(event_) => event = Some(event_),
                     None => {}
                 }

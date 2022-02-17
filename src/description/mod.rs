@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 use crate::entity;
 
 pub mod grid;
+pub mod helper;
 
 pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 
@@ -24,23 +25,6 @@ impl UiDescription {
             is_first_frame: true,
             loading: false,
         }
-    }
-
-    pub(crate) fn title(&self) -> String {
-        match &self.description.title {
-            Some(title) => title.clone(),
-            None => "__NO_TITLE__".to_string(),
-        }
-    }
-
-    fn check_init(&mut self, egui_ctx: &egui::CtxRef, ui: &mut egui::Ui) {
-        if self.is_first_frame {
-            let mut style = (*egui_ctx.style()).clone();
-            // TODO : with new egui, do https://discord.com/channels/900275882684477440/900275883124858921/938081008568377354
-            style.override_text_style = Some(egui::TextStyle::Heading);
-            egui_ctx.set_style(style);
-        }
-        self.is_first_frame = false;
     }
 
     pub fn draw(
@@ -76,8 +60,8 @@ impl UiDescription {
         let mut event = None;
 
         for (i, part) in self.description.items.iter().enumerate() {
-            if self.is_link(part) {
-                match self.draw_button(ui, part) {
+            if part.is_link() {
+                match self.draw_part(ui, part) {
                     Some(event_) => event = Some(event_),
                     None => {}
                 }
@@ -87,25 +71,21 @@ impl UiDescription {
         event
     }
 
-    fn is_link(&self, part: &entity::description::Part) -> bool {
-        part.form_action.is_some() && !part.is_form
-    }
-
-    fn draw_button(
+    pub fn draw_part(
         &self,
         ui: &mut egui::Ui,
         part: &entity::description::Part,
     ) -> Option<UiDescriptionEvent> {
         let mut event = None;
 
-        let label = part.label();
-        if ui.button(&label).clicked() {
-            if let Some(url) = &part.form_action {
-                event = Some(UiDescriptionEvent::FollowUrl(url.clone()));
-            } else {
-                error!("Description button '{}' has no form action", &label);
+        if part.is_link() {
+            match self.draw_button(ui, part) {
+                Some(event_) => event = Some(event_),
+                None => {}
             }
-        };
+        } else if part.is_text() {
+            ui.label(part.label());
+        }
 
         event
     }
