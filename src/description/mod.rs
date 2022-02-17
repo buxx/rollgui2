@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use macroquad::prelude::*;
 
 use crate::entity;
@@ -11,6 +13,7 @@ pub struct UiDescription {
     description: entity::description::Description,
     is_first_frame: bool,
     pub loading: bool,
+    pub input_text_values: HashMap<String, String>,
 }
 
 pub enum UiDescriptionEvent {
@@ -24,6 +27,7 @@ impl UiDescription {
             description,
             is_first_frame: true,
             loading: false,
+            input_text_values: HashMap::new(),
         }
     }
 
@@ -72,7 +76,7 @@ impl UiDescription {
     }
 
     pub fn draw_part(
-        &self,
+        &mut self,
         ui: &mut egui::Ui,
         part: &entity::description::Part,
     ) -> Option<UiDescriptionEvent> {
@@ -85,6 +89,8 @@ impl UiDescription {
             }
         } else if part.is_text() {
             ui.label(part.label());
+        } else if part.is_input() {
+            self.draw_input(ui, part);
         }
 
         event

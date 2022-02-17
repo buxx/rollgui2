@@ -89,10 +89,6 @@ impl Part {
         }
     }
 
-    pub fn is_link(&self) -> bool {
-        self.form_action.is_some() && !self.is_form
-    }
-
     pub fn is_text(&self) -> bool {
         let is_choice = if let Some(choices) = &self.choices {
             choices.len() != 0
@@ -106,27 +102,27 @@ impl Part {
             && !is_choice
     }
 
-    pub fn part_is_form(&self) -> bool {
+    pub fn is_form(&self) -> bool {
         self.is_form
     }
 
-    pub fn part_is_input(&self) -> bool {
+    pub fn is_input(&self) -> bool {
         self.name.is_some() && self.type_.is_some()
     }
 
-    pub fn part_is_link(&self) -> bool {
+    pub fn is_link(&self) -> bool {
         self.is_link && self.form_action.is_some()
     }
 
-    pub fn part_is_checkbox(&self) -> bool {
+    pub fn is_checkbox(&self) -> bool {
         self.is_checkbox
     }
 
-    pub fn part_is_choices(&self) -> bool {
+    pub fn is_choices(&self) -> bool {
         self.choices.is_some() && !self.search_by_str
     }
 
-    pub fn part_is_search_by_str(&self) -> bool {
+    pub fn is_search_by_str(&self) -> bool {
         self.choices.is_some() && self.search_by_str
     }
 }
