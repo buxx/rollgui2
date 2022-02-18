@@ -21,3 +21,15 @@ impl Stuff {
         classes
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct StuffApi {
+    pub ids: Vec<i32>,
+    pub stuff_id: String,
+    pub name: String,
+    pub infos: String,
+    pub under_construction: bool,
+    pub classes: Vec<String>,
+    pub is_equipment: bool,
+    pub count: i32,
+}

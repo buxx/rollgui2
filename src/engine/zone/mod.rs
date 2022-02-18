@@ -12,6 +12,7 @@ pub mod action;
 pub mod animations;
 pub mod event;
 pub mod gui;
+pub mod inventory;
 pub mod left_panel;
 pub mod log;
 pub mod scene;
@@ -56,6 +57,8 @@ pub struct ZoneEngine {
     pub current_left_panel_button: Option<gui::panel::Button>,
     pub current_description: Option<description::UiDescription>,
     pub current_description_state: Option<description::UiDescriptionState>,
+    pub inventory_request: Option<quad_net::http_request::Request>,
+    pub inventory: Option<inventory::Inventory>,
 }
 
 impl ZoneEngine {
@@ -94,6 +97,8 @@ impl ZoneEngine {
             current_left_panel_button: None,
             current_description: None,
             current_description_state: None,
+            inventory_request: None,
+            inventory: None,
         })
     }
 
@@ -363,6 +368,7 @@ impl ZoneEngine {
                     }
                 }
                 self.current_left_panel_button = None;
+                self.description_request = None;
             }
         }
     }
@@ -371,6 +377,7 @@ impl ZoneEngine {
         if self.disable_all_user_input_until > get_time()
             || self.disable_all_user_input
             || self.current_description.is_some()
+            || self.inventory.is_some()
         {
             return;
         }
@@ -514,6 +521,7 @@ impl Engine for ZoneEngine {
         self.update();
         self.proceed_quick_action_requests();
         self.proceed_description_requests();
+        self.proceed_inventory_requests();
         messages.extend(self.recv_events());
         self.camera();
 
@@ -530,6 +538,7 @@ impl Engine for ZoneEngine {
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();
         self.draw_helper_text();
+        self.draw_inventory();
         self.helper_text = None;
 
         egui_macroquad::ui(|egui_ctx| {

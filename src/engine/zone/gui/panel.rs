@@ -29,16 +29,19 @@ const ACTION_BUTTON_X: f32 = 0.;
 const ACTION_BUTTON_Y: f32 = 960.;
 const WORLD_BUTTON_X: f32 = 0.;
 const WORLD_BUTTON_Y: f32 = 1056.;
+const INVENTORY_BUTTON_X: f32 = 0.;
+const INVENTORY_BUTTON_Y: f32 = 1152.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Button {
     Actions,
     World,
+    Inventory,
 }
 
 pub enum ButtonAction {
     OpenDescription(String),
-    // SetEngine(Box<dyn engine::Engine>),
+    OpenInventory,
 }
 
 impl Button {
@@ -49,6 +52,7 @@ impl Button {
                 state.player.id
             )),
             Button::World => todo!(),
+            Button::Inventory => ButtonAction::OpenInventory,
         }
     }
 }
@@ -118,6 +122,15 @@ pub fn draw_buttons(graphics: &graphics::Graphics, loading: &Option<Button>) -> 
         (
             Button::World,
             Rect::new(WORLD_BUTTON_X, WORLD_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
+        ),
+        (
+            Button::Inventory,
+            Rect::new(
+                INVENTORY_BUTTON_X,
+                INVENTORY_BUTTON_Y,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+            ),
         ),
     ];
     let mut hover_button = None;

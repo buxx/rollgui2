@@ -193,4 +193,13 @@ impl Client {
             .method(Method::Post)
             .send()
     }
+
+    pub fn get_inventory_request(&self, id: &str) -> Request {
+        let url = format!("{}/character/{}/inventory-data", SERVER_ADDRESS, id);
+        info!("Retrieve inventory from {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .send()
+    }
 }

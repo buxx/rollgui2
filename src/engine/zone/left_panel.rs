@@ -10,10 +10,17 @@ impl ZoneEngine {
             gui::panel::draw_buttons(&self.graphics, &self.current_left_panel_button)
         {
             self.disable_all_user_input = true;
-            if base_util::mouse_clicked() && self.current_description.is_none() {
+            if base_util::mouse_clicked()
+                && self.current_description.is_none()
+                && self.inventory.is_none()
+            {
                 match button.action(&self.state) {
                     gui::panel::ButtonAction::OpenDescription(url) => {
                         self.description_request = Some(self.client.get_description_request(url));
+                    }
+                    gui::panel::ButtonAction::OpenInventory => {
+                        self.inventory_request =
+                            Some(self.client.get_inventory_request(&self.state.player.id));
                     }
                 }
                 self.current_left_panel_button = Some(button);
