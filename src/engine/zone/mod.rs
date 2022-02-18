@@ -537,8 +537,8 @@ impl Engine for ZoneEngine {
         self.draw_user_logs();
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();
-        self.draw_helper_text();
         self.draw_inventory();
+        self.draw_helper_text();
         self.helper_text = None;
 
         egui_macroquad::ui(|egui_ctx| {
