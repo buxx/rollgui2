@@ -1,3 +1,4 @@
+use quad_net::quad_socket::server::SocketHandle;
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -125,4 +126,29 @@ impl Part {
     pub fn is_search_by_str(&self) -> bool {
         self.choices.is_some() && self.search_by_str
     }
+
+    pub fn analyze_default_value(&self) -> Option<(String, Option<String>)> {
+        match &self.default_value {
+            Some(default_value_) => {
+                let suffix = if default_value_.ends_with("l") {
+                    Some("l".to_string())
+                } else if default_value_.ends_with("g") {
+                    Some("g".to_string())
+                } else if default_value_.ends_with("kg") {
+                    Some("kg".to_string())
+                } else if default_value_.ends_with("m³") {
+                    Some("m³".to_string())
+                } else {
+                    None
+                };
+                Some((default_value_.clone(), suffix))
+            }
+            None => None,
+        }
+    }
+}
+
+pub enum InputType {
+    String,
+    Numeric,
 }

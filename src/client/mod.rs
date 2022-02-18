@@ -32,6 +32,31 @@ impl Client {
             base64::encode(format!("{}:{}", &self.login, &self.password))
         )
     }
+    fn url_with_query(
+        &self,
+        url: String,
+        query: serde_json::Map<String, serde_json::Value>,
+    ) -> String {
+        let mut params: Vec<(String, String)> = Vec::new();
+        for (key, value) in query.iter() {
+            match value {
+                serde_json::Value::Number(number) => {
+                    params.push((key.to_string(), number.to_string()));
+                }
+                serde_json::Value::String(str_) => {
+                    params.push((key.to_string(), str_.to_string()));
+                }
+                serde_json::Value::Bool(bool_) => {
+                    params.push((key.to_string(), bool_.to_string()));
+                }
+                serde_json::Value::Null => {}
+                _ => {}
+            }
+        }
+
+        let url = url::Url::parse_with_params(url.as_str(), &params).unwrap();
+        String::from(url)
+    }
 
     pub fn get_character_request(&self, id: &str) -> Request {
         let url = format!("{}/character/{}", SERVER_ADDRESS, id);
@@ -130,6 +155,38 @@ impl Client {
         let url = format!("{}{}", SERVER_ADDRESS, url);
 
         info!("Request description on {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Post)
+            .send()
+    }
+
+    pub fn get_description_request_with_data(
+        &self,
+        url: String,
+        data: serde_json::Map<String, serde_json::Value>,
+    ) -> Request {
+        let url = format!("{}{}", SERVER_ADDRESS, url);
+
+        info!("Request description with data on {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Post)
+            .body(&serde_json::json!(data).to_string())
+            .send()
+    }
+
+    pub fn get_description_request_with_query(
+        &self,
+        url: String,
+        data: serde_json::Map<String, serde_json::Value>,
+    ) -> Request {
+        let url = format!("{}{}", SERVER_ADDRESS, url);
+        let url = self.url_with_query(url, data);
+
+        info!("Request description with data on {}", url);
 
         RequestBuilder::new(&url)
             .header("Authorization", &self.basic_auth_value())

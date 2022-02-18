@@ -10,13 +10,15 @@ pub mod helper;
 pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 
 pub struct UiDescriptionState {
-    pub input_text_values: HashMap<String, String>,
+    pub string_values: HashMap<String, String>,
+    pub numeric_values: HashMap<String, f32>,
 }
 
 impl Default for UiDescriptionState {
     fn default() -> Self {
         Self {
-            input_text_values: HashMap::new(),
+            string_values: HashMap::new(),
+            numeric_values: HashMap::new(),
         }
     }
 }
@@ -30,6 +32,9 @@ pub struct UiDescription {
 pub enum UiDescriptionEvent {
     CloseDescription,
     FollowUrl(String),
+    FatalError(String),
+    ValidateFormInQuery(String),
+    ValidateFormInBody(String),
 }
 
 impl UiDescription {
@@ -104,7 +109,10 @@ impl UiDescription {
         } else if part.is_text() {
             ui.label(part.label());
         } else if part.is_input() {
-            self.draw_input(ui, part, state);
+            match self.draw_input(ui, part, state) {
+                Some(event_) => event = Some(event_),
+                None => {}
+            }
         } else if part.is_form {
             for form_part in &part.items {
                 match self.draw_part(ui, form_part, state) {
@@ -112,8 +120,35 @@ impl UiDescription {
                     None => {}
                 }
             }
+            if ui.button("Valider").clicked() {
+                if let Some(url) = &part.form_action {
+                    if part.form_values_in_query {
+                        event = Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
+                    } else {
+                        event = Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
+                    }
+                } else {
+                    error!("Description form has no form action");
+                }
+            };
         }
 
         event
+    }
+}
+
+impl UiDescriptionState {
+    pub fn collect_form_data(&self) -> serde_json::Map<String, serde_json::Value> {
+        let mut data = serde_json::Map::new();
+
+        for (key, value) in &self.string_values {
+            data.insert(key.clone(), serde_json::json!(value));
+        }
+
+        for (key, value) in &self.numeric_values {
+            data.insert(key.clone(), serde_json::json!(value));
+        }
+
+        data
     }
 }

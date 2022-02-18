@@ -562,6 +562,21 @@ impl Engine for ZoneEngine {
                                 Some(self.client.get_description_request(url));
                             description.loading = true;
                         }
+                        description::UiDescriptionEvent::FatalError(error) => {
+                            messages.push(message::MainMessage::SetErrorEngine(error));
+                        }
+                        description::UiDescriptionEvent::ValidateFormInQuery(url) => {
+                            let data = description_state.collect_form_data();
+                            self.description_request =
+                                Some(self.client.get_description_request_with_query(url, data));
+                            description.loading = true;
+                        }
+                        description::UiDescriptionEvent::ValidateFormInBody(url) => {
+                            let data = description_state.collect_form_data();
+                            self.description_request =
+                                Some(self.client.get_description_request_with_data(url, data));
+                            description.loading = true;
+                        }
                     }
                 }
             }
