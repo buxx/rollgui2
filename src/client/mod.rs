@@ -202,4 +202,30 @@ impl Client {
             .header("Authorization", &self.basic_auth_value())
             .send()
     }
+
+    pub fn get_look_at_inventory_stuff(&self, character_id: &str, stuff_id: i32) -> Request {
+        let url = format!(
+            "{}/_describe/character/{}/inventory_look/{}",
+            SERVER_ADDRESS, character_id, stuff_id
+        );
+        info!("Retrieve look at stuff from {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Post)
+            .send()
+    }
+
+    pub fn get_look_at_inventory_resource(&self, character_id: &str, resource_id: &str) -> Request {
+        let url = format!(
+            "{}/_describe/character/{}/resource_look/{}",
+            SERVER_ADDRESS, character_id, resource_id
+        );
+        info!("Retrieve look at resource from {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Post)
+            .send()
+    }
 }

@@ -63,8 +63,8 @@ impl super::ZoneEngine {
                 return;
             }
 
-            let start_draw_stuff_x = box_dest_x;
-            let start_draw_stuff_y = box_dest_y;
+            let start_draw_stuff_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
+            let start_draw_stuff_y = box_dest_y + (gui::inventory::BUTTON_MARGIN / 2.);
             let mut last_draw_y = 0.;
             for (i, stuff) in inventory.stuff.iter().enumerate() {
                 let row_i = i / columns;
@@ -133,6 +133,27 @@ impl super::ZoneEngine {
             }
 
             if util::mouse_clicked() {
+                if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
+                    let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
+                        .ids
+                        .first()
+                        .unwrap()
+                        .clone();
+                    let request = self
+                        .client
+                        .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
+                    self.description_request = Some(request);
+                    self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
+                    let resource_id: String =
+                        inventory.resource[mouse_is_hover_resource].id.clone();
+                    let request = self
+                        .client
+                        .get_look_at_inventory_resource(&self.state.player.id, &resource_id);
+                    self.description_request = Some(request);
+                    self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                }
+
                 if !mouse_is_hover_box {
                     self.inventory = None;
                 }
