@@ -8,3 +8,7 @@ pub fn convert_to_local(pixel_pos: Vec2) -> Vec2 {
 pub fn mouse_clicked() -> bool {
     is_mouse_button_released(MouseButton::Left)
 }
+
+pub fn mouse_pressed() -> bool {
+    is_mouse_button_down(MouseButton::Left)
+}

@@ -15,6 +15,20 @@ pub struct Inventory {
     clutter: f32,
 }
 
+pub struct InventoryState {
+    dragging_stuff_i: Option<usize>,
+    dragging_resource_i: Option<usize>,
+}
+
+impl Default for InventoryState {
+    fn default() -> Self {
+        Self {
+            dragging_stuff_i: None,
+            dragging_resource_i: None,
+        }
+    }
+}
+
 impl super::ZoneEngine {
     pub fn proceed_inventory_requests(&mut self) {
         if let Some(request) = self.inventory_request.as_mut() {
@@ -23,6 +37,7 @@ impl super::ZoneEngine {
                     Ok(inventory_string) => {
                         let inventory: Inventory = serde_json::from_str(&inventory_string).unwrap();
                         self.inventory = Some(inventory);
+                        self.inventory_state = Some(InventoryState::default());
                     }
                     Err(error) => {
                         error!("Error while requiring inventory : {}", error);
@@ -35,7 +50,9 @@ impl super::ZoneEngine {
     }
 
     pub fn draw_inventory(&mut self) {
-        if let Some(inventory) = &self.inventory {
+        if let (Some(inventory), Some(inventory_state)) =
+            (&self.inventory, self.inventory_state.as_mut())
+        {
             let box_dest_x = INVENTORY_BOX_MARGIN;
             let box_dest_y = INVENTORY_BOX_MARGIN;
             let box_width = screen_width() - INVENTORY_BOX_MARGIN - INVENTORY_BOX_MARGIN;
@@ -86,6 +103,18 @@ impl super::ZoneEngine {
                     gui::inventory::draw_more(&self.graphics, stuff_dest_x, stuff_dest_y);
                     break;
                 } else {
+                    let (stuff_dest_x, stuff_dest_y) =
+                        if let Some(dragged_stuff_i) = inventory_state.dragging_stuff_i {
+                            if dragged_stuff_i == i {
+                                let mouse_position = mouse_position();
+                                (mouse_position.0, mouse_position.1)
+                            } else {
+                                (stuff_dest_x, stuff_dest_y)
+                            }
+                        } else {
+                            (stuff_dest_x, stuff_dest_y)
+                        };
+
                     let tile_id = self.graphics.find_tile_id_from_classes(&stuff.classes);
                     if gui::inventory::draw_item(
                         &self.graphics,
@@ -120,6 +149,18 @@ impl super::ZoneEngine {
                     gui::inventory::draw_more(&self.graphics, resource_dest_x, resource_dest_y);
                     break;
                 } else {
+                    let (resource_dest_x, resource_dest_y) =
+                        if let Some(dragged_resource_i) = inventory_state.dragging_resource_i {
+                            if dragged_resource_i == i {
+                                let mouse_position = mouse_position();
+                                (mouse_position.0, mouse_position.1)
+                            } else {
+                                (resource_dest_x, resource_dest_y)
+                            }
+                        } else {
+                            (resource_dest_x, resource_dest_y)
+                        };
+
                     let tile_id = self.graphics.find_tile_id_from_classes(&resource.classes);
                     if gui::inventory::draw_item(
                         &self.graphics,
@@ -156,6 +197,34 @@ impl super::ZoneEngine {
 
                 if !mouse_is_hover_box {
                     self.inventory = None;
+                    if let Some(dragged_stuff_i) = inventory_state.dragging_stuff_i {
+                        // FIXME BS NOW
+                        info!("DROP STUFF");
+                    } else if let Some(dragged_resource_i) = inventory_state.dragging_resource_i {
+                        // FIXME BS NOW
+                        info!("DROP RESOURCE");
+                    }
+                }
+
+                inventory_state.dragging_stuff_i = None;
+                inventory_state.dragging_resource_i = None;
+            } else if util::mouse_pressed() {
+                if inventory_state.dragging_stuff_i.is_none()
+                    && inventory_state.dragging_resource_i.is_none()
+                {
+                    if let Some(last_position) = self.last_begin_click_coordinates {
+                        let mouse_position = Vec2::from(mouse_position());
+                        let change_vector = mouse_position - last_position;
+                        if change_vector.x > 3. || change_vector.y > 3. {
+                            if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
+                                inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
+                                info!("Dragging s");
+                            } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
+                                inventory_state.dragging_resource_i = Some(mouse_is_hover_resource);
+                                info!("Dragging r");
+                            }
+                        }
+                    }
                 }
             }
         }

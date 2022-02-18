@@ -60,6 +60,8 @@ pub struct ZoneEngine {
     pub current_description_state: Option<description::UiDescriptionState>,
     pub inventory_request: Option<quad_net::http_request::Request>,
     pub inventory: Option<inventory::Inventory>,
+    pub inventory_state: Option<inventory::InventoryState>,
+    pub last_begin_click_coordinates: Option<(Vec2)>,
 }
 
 impl ZoneEngine {
@@ -100,6 +102,8 @@ impl ZoneEngine {
             current_description_state: None,
             inventory_request: None,
             inventory: None,
+            inventory_state: None,
+            last_begin_click_coordinates: None,
         })
     }
 
@@ -213,6 +217,14 @@ impl ZoneEngine {
         // User logs
         if self.user_logs.len() > DISPLAY_USER_LOG_COUNT {
             self.user_logs.remove(0);
+        }
+
+        // Mouse infos
+        if base_util::mouse_pressed() && self.last_begin_click_coordinates.is_none() {
+            self.last_begin_click_coordinates = Some(Vec2::from(mouse_position()));
+        }
+        if base_util::mouse_clicked() {
+            self.last_begin_click_coordinates = None;
         }
     }
 
