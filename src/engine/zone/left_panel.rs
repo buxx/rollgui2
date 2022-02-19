@@ -14,16 +14,33 @@ impl ZoneEngine {
                 && self.current_description.is_none()
                 && self.inventory.is_none()
             {
-                match button.action(&self.state) {
+                match &button.action(&self.state) {
                     gui::panel::ButtonAction::OpenDescription(url) => {
-                        self.description_request = Some(self.client.get_description_request(url));
+                        self.description_request =
+                            Some(self.client.get_description_request(url.clone()));
                     }
                     gui::panel::ButtonAction::OpenInventory => {
                         self.inventory_request =
                             Some(self.client.get_inventory_request(&self.state.player.id));
                     }
                 }
-                self.current_left_panel_button = Some(button);
+                self.current_left_panel_button = Some(button.clone());
+            }
+
+            // Special case for inventory item dragging : reopen inventory if dragged on inventory button
+            match &button {
+                gui::panel::Button::Inventory => {
+                    if let Some(inventory_state) = self.inventory_state.as_mut() {
+                        if inventory_state.dragging_resource_i.is_some()
+                            || inventory_state.dragging_stuff_i.is_some() && inventory_state.hide
+                        {
+                            // open it
+                            inventory_state.hide = false;
+                            inventory_state.must_hover_before_hide = true;
+                        }
+                    }
+                }
+                _ => {}
             }
         }
     }

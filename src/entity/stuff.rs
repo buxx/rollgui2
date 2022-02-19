@@ -32,4 +32,5 @@ pub struct StuffApi {
     pub classes: Vec<String>,
     pub is_equipment: bool,
     pub count: i32,
+    pub drop_base_url: String,
 }
