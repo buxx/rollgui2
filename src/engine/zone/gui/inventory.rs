@@ -5,6 +5,7 @@ const BACK_X: f32 = 1100.;
 const BACK_Y: f32 = 0.;
 const BACK_WIDTH: f32 = 120.;
 const BACK_HEIGHT: f32 = 223.;
+pub const HELP_TEXT_HEIGHT: f32 = 25.;
 
 const BUTTON_BACKGROUND_X: f32 = 0.;
 const BUTTON_BACKGROUND_Y: f32 = 864.;
@@ -21,6 +22,7 @@ pub fn draw_back(
     width: f32,
     height: f32,
 ) -> bool {
+    let height = height + HELP_TEXT_HEIGHT;
     draw_texture_ex(
         graphics.tileset_texture,
         dest_x,

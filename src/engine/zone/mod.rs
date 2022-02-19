@@ -61,7 +61,7 @@ pub struct ZoneEngine {
     pub inventory_request: Option<quad_net::http_request::Request>,
     pub inventory: Option<inventory::Inventory>,
     pub inventory_state: Option<inventory::InventoryState>,
-    pub last_begin_click_coordinates: Option<(Vec2)>,
+    pub last_begin_click_coordinates: Option<Vec2>,
 }
 
 impl ZoneEngine {

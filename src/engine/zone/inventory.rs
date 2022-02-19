@@ -5,7 +5,7 @@ use crate::{entity, util};
 
 use super::gui;
 
-const INVENTORY_BOX_MARGIN: f32 = 150.;
+const INVENTORY_BOX_MARGIN: f32 = 175.;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Inventory {
@@ -18,6 +18,7 @@ pub struct Inventory {
 pub struct InventoryState {
     dragging_stuff_i: Option<usize>,
     dragging_resource_i: Option<usize>,
+    help_text: Option<String>,
 }
 
 impl Default for InventoryState {
@@ -25,6 +26,7 @@ impl Default for InventoryState {
         Self {
             dragging_stuff_i: None,
             dragging_resource_i: None,
+            help_text: None,
         }
     }
 }
@@ -53,6 +55,7 @@ impl super::ZoneEngine {
         if let (Some(inventory), Some(inventory_state)) =
             (&self.inventory, self.inventory_state.as_mut())
         {
+            inventory_state.help_text = None;
             let box_dest_x = INVENTORY_BOX_MARGIN;
             let box_dest_y = INVENTORY_BOX_MARGIN;
             let box_width = screen_width() - INVENTORY_BOX_MARGIN - INVENTORY_BOX_MARGIN;
@@ -123,11 +126,12 @@ impl super::ZoneEngine {
                         stuff_dest_y,
                     ) {
                         mouse_is_hover_stuff = Some(i);
+                        inventory_state.help_text = Some(stuff.infos.clone());
                     }
                 }
             }
 
-            let start_draw_resource_x = box_dest_x;
+            let start_draw_resource_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
             let start_draw_resource_y =
                 last_draw_y + gui::inventory::BUTTON_HEIGHT as f32 + gui::inventory::BUTTON_MARGIN;
             for (i, resource) in inventory.resource.iter().enumerate() {
@@ -169,30 +173,45 @@ impl super::ZoneEngine {
                         resource_dest_y,
                     ) {
                         mouse_is_hover_resource = Some(i);
+                        inventory_state.help_text = Some(resource.infos.clone());
                     }
                 }
             }
 
+            if let Some(help_text) = &inventory_state.help_text {
+                draw_text(
+                    help_text,
+                    box_dest_x,
+                    box_dest_y + box_height + gui::inventory::HELP_TEXT_HEIGHT - 5.0,
+                    gui::inventory::HELP_TEXT_HEIGHT,
+                    BLACK,
+                );
+            }
+
             if util::mouse_clicked() {
-                if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
-                    let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
-                        .ids
-                        .first()
-                        .unwrap()
-                        .clone();
-                    let request = self
-                        .client
-                        .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
-                    self.description_request = Some(request);
-                    self.current_left_panel_button = Some(gui::panel::Button::Inventory);
-                } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
-                    let resource_id: String =
-                        inventory.resource[mouse_is_hover_resource].id.clone();
-                    let request = self
-                        .client
-                        .get_look_at_inventory_resource(&self.state.player.id, &resource_id);
-                    self.description_request = Some(request);
-                    self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                if inventory_state.dragging_resource_i.is_none()
+                    && inventory_state.dragging_stuff_i.is_none()
+                {
+                    if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
+                        let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
+                            .ids
+                            .first()
+                            .unwrap()
+                            .clone();
+                        let request = self
+                            .client
+                            .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
+                        self.description_request = Some(request);
+                        self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                    } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
+                        let resource_id: String =
+                            inventory.resource[mouse_is_hover_resource].id.clone();
+                        let request = self
+                            .client
+                            .get_look_at_inventory_resource(&self.state.player.id, &resource_id);
+                        self.description_request = Some(request);
+                        self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                    }
                 }
 
                 if !mouse_is_hover_box {

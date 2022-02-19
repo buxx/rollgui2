@@ -19,7 +19,7 @@ pub struct ResourceApi {
     pub name: String,
     pub weight: f32,
     pub clutter: f32,
-    pub info: String,
+    pub infos: String,
     pub classes: Vec<String>,
     pub quantity: f32,
 }
