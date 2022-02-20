@@ -18,8 +18,8 @@ pub struct Inventory {
 pub struct InventoryState {
     pub dragging_stuff_i: Option<usize>,
     pub dragging_resource_i: Option<usize>,
-    help_text: Option<String>,
-    drop_request: Option<quad_net::http_request::Request>,
+    pub help_text: Option<String>,
+    pub drop_request: Option<quad_net::http_request::Request>,
     pub hide: bool,
     pub must_hover_before_hide: bool,
 }
@@ -55,6 +55,35 @@ impl super::ZoneEngine {
                 self.inventory_request = None;
             }
         }
+
+        if let Some(request) = self.inventory_drop_request.as_mut() {
+            if let Some(data) = request.try_recv() {
+                match data {
+                    Ok(description_string) => {
+                        match entity::description::Description::from_string(&description_string) {
+                            Ok(description) => {
+                                self.inventory_item_dropped_description(description);
+                            }
+                            Err(error) => {
+                                error!("Error while decoding drop request description : {}", error);
+                            }
+                        };
+                    }
+                    Err(error) => {
+                        error!("Error while requiring drop request description : {}", error);
+                    }
+                }
+                self.current_left_panel_button = None;
+                self.description_request = None;
+            }
+        }
+    }
+
+    fn inventory_item_dropped_description(
+        &mut self,
+        description: entity::description::Description,
+    ) {
+        self.inventory_request = Some(self.client.get_inventory_request(&self.state.player.id));
     }
 
     pub fn draw_inventory(&mut self) {
@@ -98,7 +127,7 @@ impl super::ZoneEngine {
 
                 let start_draw_stuff_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
                 let start_draw_stuff_y = box_dest_y + (gui::inventory::BUTTON_MARGIN / 2.);
-                let mut last_draw_y = 0.;
+                let mut last_draw_y = box_dest_y;
                 for (i, stuff) in inventory.stuff.iter().enumerate() {
                     let row_i = i / columns;
                     let col_i = i % columns;
@@ -273,20 +302,38 @@ impl super::ZoneEngine {
                 }
 
                 if !mouse_is_hover_box {
-                    self.inventory = None;
-                    if let Some(dragged_stuff_i) = inventory_state.dragging_stuff_i {
-                        // FIXME BS NOW
-                        info!("DROP STUFF");
-                        // let stuff = &inventory.stuff[dragged_stuff_i];
-                        // let query;
-                        // inventory_state.drop_request = Some(
-                        //     self.client
-                        //         .get_description_request_with_query(stuff.drop_base_url, query),
-                        // );
-                    } else if let Some(dragged_resource_i) = inventory_state.dragging_resource_i {
-                        // FIXME BS NOW
-                        info!("DROP RESOURCE");
+                    if inventory_state.dragging_stuff_i.is_some()
+                        || inventory_state.dragging_resource_i.is_some()
+                    {
+                        let concrete_mouse_x =
+                            self.mouse_zone_position.x * self.state.map.concrete_width as f32;
+                        let concrete_mouse_y =
+                            self.mouse_zone_position.y * self.state.map.concrete_height as f32;
+                        let zone_row_i =
+                            (concrete_mouse_y / self.state.map.concrete_height) as usize;
+                        let zone_col_i =
+                            (concrete_mouse_x / self.state.map.concrete_width) as usize;
+
+                        let post_base_url = if let Some(dragged_stuff_i) =
+                            inventory_state.dragging_stuff_i
+                        {
+                            let stuff = &inventory.stuff[dragged_stuff_i];
+                            stuff.drop_base_url.clone()
+                        } else if let Some(dragged_resource_i) = inventory_state.dragging_resource_i
+                        {
+                            let resource = &inventory.resource[dragged_resource_i];
+                            resource.drop_base_url.clone()
+                        } else {
+                            panic!("Should ne here")
+                        };
+                        self.pending_events
+                            .push(super::UserEvent::InventoryItemDropped(
+                                zone_row_i,
+                                zone_col_i,
+                                post_base_url,
+                            ));
                     }
+                    self.inventory = None;
                 }
 
                 inventory_state.dragging_stuff_i = None;
@@ -314,6 +361,25 @@ impl super::ZoneEngine {
                     }
                 }
             }
+        }
+    }
+
+    pub fn inventory_item_dropped(
+        &mut self,
+        zone_row_i: usize,
+        zone_col_i: usize,
+        post_base_url: String,
+    ) {
+        // Check if not hover a tile
+        if let Some(tile_id) = self.state.map.tile_id(zone_row_i, zone_col_i) {
+            let post_url = format!(
+                "{}&zone_row_i={}&zone_col_i={}",
+                post_base_url, zone_row_i, zone_col_i
+            );
+
+            // Do the drop request
+            self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+            self.inventory_drop_request = Some(self.client.get_description_request(post_url));
         }
     }
 }

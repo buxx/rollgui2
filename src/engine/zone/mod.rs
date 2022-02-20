@@ -33,6 +33,7 @@ pub struct ZoneEngine {
     pub client: client::Client,
     pub graphics: graphics::Graphics,
     pub state: state::ZoneState,
+    pub pending_events: Vec<UserEvent>,
     pub socket: WebSocket,
     pub socket_is_new: bool,
     pub tick_last: f64,
@@ -59,6 +60,7 @@ pub struct ZoneEngine {
     pub current_description: Option<description::UiDescription>,
     pub current_description_state: Option<description::UiDescriptionState>,
     pub inventory_request: Option<quad_net::http_request::Request>,
+    pub inventory_drop_request: Option<quad_net::http_request::Request>,
     pub inventory: Option<inventory::Inventory>,
     pub inventory_state: Option<inventory::InventoryState>,
     pub last_begin_click_coordinates: Option<Vec2>,
@@ -75,6 +77,7 @@ impl ZoneEngine {
             client,
             graphics,
             state,
+            pending_events: vec![],
             socket,
             socket_is_new: true,
             tick_last: get_time(),
@@ -101,6 +104,7 @@ impl ZoneEngine {
             current_description: None,
             current_description_state: None,
             inventory_request: None,
+            inventory_drop_request: None,
             inventory: None,
             inventory_state: None,
             last_begin_click_coordinates: None,
@@ -120,6 +124,16 @@ impl ZoneEngine {
 
     fn update_frame_i(&mut self) {
         self.frame_i += 1;
+    }
+
+    fn consume_events(&mut self) {
+        while let Some(event) = self.pending_events.pop() {
+            match event {
+                UserEvent::InventoryItemDropped(zone_row_i, zone_col_i, post_base_url) => {
+                    self.inventory_item_dropped(zone_row_i, zone_col_i, post_base_url);
+                }
+            }
+        }
     }
 
     fn update(&mut self) {
@@ -530,6 +544,7 @@ impl Engine for ZoneEngine {
 
         self.update_tick_i();
         self.update_frame_i();
+        self.consume_events();
         self.user_inputs();
         self.update();
         self.proceed_quick_action_requests();
@@ -581,4 +596,9 @@ pub enum ZoomMode {
     Normal,
     Double,
     Large,
+}
+
+pub enum UserEvent {
+    // zone_row_i, zone_col_i, post_base_url
+    InventoryItemDropped(usize, usize, String),
 }
