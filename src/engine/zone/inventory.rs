@@ -309,10 +309,8 @@ impl super::ZoneEngine {
                             self.mouse_zone_position.x * self.state.map.concrete_width as f32;
                         let concrete_mouse_y =
                             self.mouse_zone_position.y * self.state.map.concrete_height as f32;
-                        let zone_row_i =
-                            (concrete_mouse_y / self.state.map.concrete_height) as usize;
-                        let zone_col_i =
-                            (concrete_mouse_x / self.state.map.concrete_width) as usize;
+                        let zone_row_i = (concrete_mouse_y / self.graphics.tile_height) as usize;
+                        let zone_col_i = (concrete_mouse_x / self.graphics.tile_width) as usize;
 
                         let post_base_url = if let Some(dragged_stuff_i) =
                             inventory_state.dragging_stuff_i
@@ -373,7 +371,7 @@ impl super::ZoneEngine {
         // Check if not hover a tile
         if let Some(tile_id) = self.state.map.tile_id(zone_row_i, zone_col_i) {
             let post_url = format!(
-                "{}&zone_row_i={}&zone_col_i={}",
+                "{}&zone_row_i={}&zone_col_i={}&quick_action=1",
                 post_base_url, zone_row_i, zone_col_i
             );
 
