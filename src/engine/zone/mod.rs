@@ -184,8 +184,15 @@ impl ZoneEngine {
                 self.state.player_display.velocity.normalize() * player_velocity_limit;
         }
 
+        let velocity_limiter = self.state.map.get_speed(
+            self.state.player.zone_row_i as usize,
+            self.state.player.zone_col_i as usize,
+            &entity::tile::TransportMode::Walking,
+        );
+        self.state.player_display.velocity *= velocity_limiter;
+
         // Update player position according to its velocity
-        self.state.player_display.position += self.state.player_display.velocity;
+        let next_position = self.state.player_display.position + self.state.player_display.velocity;
 
         // Update player running animation
         let was_running = self.state.player_display.running.is_some();
@@ -217,19 +224,26 @@ impl ZoneEngine {
         // Update player zone coordinates if changed
         let half_size_width = self.graphics.tile_width / 2.;
         let half_size_height = self.graphics.tile_height / 2.;
-        let player_center_x = self.state.player_display.position.x + half_size_width;
-        let player_center_y = self.state.player_display.position.y + half_size_height;
+        let next_player_center_x = next_position.x + half_size_width;
+        let next_player_center_y = next_position.y + half_size_height;
 
-        let current_player_row_i = (player_center_y / self.graphics.tile_height) as i32;
-        let current_player_col_i = (player_center_x / self.graphics.tile_width) as i32;
+        let next_player_row_i = (next_player_center_y / self.graphics.tile_height) as i32;
+        let next_player_col_i = (next_player_center_x / self.graphics.tile_width) as i32;
 
-        if current_player_row_i != self.state.player.zone_row_i
-            || current_player_col_i != self.state.player.zone_col_i
-        {
-            self.state.player.zone_row_i = current_player_row_i;
-            self.state.player.zone_col_i = current_player_col_i;
-            let player_move_event = util::player_move_event(&self.state);
-            self.socket.send_text(&player_move_event);
+        if self.state.map.traversable(
+            next_player_row_i as usize,
+            next_player_col_i as usize,
+            &entity::tile::TransportMode::Walking,
+        ) {
+            self.state.player_display.position = next_position;
+            if next_player_row_i != self.state.player.zone_row_i
+                || next_player_col_i != self.state.player.zone_col_i
+            {
+                self.state.player.zone_row_i = next_player_row_i;
+                self.state.player.zone_col_i = next_player_col_i;
+                let player_move_event = util::player_move_event(&self.state);
+                self.socket.send_text(&player_move_event);
+            }
         }
 
         // User logs
