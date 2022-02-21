@@ -13,6 +13,7 @@ pub fn draw_quick_action_button(
     tile_id2: &str,
     draw_x: f32,
     draw_y: f32,
+    quick_action_key: &Option<char>,
     tick_i: i16,
 ) -> bool {
     let draw_end_x = draw_x + BUTTON_WIDTH;
@@ -86,6 +87,17 @@ pub fn draw_quick_action_button(
         WHITE,
         tile2_params,
     );
+
+    if let Some(quick_action_key_) = quick_action_key {
+        draw_circle(draw_x + 5., draw_y + 5., 10., BEIGE);
+        draw_text(
+            &format!("{}", quick_action_key_),
+            draw_x + 1.,
+            draw_y + 10.,
+            20.0,
+            BLACK,
+        );
+    }
 
     if active {
         draw_rectangle_lines(draw_x, draw_y, BUTTON_WIDTH, BUTTON_HEIGHT, 2.0, BLUE);

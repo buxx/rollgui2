@@ -26,17 +26,28 @@ impl ZoneEngine {
                 false
             };
 
-            if gui::quick::draw_quick_action_button(
+            let hover = gui::quick::draw_quick_action_button(
                 &self.graphics,
                 active,
                 &tile_id1,
                 &tile_id2,
                 draw_x,
                 draw_y,
+                &quick_action.quick_action_key,
                 self.tick_i,
-            ) {
+            );
+
+            let pressed_by_key = if let Some(quick_action_key_) = &quick_action.quick_action_key {
+                is_key_pressed(
+                    base_util::char_to_key_code(quick_action_key_).expect("Update key mapping !"),
+                )
+            } else {
+                false
+            };
+
+            if hover || pressed_by_key {
                 self.helper_text = Some(quick_action.name.clone());
-                if base_util::mouse_clicked() {
+                if base_util::mouse_clicked() || pressed_by_key {
                     if !quick_action.direct_action {
                         self.current_action =
                             Some(base_action::Action::from_quick_action(&quick_action));

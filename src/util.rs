@@ -12,3 +12,11 @@ pub fn mouse_clicked() -> bool {
 pub fn mouse_pressed() -> bool {
     is_mouse_button_down(MouseButton::Left)
 }
+
+// TODO : use to_digit (failed when tried ...)
+pub fn char_to_key_code(char_: &char) -> Option<KeyCode> {
+    match char_ {
+        'P' => Some(KeyCode::P),
+        _ => None,
+    }
+}
