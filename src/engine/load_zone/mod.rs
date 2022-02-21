@@ -12,6 +12,8 @@ pub struct LoadZoneEngine {
     character_id: String,
     get_player_request: Option<Request>,
     player: Option<entity::character::Character>,
+    get_tiles_request: Option<Request>,
+    tiles: Option<Vec<entity::tile::Tile>>,
     get_zone_request: Option<Request>,
     zone: Option<zone::map::ZoneMap>,
     get_characters_request: Option<Request>,
@@ -38,6 +40,8 @@ impl LoadZoneEngine {
             character_id: character_id.to_string(),
             get_player_request: None,
             player: None,
+            get_tiles_request: None,
+            tiles: None,
             get_zone_request: None,
             zone: None,
             get_characters_request: None,
@@ -84,6 +88,15 @@ impl LoadZoneEngine {
                 }
             }
         };
+
+        vec![]
+    }
+
+    fn make_tiles_request(&mut self) -> Vec<message::MainMessage> {
+        if self.get_tiles_request.is_none() {
+            info!("Request tiles");
+            self.get_tiles_request = Some(self.client.get_tiles_request());
+        }
 
         vec![]
     }
@@ -158,9 +171,41 @@ impl LoadZoneEngine {
         vec![]
     }
 
+    fn retrieve_tiles(&mut self) -> Vec<message::MainMessage> {
+        if self.tiles.is_none() {
+            if let Some(get_tiles_request) = self.get_tiles_request.as_mut() {
+                if let Some(data) = get_tiles_request.try_recv() {
+                    info!("Tiles received");
+                    match data {
+                        Ok(tiles_str) => {
+                            let tiles: Vec<entity::tile::Tile> =
+                                match serde_json::from_str(&tiles_str) {
+                                    Ok(tiles) => tiles,
+                                    Err(error) => {
+                                        return vec![message::MainMessage::SetErrorEngine(
+                                            error.to_string(),
+                                        )]
+                                    }
+                                };
+
+                            self.tiles = Some(tiles);
+                        }
+                        Err(error) => {
+                            return vec![message::MainMessage::SetErrorEngine(error.to_string())];
+                        }
+                    }
+                }
+            };
+        }
+
+        vec![]
+    }
+
     fn retrieve_zone(&mut self) -> Vec<message::MainMessage> {
         if self.zone.is_none() {
-            if let Some(get_zone_request) = self.get_zone_request.as_mut() {
+            if let (Some(get_zone_request), Some(tiles)) =
+                (self.get_zone_request.as_mut(), &self.tiles)
+            {
                 if let Some(data) = get_zone_request.try_recv() {
                     info!("Zone received");
                     match data {
@@ -169,6 +214,7 @@ impl LoadZoneEngine {
                             let source = source_value["raw_source"].as_str().unwrap();
                             let map: zone::map::ZoneMap = match zone::load::from_txt_map(
                                 source,
+                                tiles.clone(),
                                 self.graphics.tile_width,
                                 self.graphics.tile_height,
                             ) {
@@ -313,6 +359,7 @@ impl Engine for LoadZoneEngine {
     fn tick(&mut self) -> Vec<crate::message::MainMessage> {
         let mut messages = vec![];
 
+        messages.extend(self.make_tiles_request());
         messages.extend(self.make_player_request());
         messages.extend(self.retrieve_player());
 
@@ -322,6 +369,7 @@ impl Engine for LoadZoneEngine {
         messages.extend(self.make_stuffs_request());
         messages.extend(self.make_builds_request());
 
+        messages.extend(self.retrieve_tiles());
         messages.extend(self.retrieve_zone());
         messages.extend(self.retrieve_characters());
         messages.extend(self.retrieve_resources());

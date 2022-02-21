@@ -1,7 +1,10 @@
+use crate::entity;
+
 use super::ZoneMapTiles;
 
 #[derive(Clone)]
 pub struct ZoneMap {
+    pub tiles_definitions: Vec<entity::tile::Tile>,
     pub tiles: ZoneMapTiles,
     pub background_tile_id: String,
     pub width: usize,
@@ -14,6 +17,7 @@ pub struct ZoneMap {
 
 impl ZoneMap {
     pub fn new(
+        tiles_definitions: Vec<entity::tile::Tile>,
         tiles: ZoneMapTiles,
         background_tile_id: &str,
         tiles_width: f32,
@@ -29,6 +33,7 @@ impl ZoneMap {
         let concrete_height = map_height_count * tiles_height;
 
         Self {
+            tiles_definitions,
             tiles,
             background_tile_id: background_tile_id.to_string(),
             width: map_width_count as usize,

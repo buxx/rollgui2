@@ -58,6 +58,15 @@ impl Client {
         String::from(url)
     }
 
+    pub fn get_tiles_request(&self) -> Request {
+        let url = format!("{}/zones/tiles", SERVER_ADDRESS);
+        info!("Retrieve tiles from {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .send()
+    }
+
     pub fn get_character_request(&self, id: &str) -> Request {
         let url = format!("{}/character/{}", SERVER_ADDRESS, id);
         info!("Retrieve character from {}", url);
