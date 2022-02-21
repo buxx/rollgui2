@@ -52,6 +52,7 @@ pub struct ZoneEngine {
     pub current_action: Option<base_action::Action>,
     pub pending_exploitable_tiles: Vec<usize>,
     pub mouse_zone_position: Vec2,
+    pub mouse_zone_coordinates: (usize, usize),
     pub quick_action_requests: Vec<quad_net::http_request::Request>,
     pub user_logs: Vec<log::UserLog>,
     pub helper_text: Option<String>,
@@ -64,6 +65,7 @@ pub struct ZoneEngine {
     pub inventory: Option<inventory::Inventory>,
     pub inventory_state: Option<inventory::InventoryState>,
     pub last_begin_click_coordinates: Option<Vec2>,
+    pub highlight_tiles: Vec<(usize, usize)>,
 }
 
 impl ZoneEngine {
@@ -96,6 +98,7 @@ impl ZoneEngine {
             current_action: None,
             pending_exploitable_tiles: vec![],
             mouse_zone_position: Vec2::new(0., 0.),
+            mouse_zone_coordinates: (0, 0),
             quick_action_requests: vec![],
             user_logs: vec![],
             helper_text: None,
@@ -108,6 +111,7 @@ impl ZoneEngine {
             inventory: None,
             inventory_state: None,
             last_begin_click_coordinates: None,
+            highlight_tiles: vec![],
         })
     }
 
@@ -483,10 +487,27 @@ impl ZoneEngine {
         mouse_zone_position.x += target.x;
         mouse_zone_position.y -= target.y;
         self.mouse_zone_position = mouse_zone_position;
+
+        let concrete_mouse_x = self.mouse_zone_position.x * self.state.map.concrete_width as f32;
+        let concrete_mouse_y = self.mouse_zone_position.y * self.state.map.concrete_height as f32;
+        let zone_row_i = (concrete_mouse_y / self.graphics.tile_height) as usize;
+        let zone_col_i = (concrete_mouse_x / self.graphics.tile_width) as usize;
+        self.mouse_zone_coordinates = (zone_row_i + 1, zone_col_i);
     }
 
     pub fn scene(&self) {
         scene::scene(&self.graphics, &self.state, self.tick_i);
+    }
+
+    fn draw_zone_ux(&mut self) {
+        while let Some((row_i, col_i)) = self.highlight_tiles.pop() {
+            self.graphics.draw_tile_highlight(
+                row_i,
+                col_i,
+                self.state.map.concrete_width,
+                self.state.map.concrete_height,
+            );
+        }
     }
 
     pub fn draw_buttons(&mut self) {
@@ -556,6 +577,7 @@ impl Engine for ZoneEngine {
         // Game
         self.scene();
         self.animations();
+        self.draw_zone_ux();
         let action_clicked = self.draw_current_action();
 
         // Ui

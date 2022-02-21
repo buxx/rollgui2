@@ -104,4 +104,21 @@ impl Graphics {
             foreground_params,
         );
     }
+
+    pub fn draw_tile_highlight(
+        &self,
+        row_i: usize,
+        col_i: usize,
+        area_width: f32,
+        area_height: f32,
+    ) {
+        draw_rectangle_lines(
+            (col_i as f32 * self.tile_width) / area_width,
+            -(row_i as f32 * self.tile_width) / area_height,
+            self.tile_width / area_width,
+            self.tile_height / area_height,
+            2.0 / area_width,
+            BLUE,
+        );
+    }
 }

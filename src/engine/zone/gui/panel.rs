@@ -108,7 +108,11 @@ pub fn draw_panel_background(graphics: &graphics::Graphics) {
     );
 }
 
-pub fn draw_buttons(graphics: &graphics::Graphics, loading: &Option<Button>) -> Option<Button> {
+pub fn draw_buttons(
+    graphics: &graphics::Graphics,
+    loading: &Option<Button>,
+    highlight_button: Option<Button>,
+) -> Option<Button> {
     let buttons = [
         (
             Button::Actions,
@@ -190,6 +194,12 @@ pub fn draw_buttons(graphics: &graphics::Graphics, loading: &Option<Button>) -> 
                     ..Default::default()
                 },
             );
+        }
+
+        if let Some(highlight_button_) = &highlight_button {
+            if highlight_button_ == button {
+                draw_rectangle_lines(draw_to_x, draw_to_y, BUTTON_WIDTH, BUTTON_HEIGHT, 2.0, BLUE);
+            }
         }
 
         let (mouse_x, mouse_y) = mouse_position();

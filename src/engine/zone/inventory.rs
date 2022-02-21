@@ -39,13 +39,17 @@ impl Default for InventoryState {
 
 impl super::ZoneEngine {
     pub fn proceed_inventory_requests(&mut self) {
+        self.proceed_inventory_request();
+        self.proceed_inventory_drop_request();
+    }
+
+    fn proceed_inventory_request(&mut self) {
         if let Some(request) = self.inventory_request.as_mut() {
             if let Some(data) = request.try_recv() {
                 match data {
                     Ok(inventory_string) => {
                         let inventory: Inventory = serde_json::from_str(&inventory_string).unwrap();
-                        self.inventory = Some(inventory);
-                        self.inventory_state = Some(InventoryState::default());
+                        self.setup_inventory(inventory);
                     }
                     Err(error) => {
                         error!("Error while requiring inventory : {}", error);
@@ -55,14 +59,25 @@ impl super::ZoneEngine {
                 self.inventory_request = None;
             }
         }
+    }
 
+    fn proceed_inventory_drop_request(&mut self) {
         if let Some(request) = self.inventory_drop_request.as_mut() {
             if let Some(data) = request.try_recv() {
                 match data {
                     Ok(description_string) => {
                         match entity::description::Description::from_string(&description_string) {
                             Ok(description) => {
-                                self.inventory_item_dropped_description(description);
+                                if let Some(message) = description.quick_action_response {
+                                    let message_level = if description.is_quick_error {
+                                        super::log::UserLogLevel::Error
+                                    } else {
+                                        super::log::UserLogLevel::Info
+                                    };
+                                    self.user_logs
+                                        .push(super::log::UserLog::new(message, message_level));
+                                }
+                                self.make_open_inventory_request();
                             }
                             Err(error) => {
                                 error!("Error while decoding drop request description : {}", error);
@@ -79,10 +94,12 @@ impl super::ZoneEngine {
         }
     }
 
-    fn inventory_item_dropped_description(
-        &mut self,
-        description: entity::description::Description,
-    ) {
+    fn setup_inventory(&mut self, inventory: Inventory) {
+        self.inventory = Some(inventory);
+        self.inventory_state = Some(InventoryState::default());
+    }
+
+    pub fn make_open_inventory_request(&mut self) {
         self.inventory_request = Some(self.client.get_inventory_request(&self.state.player.id));
     }
 
@@ -273,6 +290,9 @@ impl super::ZoneEngine {
                         },
                     )
                 }
+
+                self.highlight_tiles
+                    .push((self.mouse_zone_coordinates.0, self.mouse_zone_coordinates.1));
             }
 
             if util::mouse_clicked() {
@@ -305,13 +325,6 @@ impl super::ZoneEngine {
                     if inventory_state.dragging_stuff_i.is_some()
                         || inventory_state.dragging_resource_i.is_some()
                     {
-                        let concrete_mouse_x =
-                            self.mouse_zone_position.x * self.state.map.concrete_width as f32;
-                        let concrete_mouse_y =
-                            self.mouse_zone_position.y * self.state.map.concrete_height as f32;
-                        let zone_row_i = (concrete_mouse_y / self.graphics.tile_height) as usize;
-                        let zone_col_i = (concrete_mouse_x / self.graphics.tile_width) as usize;
-
                         let post_base_url = if let Some(dragged_stuff_i) =
                             inventory_state.dragging_stuff_i
                         {
@@ -326,8 +339,8 @@ impl super::ZoneEngine {
                         };
                         self.pending_events
                             .push(super::UserEvent::InventoryItemDropped(
-                                zone_row_i,
-                                zone_col_i,
+                                self.mouse_zone_coordinates.0,
+                                self.mouse_zone_coordinates.1,
                                 post_base_url,
                             ));
                     }
@@ -343,7 +356,11 @@ impl super::ZoneEngine {
                     if let Some(last_position) = self.last_begin_click_coordinates {
                         let mouse_position = Vec2::from(mouse_position());
                         let change_vector = mouse_position - last_position;
-                        if change_vector.x > 3. || change_vector.y > 3. {
+                        if change_vector.x > 3.
+                            || change_vector.y > 3.
+                            || change_vector.x < 3.
+                            || change_vector.y < 3.
+                        {
                             if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
                                 inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
                             } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
