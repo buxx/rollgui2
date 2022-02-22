@@ -80,16 +80,26 @@ impl ZoneEngine {
 
         if let Some(current_action) = &self.current_action {
             for (i, exploitable_tile) in current_action.exploitable_tiles.iter().enumerate() {
-                let exploitable_tile_blinking = self.pending_exploitable_tiles.contains(&i);
-                if gui::action::draw_action_tile_in_camera(
+                let tile_is_pending = self.pending_exploitable_tiles.contains(&i);
+                let hover = gui::action::draw_action_tile_in_camera(
                     &self.graphics,
                     &self.state,
                     exploitable_tile,
                     self.tick_i,
                     self.mouse_zone_position,
-                    exploitable_tile_blinking,
-                ) {
-                    if base_util::mouse_clicked() {
+                    tile_is_pending,
+                );
+                let pressed_by_key = if let Some(associated_key_) = &current_action.associated_key {
+                    is_key_pressed(*associated_key_)
+                } else {
+                    false
+                };
+                if hover || pressed_by_key {
+                    // If exploitable tile clicked or keyboard key pressed
+                    if (base_util::mouse_clicked() || pressed_by_key)
+                    // But exploitable tile is not currently pending
+                        && !self.pending_exploitable_tiles.contains(&i)
+                    {
                         exploitable_tile_clicked = Some(i);
                         self.quick_action_requests
                             .push(self.client.get_quick_action_request(
