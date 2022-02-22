@@ -21,7 +21,17 @@ impl super::UiDescription {
                     ui.end_row();
                 }
             }
+
+            ui.end_row();
         });
+
+        if self.description.footer_links.len() > 0 {
+            for footer_link in &self.description.footer_links {
+                if let Some(event_) = self.draw_button(ui, footer_link, state) {
+                    event = Some(event_)
+                }
+            }
+        }
 
         event
     }

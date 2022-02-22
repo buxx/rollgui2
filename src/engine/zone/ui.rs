@@ -1,6 +1,8 @@
 use macroquad::prelude::*;
 
-use crate::{description, message};
+use crate::{description, message, util};
+
+pub const DESCRIPTION_WINDOW_MARGIN: f32 = 150.;
 
 impl super::ZoneEngine {
     pub fn ui(&mut self) -> Vec<message::MainMessage> {
@@ -13,14 +15,17 @@ impl super::ZoneEngine {
             ) {
                 let screen_width = screen_width();
                 let screen_height = screen_height();
-                let draw_to_x = 50.;
-                let draw_to_y = 50.;
+                let draw_to_x = DESCRIPTION_WINDOW_MARGIN;
+                let draw_to_y = DESCRIPTION_WINDOW_MARGIN;
                 let mut ui_message = None;
 
-                egui::Window::new(&description.title())
+                let response = egui::Window::new(&description.title())
                     .resizable(false)
                     .default_pos((draw_to_x, draw_to_y))
-                    .default_size((screen_width - 50., screen_height - 50.))
+                    .fixed_size((
+                        screen_width - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
+                        screen_height - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
+                    ))
                     .show(egui_ctx, |ui| {
                         ui_message = description.draw(egui_ctx, ui, description_state);
                     });
@@ -51,8 +56,21 @@ impl super::ZoneEngine {
                                 Some(self.client.get_description_request_with_data(url, data));
                             description.loading = true;
                         }
+                        description::UiDescriptionEvent::SetDescriptionUi(mut new_description) => {
+                            new_description.loading = false;
+                            self.current_description = Some(*new_description);
+                            self.current_description_state =
+                                Some(description::UiDescriptionState::default());
+                        }
                     }
                 }
+
+                if !egui_ctx.is_pointer_over_area() {
+                    if util::mouse_clicked() {
+                        self.current_description = None;
+                        self.current_description_state = None;
+                    }
+                };
             }
         });
 

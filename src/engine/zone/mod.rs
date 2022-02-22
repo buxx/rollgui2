@@ -398,8 +398,10 @@ impl ZoneEngine {
                     Ok(description_string) => {
                         match entity::description::Description::from_string(&description_string) {
                             Ok(description) => {
-                                self.current_description =
-                                    Some(description::UiDescription::new(description));
+                                self.current_description = Some(description::UiDescription::new(
+                                    description,
+                                    self.current_description.clone(),
+                                ));
                                 self.current_description_state =
                                     Some(description::UiDescriptionState::default());
                             }

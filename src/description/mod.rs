@@ -23,9 +23,11 @@ impl Default for UiDescriptionState {
     }
 }
 
+#[derive(Clone)]
 pub struct UiDescription {
-    description: entity::description::Description,
-    is_first_frame: bool,
+    pub description: entity::description::Description,
+    pub previous: Option<Box<UiDescription>>,
+    pub is_first_frame: bool,
     pub loading: bool,
 }
 
@@ -35,12 +37,22 @@ pub enum UiDescriptionEvent {
     FatalError(String),
     ValidateFormInQuery(String),
     ValidateFormInBody(String),
+    SetDescriptionUi(Box<UiDescription>),
 }
 
 impl UiDescription {
-    pub fn new(description: entity::description::Description) -> Self {
+    pub fn new(
+        description: entity::description::Description,
+        previous: Option<UiDescription>,
+    ) -> Self {
+        let previous = if let Some(previous_) = previous {
+            Some(Box::new(previous_))
+        } else {
+            None
+        };
         Self {
             description,
+            previous,
             is_first_frame: true,
             loading: false,
         }
@@ -55,8 +67,22 @@ impl UiDescription {
         self.check_init(egui_ctx, ui);
         let mut ui_message = None;
 
+        ui.horizontal(|ui| {
+            if ui.button("Fermer").clicked() {
+                ui_message = Some(UiDescriptionEvent::CloseDescription);
+            };
+            if let Some(previous_) = &self.previous {
+                if ui.button("Précédent").clicked() {
+                    ui_message = Some(UiDescriptionEvent::SetDescriptionUi(previous_.clone()));
+                }
+            };
+        });
+
+        ui.separator();
+
         if self.loading {
             ui.label("Loading...");
+            return ui_message;
         }
 
         if self.description.is_grid {
@@ -69,10 +95,6 @@ impl UiDescription {
             }
         }
 
-        if ui.button("Quitter").clicked() {
-            ui_message = Some(UiDescriptionEvent::CloseDescription);
-        }
-
         ui_message
     }
 
@@ -83,12 +105,14 @@ impl UiDescription {
     ) -> Option<UiDescriptionEvent> {
         let mut event = None;
 
-        for (i, part) in self.description.items.iter().enumerate() {
-            match self.draw_part(ui, part, state) {
-                Some(event_) => event = Some(event_),
-                None => {}
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            for (i, part) in self.description.items.iter().enumerate() {
+                match self.draw_part(ui, part, state) {
+                    Some(event_) => event = Some(event_),
+                    None => {}
+                }
             }
-        }
+        });
 
         event
     }
