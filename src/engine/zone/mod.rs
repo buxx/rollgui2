@@ -65,6 +65,7 @@ pub struct ZoneEngine {
     pub inventory: Option<inventory::Inventory>,
     pub inventory_state: Option<inventory::InventoryState>,
     pub last_begin_click_coordinates: Option<Vec2>,
+    pub last_begin_click_was_in_egui: Option<bool>,
     pub highlight_tiles: Vec<(usize, usize)>,
 }
 
@@ -111,6 +112,7 @@ impl ZoneEngine {
             inventory: None,
             inventory_state: None,
             last_begin_click_coordinates: None,
+            last_begin_click_was_in_egui: None,
             highlight_tiles: vec![],
         })
     }

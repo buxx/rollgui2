@@ -65,12 +65,21 @@ impl super::ZoneEngine {
                     }
                 }
 
-                if !egui_ctx.is_pointer_over_area() {
-                    if util::mouse_clicked() {
-                        self.current_description = None;
-                        self.current_description_state = None;
+                // To know later if its a dragging from egui, note if starting click is in egui
+                if util::mouse_pressed() && self.last_begin_click_was_in_egui.is_none() {
+                    self.last_begin_click_was_in_egui = Some(egui_ctx.is_pointer_over_area());
+                }
+
+                if util::mouse_clicked() {
+                    if let Some(last_begin_click_was_in_egui_) = self.last_begin_click_was_in_egui {
+                        // Close egui only if the begin and end of click was outside egui
+                        if !last_begin_click_was_in_egui_ && !egui_ctx.is_pointer_over_area() {
+                            self.current_description = None;
+                            self.current_description_state = None;
+                        }
                     }
-                };
+                    self.last_begin_click_was_in_egui = None;
+                }
             }
         });
 
