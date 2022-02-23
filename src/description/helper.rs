@@ -108,21 +108,28 @@ impl UiDescription {
                     }
                     None => (0.0, None),
                 };
+
                 let (value, _) = state
                     .numeric_values
                     .entry(name.to_string())
                     .or_insert((default_value, suffix.clone()));
-                let mut input = egui::DragValue::new(value).speed(1.0);
-                if let Some(suffix_) = suffix {
-                    input = input.suffix(suffix_);
-                }
-                ui.add(input).on_hover_text(part.label());
 
-                // Manage min/max values
                 if let (Some(min_value), Some(max_value)) = (part.min_value, part.max_value) {
                     *value = value.min(max_value);
                     *value = value.max(min_value);
-                }
+
+                    let mut widget = egui::Slider::new(value, min_value..=max_value);
+                    if let Some(suffix_) = suffix {
+                        widget = widget.suffix(suffix_);
+                    }
+                    ui.add(widget).on_hover_text(part.label());
+                } else {
+                    let mut widget = egui::DragValue::new(value).speed(1.0);
+                    if let Some(suffix_) = suffix {
+                        widget = widget.suffix(suffix_);
+                    }
+                    ui.add(widget).on_hover_text(part.label());
+                };
             }
         }
 
