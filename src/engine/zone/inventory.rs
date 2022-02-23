@@ -191,6 +191,7 @@ impl super::ZoneEngine {
                             stuff_dest_y,
                             stuff_quantity,
                             stuff.is_cumbersome || stuff.is_heavy,
+                            stuff.is_equip,
                         ) {
                             mouse_is_hover_stuff = Some(i);
                             inventory_state.help_text = Some(stuff.infos.clone());
@@ -241,6 +242,7 @@ impl super::ZoneEngine {
                             resource_dest_y,
                             None,
                             resource.is_cumbersome || resource.is_heavy,
+                            false,
                         ) {
                             mouse_is_hover_resource = Some(i);
                             inventory_state.help_text = Some(resource.infos.clone());

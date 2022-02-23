@@ -20,6 +20,11 @@ const HEAVY_ICON_Y: f32 = 192.;
 const HEAVY_ICON_WIDTH: f32 = 32.;
 const HEAVY_ICON_HEIGHT: f32 = 32.;
 
+const EQUIP_ICON_X: f32 = 320.;
+const EQUIP_ICON_Y: f32 = 192.;
+const EQUIP_ICON_WIDTH: f32 = 32.;
+const EQUIP_ICON_HEIGHT: f32 = 32.;
+
 pub fn draw_back(
     graphics: &graphics::Graphics,
     dest_x: f32,
@@ -54,6 +59,7 @@ pub fn draw_item(
     dest_y: f32,
     quantity: Option<String>,
     draw_heavy_icon: bool,
+    draw_is_equip: bool,
 ) -> bool {
     // Background
     draw_texture_ex(
@@ -108,6 +114,24 @@ pub fn draw_item(
                     HEAVY_ICON_Y + 1.,
                     HEAVY_ICON_WIDTH,
                     HEAVY_ICON_HEIGHT,
+                )),
+                ..Default::default()
+            },
+        );
+    }
+
+    if draw_is_equip {
+        draw_texture_ex(
+            graphics.tileset_texture,
+            dest_x - 10.,
+            dest_y + BUTTON_HEIGHT - (EQUIP_ICON_HEIGHT) + 10.,
+            WHITE,
+            DrawTextureParams {
+                source: Some(Rect::new(
+                    EQUIP_ICON_X + 1.,
+                    EQUIP_ICON_Y + 1.,
+                    EQUIP_ICON_WIDTH,
+                    EQUIP_ICON_HEIGHT,
                 )),
                 ..Default::default()
             },
