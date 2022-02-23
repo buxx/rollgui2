@@ -107,10 +107,10 @@ impl UiDescription {
                     None => (0.0, None),
                 };
                 // FIXME BS NOW : au POST il faut remettre le suffix
-                let value = state
+                let (value, _) = state
                     .numeric_values
                     .entry(name.to_string())
-                    .or_insert(default_value);
+                    .or_insert((default_value, suffix.clone()));
                 let mut input = egui::DragValue::new(value).speed(1.0);
                 if let Some(suffix_) = suffix {
                     input = input.suffix(suffix_);

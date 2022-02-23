@@ -11,7 +11,7 @@ pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 
 pub struct UiDescriptionState {
     pub string_values: HashMap<String, String>,
-    pub numeric_values: HashMap<String, f32>,
+    pub numeric_values: HashMap<String, (f32, Option<String>)>, // field_name, (value, suffix)
 }
 
 impl Default for UiDescriptionState {
@@ -169,8 +169,15 @@ impl UiDescriptionState {
             data.insert(key.clone(), serde_json::json!(value));
         }
 
-        for (key, value) in &self.numeric_values {
-            data.insert(key.clone(), serde_json::json!(value));
+        for (key, (value, suffix)) in &self.numeric_values {
+            if let Some(suffix_) = suffix {
+                data.insert(
+                    key.clone(),
+                    serde_json::json!(format!("{} {}", value, suffix_)),
+                );
+            } else {
+                data.insert(key.clone(), serde_json::json!(value));
+            }
         }
 
         data
