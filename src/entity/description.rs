@@ -26,6 +26,8 @@ pub struct Part {
     pub columns: u8,
     pub is_column: bool,
     pub colspan: u8,
+    pub min_value: Option<f32>,
+    pub max_value: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

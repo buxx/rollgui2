@@ -1,3 +1,5 @@
+use std::cmp;
+
 use macroquad::prelude::*;
 
 use super::UiDescription;
@@ -106,7 +108,6 @@ impl UiDescription {
                     }
                     None => (0.0, None),
                 };
-                // FIXME BS NOW : au POST il faut remettre le suffix
                 let (value, _) = state
                     .numeric_values
                     .entry(name.to_string())
@@ -116,6 +117,12 @@ impl UiDescription {
                     input = input.suffix(suffix_);
                 }
                 ui.add(input).on_hover_text(part.label());
+
+                // Manage min/max values
+                if let (Some(min_value), Some(max_value)) = (part.min_value, part.max_value) {
+                    *value = value.min(max_value);
+                    *value = value.max(min_value);
+                }
             }
         }
 
