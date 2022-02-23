@@ -160,6 +160,12 @@ impl super::ZoneEngine {
                     let drawing_last_column = col_i == columns - 1;
                     let drawing_last_stuff = i == inventory.stuff.len() - 1;
 
+                    let stuff_quantity = if stuff.count > 1 {
+                        Some(stuff.count.to_string())
+                    } else {
+                        None
+                    };
+
                     // If all available rows done and there is more than this stuff, don't draw this stuff
                     if drawing_last_available_row && drawing_last_column && !drawing_last_stuff {
                         gui::inventory::draw_more(&self.graphics, stuff_dest_x, stuff_dest_y);
@@ -183,6 +189,8 @@ impl super::ZoneEngine {
                             &tile_id,
                             stuff_dest_x,
                             stuff_dest_y,
+                            stuff_quantity,
+                            stuff.is_cumbersome || stuff.is_heavy,
                         ) {
                             mouse_is_hover_stuff = Some(i);
                             inventory_state.help_text = Some(stuff.infos.clone());
@@ -231,6 +239,8 @@ impl super::ZoneEngine {
                             &tile_id,
                             resource_dest_x,
                             resource_dest_y,
+                            None,
+                            resource.is_cumbersome || resource.is_heavy,
                         ) {
                             mouse_is_hover_resource = Some(i);
                             inventory_state.help_text = Some(resource.infos.clone());

@@ -1,5 +1,3 @@
-use std::cmp;
-
 use macroquad::prelude::*;
 
 use super::UiDescription;

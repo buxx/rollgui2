@@ -33,4 +33,6 @@ pub struct StuffApi {
     pub is_equipment: bool,
     pub count: i32,
     pub drop_base_url: String,
+    pub is_heavy: bool,
+    pub is_cumbersome: bool,
 }

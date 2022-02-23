@@ -15,6 +15,11 @@ pub const BUTTON_MARGIN: f32 = 5.;
 const LOADING_X: f32 = 96.;
 const LOADING_Y: f32 = 864.;
 
+const HEAVY_ICON_X: f32 = 288.;
+const HEAVY_ICON_Y: f32 = 192.;
+const HEAVY_ICON_WIDTH: f32 = 32.;
+const HEAVY_ICON_HEIGHT: f32 = 32.;
+
 pub fn draw_back(
     graphics: &graphics::Graphics,
     dest_x: f32,
@@ -42,7 +47,14 @@ pub fn draw_back(
         && mouse_y < dest_y + height as f32
 }
 
-pub fn draw_item(graphics: &graphics::Graphics, tile_id: &str, dest_x: f32, dest_y: f32) -> bool {
+pub fn draw_item(
+    graphics: &graphics::Graphics,
+    tile_id: &str,
+    dest_x: f32,
+    dest_y: f32,
+    quantity: Option<String>,
+    draw_heavy_icon: bool,
+) -> bool {
     // Background
     draw_texture_ex(
         graphics.tileset_texture,
@@ -78,6 +90,29 @@ pub fn draw_item(graphics: &graphics::Graphics, tile_id: &str, dest_x: f32, dest
             ..Default::default()
         },
     );
+
+    if let Some(quantity) = quantity {
+        draw_circle(dest_x + 15., dest_y + 15., 10., WHITE);
+        draw_text(&quantity, dest_x + 10., dest_y + 20., 20., BLACK);
+    }
+
+    if draw_heavy_icon {
+        draw_texture_ex(
+            graphics.tileset_texture,
+            dest_x + BUTTON_WIDTH - (HEAVY_ICON_WIDTH) + 10.,
+            dest_y + BUTTON_HEIGHT - (HEAVY_ICON_HEIGHT) + 10.,
+            WHITE,
+            DrawTextureParams {
+                source: Some(Rect::new(
+                    HEAVY_ICON_X + 1.,
+                    HEAVY_ICON_Y + 1.,
+                    HEAVY_ICON_WIDTH,
+                    HEAVY_ICON_HEIGHT,
+                )),
+                ..Default::default()
+            },
+        );
+    }
 
     let (mouse_x, mouse_y) = mouse_position();
     let mouse_hover = mouse_x > dest_x

@@ -22,5 +22,8 @@ pub struct ResourceApi {
     pub infos: String,
     pub classes: Vec<String>,
     pub quantity: f32,
+    pub quantity_str: String,
     pub drop_base_url: String,
+    pub is_heavy: bool,
+    pub is_cumbersome: bool,
 }
