@@ -108,6 +108,8 @@ impl ZoneEngine {
                                 Some(exploitable_tile.zone_row_i),
                                 Some(exploitable_tile.zone_col_i),
                             ));
+                    } else {
+                        self.helper_text = Some(exploitable_tile.infos.clone());
                     }
                 }
             }

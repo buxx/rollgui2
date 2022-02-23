@@ -9,6 +9,7 @@ pub struct ExploitableTile {
     pub zone_row_i: i32,
     pub zone_col_i: i32,
     pub classes: Vec<String>,
+    pub infos: String,
 }
 
 pub struct Action {
