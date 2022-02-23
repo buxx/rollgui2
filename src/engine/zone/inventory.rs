@@ -368,8 +368,8 @@ impl super::ZoneEngine {
                         let change_vector = mouse_position - last_position;
                         if change_vector.x > 3.
                             || change_vector.y > 3.
-                            || change_vector.x < 3.
-                            || change_vector.y < 3.
+                            || change_vector.x < -3.
+                            || change_vector.y < -3.
                         {
                             if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
                                 inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
