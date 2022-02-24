@@ -13,6 +13,8 @@ pub struct Inventory {
     resource: Vec<entity::resource::ResourceApi>,
     weight: f32,
     clutter: f32,
+    over_weight: bool,
+    over_clutter: bool,
 }
 
 pub struct InventoryState {
@@ -107,12 +109,28 @@ impl super::ZoneEngine {
         if let (Some(inventory), Some(inventory_state)) =
             (&self.inventory, self.inventory_state.as_mut())
         {
+            // Default help text
+            inventory_state.help_text = None;
+            if inventory.over_weight || inventory.over_clutter {
+                let help_text = if inventory.over_weight && inventory.over_clutter {
+                    "Surcharge ! (poid et encombrement)"
+                } else if inventory.over_weight {
+                    "Surcharge ! (poid)"
+                } else {
+                    "Surcharge ! (encombrement)"
+                };
+                inventory_state.help_text = Some(help_text.to_string());
+            }
+        }
+
+        if let (Some(inventory), Some(inventory_state)) =
+            (&self.inventory, self.inventory_state.as_mut())
+        {
             let mut mouse_is_hover_stuff: Option<usize> = None;
             let mut mouse_is_hover_resource: Option<usize> = None;
             let mut mouse_is_hover_box = false;
 
             if !inventory_state.hide {
-                inventory_state.help_text = None;
                 let box_dest_x = INVENTORY_BOX_MARGIN;
                 let box_dest_y = INVENTORY_BOX_MARGIN;
                 let box_width = screen_width() - INVENTORY_BOX_MARGIN - INVENTORY_BOX_MARGIN;
