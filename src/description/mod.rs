@@ -29,6 +29,7 @@ pub struct UiDescription {
     pub previous: Option<Box<UiDescription>>,
     pub is_first_frame: bool,
     pub loading: bool,
+    pub draw_big_button: bool,
 }
 
 pub enum UiDescriptionEvent {
@@ -55,6 +56,7 @@ impl UiDescription {
             previous,
             is_first_frame: true,
             loading: false,
+            draw_big_button: false,
         }
     }
 

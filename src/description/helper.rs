@@ -3,6 +3,8 @@ use macroquad::prelude::*;
 use super::UiDescription;
 use crate::entity;
 
+pub const BIG_BUTTON_SIZE: [f32; 2] = [150.0, 150.0];
+
 impl UiDescription {
     pub fn title(&self) -> String {
         match &self.description.title {
@@ -30,7 +32,15 @@ impl UiDescription {
         let mut event = None;
 
         let label = part.label();
-        if ui.button(&label).clicked() {
+        let widget = egui::Button::new(&label);
+
+        let clicked = if self.draw_big_button {
+            ui.add_sized(BIG_BUTTON_SIZE, widget).clicked()
+        } else {
+            ui.add(widget).clicked()
+        };
+
+        if clicked {
             if let Some(url) = &part.form_action {
                 event = Some(super::UiDescriptionEvent::FollowUrl(url.clone()));
             } else {
