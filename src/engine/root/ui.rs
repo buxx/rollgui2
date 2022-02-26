@@ -41,7 +41,7 @@ pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
                     // take some action here
                 }
                 if ui.button("Créer un compte").clicked() {
-                    // take some action here
+                    event = Some(super::RootEvent::GoToCreateAccount);
                 }
             })
         });

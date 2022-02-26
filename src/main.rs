@@ -38,6 +38,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         &character_id,
                     )?);
                 }
+                message::MainMessage::SetLoadDescriptionEngine(
+                    url,
+                    query,
+                    data,
+                    previous_ui_description,
+                    previous_ui_description_state,
+                ) => {
+                    current_scene = Box::new(engine::load_description::LoadDescriptionEngine::new(
+                        client::Client::get_anonymous_description_request(&url, query, data),
+                        previous_ui_description,
+                        previous_ui_description_state,
+                    ));
+                }
+                message::MainMessage::SetDescriptionEngine(description) => {
+                    current_scene =
+                        Box::new(engine::description::DescriptionEngine::new(description));
+                }
+                message::MainMessage::SetDescriptionEngineFrom(
+                    ui_description,
+                    ui_description_state,
+                ) => {
+                    current_scene = Box::new(engine::description::DescriptionEngine::from_state(
+                        ui_description,
+                        ui_description_state,
+                    ));
+                }
                 message::MainMessage::SetCreateCharacterEngine(login, password) => {
                     todo!();
                 }

@@ -92,6 +92,15 @@ impl Engine for RootScene {
                     self.do_login_request = Some(request);
                     self.state.loading = true;
                 }
+                RootEvent::GoToCreateAccount => {
+                    messages.push(message::MainMessage::SetLoadDescriptionEngine(
+                        "/account/create".to_string(),
+                        None,
+                        None,
+                        None,
+                        None,
+                    ))
+                }
             }
         }
 
@@ -103,6 +112,7 @@ impl Engine for RootScene {
 pub enum RootEvent {
     QuitGame,
     GoToCreateCharacter(String, String),
+    GoToCreateAccount,
     GoToZone(String, String, String),
     DoLogin,
 }

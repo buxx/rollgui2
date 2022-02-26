@@ -31,9 +31,12 @@ const WORLD_BUTTON_X: f32 = 0.;
 const WORLD_BUTTON_Y: f32 = 1056.;
 const INVENTORY_BUTTON_X: f32 = 0.;
 const INVENTORY_BUTTON_Y: f32 = 1152.;
+const CARD_BUTTON_X: f32 = 0.;
+const CARD_BUTTON_Y: f32 = 1248.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Button {
+    Card,
     Actions,
     World,
     Inventory,
@@ -53,6 +56,10 @@ impl Button {
             )),
             Button::World => todo!(),
             Button::Inventory => ButtonAction::OpenInventory,
+            Button::Card => ButtonAction::OpenDescription(format!(
+                "/_describe/character/{}/card",
+                state.player.id
+            )),
         }
     }
 }
@@ -122,6 +129,10 @@ pub fn draw_buttons(
                 BUTTON_WIDTH,
                 BUTTON_HEIGHT,
             ),
+        ),
+        (
+            Button::Card,
+            Rect::new(CARD_BUTTON_X, CARD_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
         ),
         (
             Button::World,

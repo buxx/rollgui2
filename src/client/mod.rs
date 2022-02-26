@@ -14,6 +14,16 @@ impl Client {
         Self { login, password }
     }
 
+    pub fn error_message_from_response(response: ureq::Response) -> String {
+        let response_body = response.into_string().unwrap_or("".to_string());
+        let response_object = serde_json::from_str::<serde_json::Value>(&response_body)
+            .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+        match response_object["message"].as_str() {
+            Some(message) => message.to_string(),
+            None => "Erreur inconnue".to_string(),
+        }
+    }
+
     pub fn get_current_character_id_request(login: &str, password: &str) -> Request {
         let basic_auth_value = format!(
             "Basic {}",
@@ -32,11 +42,7 @@ impl Client {
             base64::encode(format!("{}:{}", &self.login, &self.password))
         )
     }
-    fn url_with_query(
-        &self,
-        url: String,
-        query: serde_json::Map<String, serde_json::Value>,
-    ) -> String {
+    fn url_with_query(url: String, query: serde_json::Map<String, serde_json::Value>) -> String {
         let mut params: Vec<(String, String)> = Vec::new();
         for (key, value) in query.iter() {
             match value {
@@ -160,6 +166,30 @@ impl Client {
             .send()
     }
 
+    pub fn get_anonymous_description_request(
+        url: &str,
+        query: Option<serde_json::Map<String, serde_json::Value>>,
+        data: Option<serde_json::Map<String, serde_json::Value>>,
+    ) -> Request {
+        let url = if let Some(query_) = query {
+            Self::url_with_query(format!("{}{}", SERVER_ADDRESS, url), query_)
+        } else {
+            format!("{}{}", SERVER_ADDRESS, url)
+        };
+
+        info!("Request anonymous description on {}", url);
+
+        let mut request = RequestBuilder::new(&url).method(Method::Post);
+
+        if let Some(data_) = &data {
+            request = request
+                .body(&serde_json::json!(data).to_string())
+                .header("Content-Type", "application/json");
+        }
+
+        request.send()
+    }
+
     pub fn get_description_request(&self, url: String) -> Request {
         let url = format!("{}{}", SERVER_ADDRESS, url);
 
@@ -184,6 +214,7 @@ impl Client {
             .header("Authorization", &self.basic_auth_value())
             .method(Method::Post)
             .body(&serde_json::json!(data).to_string())
+            .header("Content-Type", "application/json")
             .send()
     }
 
@@ -193,7 +224,7 @@ impl Client {
         data: serde_json::Map<String, serde_json::Value>,
     ) -> Request {
         let url = format!("{}{}", SERVER_ADDRESS, url);
-        let url = self.url_with_query(url, data);
+        let url = Self::url_with_query(url, data);
 
         info!("Request description with data on {}", url);
 

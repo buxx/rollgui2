@@ -9,6 +9,7 @@ pub mod helper;
 
 pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 
+#[derive(Clone)]
 pub struct UiDescriptionState {
     pub string_values: HashMap<String, String>,
     pub numeric_values: HashMap<String, (f32, Option<String>)>, // field_name, (value, suffix)
@@ -30,6 +31,7 @@ pub struct UiDescription {
     pub is_first_frame: bool,
     pub loading: bool,
     pub draw_big_button: bool,
+    pub error_message: Option<String>,
 }
 
 pub enum UiDescriptionEvent {
@@ -57,6 +59,7 @@ impl UiDescription {
             is_first_frame: true,
             loading: false,
             draw_big_button: false,
+            error_message: None,
         }
     }
 
@@ -108,12 +111,19 @@ impl UiDescription {
         let mut event = None;
 
         egui::ScrollArea::vertical().show(ui, |ui| {
-            for (i, part) in self.description.items.iter().enumerate() {
-                match self.draw_part(ui, part, state) {
-                    Some(event_) => event = Some(event_),
-                    None => {}
-                }
-            }
+            egui::Grid::new("root_grid")
+                .num_columns(2)
+                // .spacing([40.0, 4.0])
+                .striped(true)
+                .show(ui, |ui| {
+                    for (i, part) in self.description.items.iter().enumerate() {
+                        match self.draw_part(ui, part, state) {
+                            Some(event_) => event = Some(event_),
+                            None => {}
+                        }
+                        ui.end_row();
+                    }
+                });
         });
 
         event
@@ -133,7 +143,12 @@ impl UiDescription {
                 None => {}
             }
         } else if part.is_text() {
-            ui.label(part.label());
+            if let Some(text) = &part.text {
+                ui.label(format!("{} :", part.label()));
+                ui.label(text);
+            } else {
+                ui.label(part.label());
+            }
         } else if part.is_input() {
             match self.draw_input(ui, part, state) {
                 Some(event_) => event = Some(event_),
