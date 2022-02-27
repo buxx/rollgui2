@@ -424,7 +424,8 @@ impl super::ZoneEngine {
 
             // Do the drop request
             self.current_left_panel_button = Some(gui::panel::Button::Inventory);
-            self.inventory_drop_request = Some(self.client.get_description_request(post_url));
+            self.inventory_drop_request =
+                Some(self.client.get_description_request(post_url, None, None));
         }
     }
 }

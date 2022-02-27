@@ -38,7 +38,7 @@ impl super::ZoneEngine {
                         }
                         description::UiDescriptionEvent::FollowUrl(url) => {
                             self.description_request =
-                                Some(self.client.get_description_request(url));
+                                Some(self.client.get_description_request(url, None, None));
                             description.loading = true;
                         }
                         description::UiDescriptionEvent::FatalError(error) => {
@@ -47,13 +47,13 @@ impl super::ZoneEngine {
                         description::UiDescriptionEvent::ValidateFormInQuery(url) => {
                             let data = description_state.collect_form_data();
                             self.description_request =
-                                Some(self.client.get_description_request_with_query(url, data));
+                                Some(self.client.get_description_request(url, Some(data), None));
                             description.loading = true;
                         }
                         description::UiDescriptionEvent::ValidateFormInBody(url) => {
                             let data = description_state.collect_form_data();
                             self.description_request =
-                                Some(self.client.get_description_request_with_data(url, data));
+                                Some(self.client.get_description_request(url, None, Some(data)));
                             description.loading = true;
                         }
                         description::UiDescriptionEvent::SetDescriptionUi(mut new_description) => {

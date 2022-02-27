@@ -21,7 +21,7 @@ impl ZoneEngine {
                 match &button.action(&self.state) {
                     gui::panel::ButtonAction::OpenDescription(url) => {
                         self.description_request =
-                            Some(self.client.get_description_request(url.clone()));
+                            Some(self.client.get_description_request(url.clone(), None, None));
                     }
                     gui::panel::ButtonAction::OpenInventory => {
                         self.make_open_inventory_request();

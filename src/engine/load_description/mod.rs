@@ -2,6 +2,7 @@ use crate::{client, description, message};
 
 pub struct LoadDescriptionEngine {
     pub request: quad_net::http_request::Request,
+    pub client: Option<client::Client>,
     pub previous_ui_description: Option<description::UiDescription>,
     pub previous_ui_description_state: Option<description::UiDescriptionState>,
 }
@@ -9,11 +10,13 @@ pub struct LoadDescriptionEngine {
 impl LoadDescriptionEngine {
     pub fn new(
         request: quad_net::http_request::Request,
+        client: Option<client::Client>,
         previous_ui_description: Option<description::UiDescription>,
         previous_ui_description_state: Option<description::UiDescriptionState>,
     ) -> Self {
         Self {
             request,
+            client,
             previous_ui_description,
             previous_ui_description_state,
         }
@@ -26,7 +29,10 @@ impl super::Engine for LoadDescriptionEngine {
         if let Some(request_result) = self.request.try_recv() {
             match client::Client::description_from_request_data(request_result) {
                 Ok(description) => {
-                    return vec![message::MainMessage::SetDescriptionEngine(description)]
+                    return vec![message::MainMessage::SetDescriptionEngine(
+                        description,
+                        self.client.clone(),
+                    )]
                 }
                 Err(error_message) => {
                     // Set previous description with error message if any previous description
@@ -41,6 +47,7 @@ impl super::Engine for LoadDescriptionEngine {
                         return vec![message::MainMessage::SetDescriptionEngineFrom(
                             ui_description_,
                             ui_description_state_,
+                            self.client.clone(),
                         )];
                     }
                     return vec![message::MainMessage::SetErrorEngine(format!(

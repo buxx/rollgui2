@@ -1,27 +1,34 @@
-use crate::{description, entity, message};
+use crate::{client, description, entity, message};
 
 pub struct DescriptionEngine {
+    pub client: Option<client::Client>, // Client means authenticated requests
     pub ui_description: description::UiDescription,
     pub ui_description_state: description::UiDescriptionState,
 }
 
 impl DescriptionEngine {
-    pub fn new(description: entity::description::Description) -> Self {
+    pub fn new(
+        description: entity::description::Description,
+        client: Option<client::Client>,
+    ) -> Self {
         Self {
             ui_description: description::UiDescription::new(description, None),
             ui_description_state: description::UiDescriptionState {
                 ..Default::default()
             },
+            client,
         }
     }
 
     pub fn from_state(
         ui_description: description::UiDescription,
         ui_description_state: description::UiDescriptionState,
+        client: Option<client::Client>,
     ) -> Self {
         Self {
             ui_description,
             ui_description_state,
+            client,
         }
     }
 }
@@ -58,6 +65,7 @@ impl super::Engine for DescriptionEngine {
                         None,
                         Some(self.ui_description.clone()),
                         Some(self.ui_description_state.clone()),
+                        self.client.clone(),
                     )]
                 }
                 description::UiDescriptionEvent::ValidateFormInQuery(url) => {
@@ -68,6 +76,7 @@ impl super::Engine for DescriptionEngine {
                         None,
                         Some(self.ui_description.clone()),
                         Some(self.ui_description_state.clone()),
+                        self.client.clone(),
                     )];
                 }
                 description::UiDescriptionEvent::ValidateFormInBody(url) => {
@@ -78,6 +87,7 @@ impl super::Engine for DescriptionEngine {
                         Some(data),
                         Some(self.ui_description.clone()),
                         Some(self.ui_description_state.clone()),
+                        self.client.clone(),
                     )];
                 }
                 description::UiDescriptionEvent::SetDescriptionUi(mut new_description) => {

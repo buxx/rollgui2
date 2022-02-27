@@ -239,48 +239,31 @@ impl Client {
         request.send()
     }
 
-    pub fn get_description_request(&self, url: String) -> Request {
-        let url = format!("{}{}", SERVER_ADDRESS, url);
+    pub fn get_description_request(
+        &self,
+        url: String,
+        query: Option<serde_json::Map<String, serde_json::Value>>,
+        data: Option<serde_json::Map<String, serde_json::Value>>,
+    ) -> Request {
+        let url = if let Some(query_) = query {
+            Self::url_with_query(format!("{}{}", SERVER_ADDRESS, url), query_)
+        } else {
+            format!("{}{}", SERVER_ADDRESS, url)
+        };
 
         info!("Request description on {}", url);
 
-        RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+        let mut request = RequestBuilder::new(&url)
             .method(Method::Post)
-            .send()
-    }
+            .header("Authorization", &self.basic_auth_value());
 
-    pub fn get_description_request_with_data(
-        &self,
-        url: String,
-        data: serde_json::Map<String, serde_json::Value>,
-    ) -> Request {
-        let url = format!("{}{}", SERVER_ADDRESS, url);
+        if let Some(data_) = &data {
+            request = request
+                .body(&serde_json::json!(data).to_string())
+                .header("Content-Type", "application/json");
+        }
 
-        info!("Request description with data on {}", url);
-
-        RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
-            .method(Method::Post)
-            .body(&serde_json::json!(data).to_string())
-            .header("Content-Type", "application/json")
-            .send()
-    }
-
-    pub fn get_description_request_with_query(
-        &self,
-        url: String,
-        data: serde_json::Map<String, serde_json::Value>,
-    ) -> Request {
-        let url = format!("{}{}", SERVER_ADDRESS, url);
-        let url = Self::url_with_query(url, data);
-
-        info!("Request description with data on {}", url);
-
-        RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
-            .method(Method::Post)
-            .send()
+        request.send()
     }
 
     pub fn get_inventory_request(&self, id: &str) -> Request {

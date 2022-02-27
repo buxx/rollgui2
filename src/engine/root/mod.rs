@@ -1,5 +1,4 @@
 use crate::{client, engine::root::util::auth_failed, message};
-use macroquad::prelude::*;
 use quad_net::http_request::Request;
 
 use super::Engine;
@@ -91,8 +90,13 @@ impl Engine for RootScene {
                     ));
                 }
                 RootEvent::GoToCreateCharacter(login, password) => {
-                    messages.push(message::MainMessage::SetCreateCharacterEngine(
-                        login, password,
+                    messages.push(message::MainMessage::SetLoadDescriptionEngine(
+                        "/_describe/character/create".to_string(),
+                        None,
+                        None,
+                        None,
+                        None,
+                        Some(client::Client::new(login.clone(), password.clone())),
                     ));
                 }
                 RootEvent::DoLogin => {
@@ -106,6 +110,7 @@ impl Engine for RootScene {
                 RootEvent::GoToCreateAccount => {
                     messages.push(message::MainMessage::SetLoadDescriptionEngine(
                         "/account/create".to_string(),
+                        None,
                         None,
                         None,
                         None,

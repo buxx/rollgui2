@@ -44,28 +44,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     data,
                     previous_ui_description,
                     previous_ui_description_state,
+                    client,
                 ) => {
+                    let request = if let Some(client_) = &client {
+                        client_.get_description_request(url, query, data)
+                    } else {
+                        client::Client::get_anonymous_description_request(&url, query, data)
+                    };
                     current_scene = Box::new(engine::load_description::LoadDescriptionEngine::new(
-                        client::Client::get_anonymous_description_request(&url, query, data),
+                        request,
+                        client,
                         previous_ui_description,
                         previous_ui_description_state,
                     ));
                 }
-                message::MainMessage::SetDescriptionEngine(description) => {
-                    current_scene =
-                        Box::new(engine::description::DescriptionEngine::new(description));
+                message::MainMessage::SetDescriptionEngine(description, client) => {
+                    current_scene = Box::new(engine::description::DescriptionEngine::new(
+                        description,
+                        client,
+                    ));
                 }
                 message::MainMessage::SetDescriptionEngineFrom(
                     ui_description,
                     ui_description_state,
+                    client,
                 ) => {
                     current_scene = Box::new(engine::description::DescriptionEngine::from_state(
                         ui_description,
                         ui_description_state,
+                        client,
                     ));
-                }
-                message::MainMessage::SetCreateCharacterEngine(login, password) => {
-                    todo!();
                 }
                 message::MainMessage::AccountCreated => {
                     current_scene = Box::new(engine::root::RootScene::with_home_message(
