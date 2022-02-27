@@ -67,6 +67,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 message::MainMessage::SetCreateCharacterEngine(login, password) => {
                     todo!();
                 }
+                message::MainMessage::AccountCreated => {
+                    current_scene = Box::new(engine::root::RootScene::with_home_message(
+                        "Compté créé, identifiez-vous".to_string(),
+                        Some(egui::Color32::GREEN),
+                    ));
+                }
                 message::MainMessage::SetRootEngine => {
                     current_scene = Box::new(engine::root::RootScene::new());
                 }

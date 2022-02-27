@@ -28,6 +28,11 @@ impl DescriptionEngine {
 
 impl super::Engine for DescriptionEngine {
     fn tick(&mut self) -> Vec<message::MainMessage> {
+        // Some checks ...
+        if self.ui_description.description.account_created {
+            return vec![message::MainMessage::AccountCreated];
+        }
+
         let mut event = None;
 
         egui_macroquad::ui(|egui_ctx| {

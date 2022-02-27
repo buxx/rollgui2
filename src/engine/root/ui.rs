@@ -18,6 +18,8 @@ pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
             } else {
                 if let Some(error_message) = &state.error_message {
                     ui.colored_label(egui::Color32::RED, error_message);
+                } else if let Some((home_message, color)) = &state.home_message {
+                    ui.colored_label(*color, home_message);
                 } else {
                     ui.label("");
                 }

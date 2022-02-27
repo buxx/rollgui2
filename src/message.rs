@@ -15,5 +15,6 @@ pub enum MainMessage {
     SetDescriptionEngine(entity::description::Description),
     SetDescriptionEngineFrom(description::UiDescription, description::UiDescriptionState),
     SetErrorEngine(String),
+    AccountCreated,
     SetEngine(Box<dyn engine::Engine>),
 }
