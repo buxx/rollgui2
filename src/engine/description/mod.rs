@@ -39,6 +39,14 @@ impl super::Engine for DescriptionEngine {
         if self.ui_description.description.account_created {
             return vec![message::MainMessage::AccountCreated];
         }
+        if let Some(new_character_id) = &self.ui_description.description.new_character_id {
+            let client = self.client.as_ref().expect("Client must be defined here");
+            return vec![message::MainMessage::CharacterCreated(
+                client.login.clone(),
+                client.password.clone(),
+                new_character_id.to_string(),
+            )];
+        }
 
         let mut event = None;
 

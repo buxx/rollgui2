@@ -84,10 +84,7 @@ impl Part {
     pub fn label(&self) -> String {
         match &self.label {
             Some(label) => label.clone(),
-            None => match &self.text {
-                Some(text) => text.clone(),
-                None => "__NO_LABEL__".to_string(),
-            },
+            None => "".to_string(),
         }
     }
 

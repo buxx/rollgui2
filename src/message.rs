@@ -20,5 +20,6 @@ pub enum MainMessage {
     ),
     SetErrorEngine(String),
     AccountCreated,
+    CharacterCreated(String, String, String), // login, password, character_id
     SetEngine(Box<dyn engine::Engine>),
 }

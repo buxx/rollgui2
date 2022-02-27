@@ -96,7 +96,8 @@ impl UiDescription {
                     .string_values
                     .entry(name.to_string())
                     .or_insert(default_value.to_string());
-                ui.add(egui::TextEdit::singleline(value).hint_text(part.label()));
+                ui.label(part.label());
+                ui.add(egui::TextEdit::singleline(value));
             }
             entity::description::InputType::Numeric => {
                 let (default_value, suffix) = match part.analyze_default_value() {
@@ -122,24 +123,54 @@ impl UiDescription {
                     .entry(name.to_string())
                     .or_insert((default_value, suffix.clone()));
 
-                if let (Some(min_value), Some(max_value)) = (part.min_value, part.max_value) {
-                    *value = value.min(max_value);
-                    *value = value.max(min_value);
+                ui.label(part.label());
 
-                    let mut widget = egui::Slider::new(value, min_value..=max_value);
-                    if let Some(suffix_) = suffix {
-                        widget = widget.suffix(suffix_);
-                    }
-                    ui.add(widget).on_hover_text(part.label());
-                } else {
-                    let mut widget = egui::DragValue::new(value).speed(1.0);
-                    if let Some(suffix_) = suffix {
-                        widget = widget.suffix(suffix_);
-                    }
-                    ui.add(widget).on_hover_text(part.label());
-                };
+                ui.horizontal(|ui| {
+                    if let (Some(min_value), Some(max_value)) = (part.min_value, part.max_value) {
+                        *value = value.min(max_value);
+                        *value = value.max(min_value);
+
+                        let mut widget = egui::Slider::new(value, min_value..=max_value);
+                        if let Some(suffix_) = suffix {
+                            widget = widget.suffix(suffix_);
+                        }
+                        ui.add(widget);
+                    } else {
+                        let mut widget = egui::DragValue::new(value).speed(1.0);
+                        if let Some(suffix_) = suffix {
+                            widget = widget.suffix(suffix_);
+                        }
+                        ui.add(widget);
+                    };
+                });
             }
         }
+
+        event
+    }
+    pub fn draw_checkbox(
+        &self,
+        ui: &mut egui::Ui,
+        part: &entity::description::Part,
+        state: &mut super::UiDescriptionState,
+    ) -> Option<super::UiDescriptionEvent> {
+        let mut event = None;
+
+        let name = match &part.name {
+            Some(name) => name,
+            None => {
+                return Some(super::UiDescriptionEvent::FatalError(format!(
+                    "Missing name for checkbox"
+                )));
+            }
+        };
+        let checked = state
+            .boolean_values
+            .entry(name.to_string())
+            .or_insert(part.checked);
+
+        ui.label("");
+        ui.add(egui::Checkbox::new(checked, &part.label()));
 
         event
     }

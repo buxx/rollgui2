@@ -5,8 +5,8 @@ use crate::{entity, SERVER_ADDRESS};
 
 #[derive(Clone)]
 pub struct Client {
-    login: String,
-    password: String,
+    pub login: String,
+    pub password: String,
 }
 
 impl Client {

@@ -13,6 +13,7 @@ pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 pub struct UiDescriptionState {
     pub string_values: HashMap<String, String>,
     pub numeric_values: HashMap<String, (f32, Option<String>)>, // field_name, (value, suffix)
+    pub boolean_values: HashMap<String, bool>,
     pub error_message: Option<String>,
 }
 
@@ -21,6 +22,7 @@ impl Default for UiDescriptionState {
         Self {
             string_values: HashMap::new(),
             numeric_values: HashMap::new(),
+            boolean_values: HashMap::new(),
             error_message: None,
         }
     }
@@ -147,14 +149,22 @@ impl UiDescription {
                 None => {}
             }
         } else if part.is_text() {
-            if let Some(text) = &part.text {
-                ui.label(format!("{} :", part.label()));
-                ui.label(text);
-            } else {
-                ui.label(part.label());
+            if let (Some(label), Some(text)) = (&part.label, &part.text) {
+                ui.add(egui::Label::new(format!("{} :", label)));
+                ui.add(egui::Label::new(text).wrap(true));
+            } else if let Some(label) = &part.label {
+                ui.add(egui::Label::new(label));
+            } else if let Some(text) = &part.text {
+                ui.add(egui::Label::new(format!("")));
+                ui.add(egui::Label::new(text).wrap(true));
             }
         } else if part.is_input() {
             match self.draw_input(ui, part, state) {
+                Some(event_) => event = Some(event_),
+                None => {}
+            }
+        } else if part.is_checkbox() {
+            match self.draw_checkbox(ui, part, state) {
                 Some(event_) => event = Some(event_),
                 None => {}
             }
@@ -164,6 +174,7 @@ impl UiDescription {
                     Some(event_) => event = Some(event_),
                     None => {}
                 }
+                ui.end_row();
             }
             if ui.button("Valider").clicked() {
                 if let Some(url) = &part.form_action {
@@ -198,6 +209,12 @@ impl UiDescriptionState {
                 );
             } else {
                 data.insert(key.clone(), serde_json::json!(value));
+            }
+        }
+
+        for (key, value) in &self.boolean_values {
+            if *value {
+                data.insert(key.clone(), serde_json::json!("on"));
             }
         }
 

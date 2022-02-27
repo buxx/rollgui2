@@ -81,6 +81,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Some(egui::Color32::GREEN),
                     ));
                 }
+                message::MainMessage::CharacterCreated(login, password, character_id) => {
+                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::new(
+                        graphics.clone(),
+                        &login,
+                        &password,
+                        &character_id,
+                    )?);
+                }
                 message::MainMessage::SetRootEngine => {
                     current_scene = Box::new(engine::root::RootScene::new());
                 }
