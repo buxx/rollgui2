@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use quad_net::http_request::{Method, Request, RequestBuilder};
 
-use crate::SERVER_ADDRESS;
+use crate::{entity, SERVER_ADDRESS};
 
 #[derive(Clone)]
 pub struct Client {
@@ -14,13 +14,62 @@ impl Client {
         Self { login, password }
     }
 
-    pub fn error_message_from_response(response: ureq::Response) -> String {
-        let response_body = response.into_string().unwrap_or("".to_string());
-        let response_object = serde_json::from_str::<serde_json::Value>(&response_body)
-            .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
-        match response_object["message"].as_str() {
-            Some(message) => message.to_string(),
-            None => "Erreur inconnue".to_string(),
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn error_message_from_http_error(
+        http_error: quad_net::http_request::HttpError,
+    ) -> Result<String, ()> {
+        match http_error {
+            quad_net::http_request::HttpError::IOError => Ok(http_error.to_string()),
+            quad_net::http_request::HttpError::UreqError(ureq_error) => match ureq_error {
+                ureq::Error::Status(http_code, response) => {
+                    let response_body = response.into_string().unwrap_or("".to_string());
+                    let response_object = serde_json::from_str::<serde_json::Value>(&response_body)
+                        .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+                    match response_object["message"].as_str() {
+                        Some(message) => Ok(message.to_string()),
+                        None => Ok("Erreur inconnue".to_string()),
+                    }
+                }
+                ureq::Error::Transport(transport) => Ok(format!("Transport error : {}", transport)),
+            },
+        }
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn description_from_request_data(
+        request_result: Result<String, quad_net::http_request::HttpError>,
+    ) -> Result<entity::description::Description, String> {
+        match request_result {
+            Ok(response_body) => {
+                // Try to find error json structure. If not, it is not an error but description
+                let response_object = serde_json::from_str::<serde_json::Value>(&response_body)
+                    .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+                if response_object["message"].as_str().is_some()
+                    && response_object["details"].as_object().is_some()
+                {
+                    // This is an error json
+                    match response_object["message"].as_str() {
+                        Some(message) => Err(message.to_string()),
+                        None => Err("Erreur inconnue".to_string()),
+                    }
+                } else {
+                    entity::description::Description::from_string(&response_body)
+                }
+            }
+            Err(error) => Err(error.to_string()),
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn description_from_request_data(
+        request_result: Result<String, quad_net::http_request::HttpError>,
+    ) -> Result<entity::description::Description, String> {
+        match request_result {
+            Ok(description_string) => {
+                entity::description::Description::from_string(&description_string)
+            }
+            Err(http_error) => Err(Self::error_message_from_http_error(http_error)
+                .unwrap_or("Erreur inconnue".to_string())),
         }
     }
 
