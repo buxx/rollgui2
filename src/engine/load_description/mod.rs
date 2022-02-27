@@ -1,4 +1,4 @@
-use crate::{client, description, entity, message};
+use crate::{client, description, message};
 
 pub struct LoadDescriptionEngine {
     pub request: quad_net::http_request::Request,
@@ -34,9 +34,10 @@ impl super::Engine for LoadDescriptionEngine {
                         &self.previous_ui_description,
                         &self.previous_ui_description_state,
                     ) {
-                        let mut ui_description_ = ui_description.clone();
-                        ui_description_.error_message = Some(error_message);
-                        let ui_description_state_ = ui_description_state.clone();
+                        let ui_description_ = ui_description.clone();
+                        let mut ui_description_state_ = ui_description_state.clone();
+                        ui_description_state_.error_message = Some(error_message);
+
                         return vec![message::MainMessage::SetDescriptionEngineFrom(
                             ui_description_,
                             ui_description_state_,

@@ -32,10 +32,6 @@ impl super::Engine for DescriptionEngine {
 
         egui_macroquad::ui(|egui_ctx| {
             egui::CentralPanel::default().show(&egui_ctx, |ui| {
-                if let Some(error_message) = &self.ui_description.error_message {
-                    ui.colored_label(egui::Color32::RED, error_message);
-                }
-
                 event = self
                     .ui_description
                     .draw(egui_ctx, ui, &mut self.ui_description_state);

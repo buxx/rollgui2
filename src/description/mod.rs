@@ -13,6 +13,7 @@ pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
 pub struct UiDescriptionState {
     pub string_values: HashMap<String, String>,
     pub numeric_values: HashMap<String, (f32, Option<String>)>, // field_name, (value, suffix)
+    pub error_message: Option<String>,
 }
 
 impl Default for UiDescriptionState {
@@ -20,6 +21,7 @@ impl Default for UiDescriptionState {
         Self {
             string_values: HashMap::new(),
             numeric_values: HashMap::new(),
+            error_message: None,
         }
     }
 }
@@ -31,7 +33,6 @@ pub struct UiDescription {
     pub is_first_frame: bool,
     pub loading: bool,
     pub draw_big_button: bool,
-    pub error_message: Option<String>,
 }
 
 pub enum UiDescriptionEvent {
@@ -59,7 +60,6 @@ impl UiDescription {
             is_first_frame: true,
             loading: false,
             draw_big_button: false,
-            error_message: None,
         }
     }
 
@@ -88,6 +88,10 @@ impl UiDescription {
         if self.loading {
             ui.label("Loading...");
             return ui_message;
+        }
+
+        if let Some(error_message) = &state.error_message {
+            ui.colored_label(egui::Color32::RED, error_message);
         }
 
         if self.description.is_grid {
