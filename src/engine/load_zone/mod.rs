@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 use quad_net::http_request::Request;
 use serde_json::Value;
 
-use crate::{client, entity, message, zone};
+use crate::{client, entity, hardcoded, message, zone};
 
 use super::Engine;
 
@@ -212,11 +212,16 @@ impl LoadZoneEngine {
                         Ok(zone_str) => {
                             let source_value: Value = serde_json::from_str(&zone_str).unwrap();
                             let source = source_value["raw_source"].as_str().unwrap();
+                            let zone_type_id = source_value["zone_type_id"].as_str().unwrap();
+                            let default_tile_id =
+                                hardcoded::get_default_tile_id_for_zone_type_id(zone_type_id)
+                                    .expect(&format!("Unknown world type id {}", zone_type_id));
                             let map: zone::map::ZoneMap = match zone::load::from_txt_map(
                                 source,
                                 tiles.clone(),
                                 self.graphics.tile_width,
                                 self.graphics.tile_height,
+                                &default_tile_id,
                             ) {
                                 Ok(map) => map,
                                 Err(error) => {

@@ -13,7 +13,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("BACK_HILL", 0, 4, 1),
         ("BACK_MOUNTAIN", 0, 5, 1),
         ("BACK_SEA", 0, 2, 1),
-        ("SAND", 0, 0, 1),
+        ("SAND", 0, 3, 1),
         ("DRY_BUSH", 2, 8, 1),
         ("ROCK", 2, 9, 1),
         ("SEA_WATER", 14, 0, 6),
@@ -202,4 +202,16 @@ pub fn get_map_source() -> &'static str {
   ؛⁖⁖߉⁖⁖؛⁖؛⁖؛⁖؛⁖⁖ፆ        
    ߉߉ፆ⁖ፆ⁖⁖ፆ⁖⁖⁖؛؛߉         
     ⁖؛⁖؛ፆ⁖⁖⁖⁖⁖؛⁖          "
+}
+
+pub fn get_default_tile_id_for_zone_type_id(zone_type_id: &str) -> Option<String> {
+    match zone_type_id {
+        "JUNGLE" => Some("DIRT".to_string()),
+        "SEA" => Some("SALTED_WATER".to_string()),
+        "MOUNTAIN" => Some("ROCKY_GROUND".to_string()),
+        "HILL" => Some("DIRT".to_string()),
+        "BEACH" => Some("SAND".to_string()),
+        "PLAIN" => Some("DIRT".to_string()),
+        _ => None,
+    }
 }

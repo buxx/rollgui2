@@ -8,6 +8,7 @@ pub fn from_txt_map(
     tiles_definitions: Vec<entity::tile::Tile>,
     tiles_width: f32,
     tiles_height: f32,
+    default_tile_id: &str,
 ) -> Result<map::ZoneMap, String> {
     let mapping: HashMap<char, String> = tiles_definitions
         .iter()
@@ -37,7 +38,7 @@ pub fn from_txt_map(
         tiles_definitions,
         tiles,
         // FIXME BS NOW : don't hardcode that
-        "DIRT",
+        default_tile_id,
         tiles_width,
         tiles_height,
     ))
