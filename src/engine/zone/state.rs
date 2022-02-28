@@ -10,7 +10,7 @@ pub struct ZoneState {
     pub player_display: CharacterDisplay,
     pub stuffs: HashMap<i32, entity::stuff::Stuff>,
     pub resources: HashMap<(i32, i32), Vec<entity::resource::Resource>>,
-    pub builds: HashMap<i32, entity::build::Build>,
+    pub builds: HashMap<(i32, i32), entity::build::Build>,
 }
 
 impl ZoneState {
@@ -25,7 +25,7 @@ impl ZoneState {
     ) -> Self {
         let mut builds_ = HashMap::new();
         for build in builds {
-            builds_.insert(build.id.clone(), build);
+            builds_.insert((build.row_i, build.col_i), build);
         }
 
         let mut stuffs_ = HashMap::new();

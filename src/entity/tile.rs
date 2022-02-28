@@ -7,6 +7,14 @@ pub enum TransportMode {
     Walking,
 }
 
+impl TransportMode {
+    pub fn to_string(&self) -> &str {
+        match self {
+            TransportMode::Walking => "WALKING",
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum HumpType {
     #[serde(rename = "NORMAL")]

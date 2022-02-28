@@ -63,7 +63,7 @@ impl super::ZoneEngine {
                     }
                 }
 
-                self.state.builds.insert(build.id, build);
+                self.state.builds.insert((build.row_i, build.col_i), build);
             }
             event::ZoneEventType::CharacterEnter {
                 zone_row_i,

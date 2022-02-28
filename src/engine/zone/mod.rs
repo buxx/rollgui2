@@ -232,11 +232,17 @@ impl ZoneEngine {
         let next_player_row_i = (next_player_center_y / self.graphics.tile_height) as i32;
         let next_player_col_i = (next_player_center_x / self.graphics.tile_width) as i32;
 
-        if self.state.map.traversable(
+        let tile_is_traversable = self.state.map.traversable(
             next_player_row_i as usize,
             next_player_col_i as usize,
             &entity::tile::TransportMode::Walking,
-        ) {
+        );
+        let possible_build_is_traversable = self.possible_build_is_traversable(
+            next_player_row_i as usize,
+            next_player_col_i as usize,
+            &entity::tile::TransportMode::Walking,
+        );
+        if tile_is_traversable && possible_build_is_traversable {
             self.state.player_display.position = next_position;
             if next_player_row_i != self.state.player.zone_row_i
                 || next_player_col_i != self.state.player.zone_col_i
@@ -569,6 +575,19 @@ impl ZoneEngine {
             return true;
         }
         return false;
+    }
+
+    fn possible_build_is_traversable(
+        &self,
+        row_i: usize,
+        col_i: usize,
+        walking: &entity::tile::TransportMode,
+    ) -> bool {
+        if let Some(build) = self.state.builds.get(&(row_i as i32, col_i as i32)) {
+            return *build.traversable.get(walking.to_string()).unwrap_or(&true);
+        }
+
+        true
     }
 }
 
