@@ -27,12 +27,23 @@ pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
 
             ui.horizontal(|ui| {
                 ui.label("Login: ");
-                ui.text_edit_singleline(&mut state.login);
+                if ui.text_edit_singleline(&mut state.login).gained_focus() {
+                    event = Some(super::RootEvent::TextEditFocused(
+                        super::RootTextInput::Login,
+                    ));
+                }
             });
 
             ui.horizontal(|ui| {
                 ui.label("Mot de passe: ");
-                ui.add(egui::TextEdit::singleline(&mut state.password).password(true));
+                if ui
+                    .add(egui::TextEdit::singleline(&mut state.password).password(true))
+                    .gained_focus()
+                {
+                    event = Some(super::RootEvent::TextEditFocused(
+                        super::RootTextInput::Password,
+                    ));
+                }
             });
 
             ui.horizontal(|ui| {

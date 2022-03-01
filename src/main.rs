@@ -12,6 +12,7 @@ pub mod graphics;
 pub mod hardcoded;
 pub mod message;
 pub mod tileset;
+pub mod ui;
 pub mod util;
 pub mod zone;
 

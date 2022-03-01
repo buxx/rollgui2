@@ -1,7 +1,9 @@
 use crate::{client, engine::root::util::auth_failed, message};
+use macroquad::prelude::*;
 use quad_net::http_request::Request;
 
 use super::Engine;
+use crate::ui as base_ui;
 
 pub mod state;
 pub mod ui;
@@ -10,6 +12,7 @@ pub mod util;
 pub struct RootScene {
     state: state::RootState,
     do_login_request: Option<Request>,
+    text_input_request: Option<base_ui::text_input::TextInputRequest>,
 }
 
 impl RootScene {
@@ -17,6 +20,7 @@ impl RootScene {
         Self {
             state: state::RootState::new("", ""),
             do_login_request: None,
+            text_input_request: None,
         }
     }
 
@@ -27,6 +31,7 @@ impl RootScene {
         Self {
             state,
             do_login_request: None,
+            text_input_request: None,
         }
     }
 
@@ -67,6 +72,29 @@ impl RootScene {
 
         events
     }
+
+    fn manage_text_inputs(&mut self) -> Vec<RootEvent> {
+        let mut events = vec![];
+
+        if let Some(request) = &mut self.text_input_request {
+            if let Some(value) = request.try_recv() {
+                if let Some(text_input) = RootTextInput::from_str(request.name()) {
+                    debug!("Text input : {:?} {:?}", &text_input, value);
+                    match text_input {
+                        RootTextInput::Login => events.push(RootEvent::UpdateLoginValue(value)),
+                        RootTextInput::Password => {
+                            events.push(RootEvent::UpdatePasswordValue(value))
+                        }
+                    }
+                } else {
+                    error!("Unknown text input {}", request.name());
+                }
+                events.push(RootEvent::RemoveTextInputRequest)
+            }
+        }
+
+        events
+    }
 }
 
 impl Engine for RootScene {
@@ -75,6 +103,7 @@ impl Engine for RootScene {
         let mut events = vec![];
 
         events.extend(self.manage_do_login());
+        events.extend(self.manage_text_inputs());
         events.extend(ui::ui(&mut self.state));
 
         for event in events {
@@ -117,11 +146,57 @@ impl Engine for RootScene {
                         None,
                     ))
                 }
+                RootEvent::TextEditFocused(input) => {
+                    let value = match input {
+                        RootTextInput::Login => self.state.login.clone(),
+                        RootTextInput::Password => "".to_string(),
+                    };
+                    self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
+                        input.to_string(),
+                        input.to_string(),
+                        value,
+                    ))
+                }
+                RootEvent::RemoveTextInputRequest => {
+                    info!("Remove text input request");
+                    self.text_input_request = None;
+                }
+                RootEvent::UpdateLoginValue(login) => {
+                    info!("Update login value");
+                    self.state.login = login;
+                }
+                RootEvent::UpdatePasswordValue(password) => {
+                    info!("Update password value");
+                    self.state.password = password
+                }
             }
         }
 
         self.state.first_frame = false;
         messages
+    }
+}
+
+#[derive(Debug)]
+pub enum RootTextInput {
+    Login,
+    Password,
+}
+
+impl RootTextInput {
+    pub fn to_string(&self) -> String {
+        match self {
+            RootTextInput::Login => "Login".to_string(),
+            RootTextInput::Password => "Password".to_string(),
+        }
+    }
+
+    pub fn from_str(value: &str) -> Option<Self> {
+        match value {
+            "Login" => Some(Self::Login),
+            "Password" => Some(Self::Password),
+            _ => None,
+        }
     }
 }
 
@@ -131,4 +206,8 @@ pub enum RootEvent {
     GoToCreateAccount,
     GoToZone(String, String, String),
     DoLogin,
+    TextEditFocused(RootTextInput),
+    RemoveTextInputRequest,
+    UpdateLoginValue(String),
+    UpdatePasswordValue(String),
 }
