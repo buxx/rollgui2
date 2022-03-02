@@ -474,10 +474,14 @@ impl ZoneEngine {
         }
 
         // Mouse inputs
+        let (pixels_x, pixels_y) = mouse_position();
         if is_mouse_button_down(MouseButton::Left) {
+            if
             // Avoid player move by click if currently in action
-            if self.current_action.is_none() {
-                let (pixels_x, pixels_y) = mouse_position();
+            self.current_action.is_none()
+            // Avoid player move if mouse hover left menu
+            && pixels_x > LEFT_PANEL_WIDTH
+            {
                 let position_local = base_util::convert_to_local(Vec2::new(pixels_x, pixels_y));
                 self.user_inputs
                     .push(UserInput::MovePlayerBy(position_local * 2.0));
