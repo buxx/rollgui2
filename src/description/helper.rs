@@ -97,7 +97,13 @@ impl UiDescription {
                     .entry(name.to_string())
                     .or_insert(default_value.to_string());
                 ui.label(part.label());
-                ui.add(egui::TextEdit::singleline(value));
+                if ui.add(egui::TextEdit::singleline(value)).gained_focus() {
+                    event = Some(super::UiDescriptionEvent::TextEditFocused(
+                        part.label().to_string(),
+                        name.to_string(),
+                        value.clone(),
+                    ));
+                }
             }
             entity::description::InputType::Numeric => {
                 let (default_value, suffix) = match part.analyze_default_value() {

@@ -62,6 +62,8 @@ impl super::ZoneEngine {
                             self.current_description_state =
                                 Some(description::UiDescriptionState::default());
                         }
+                        // Managed inside of UiDescription
+                        description::UiDescriptionEvent::TextEditFocused(_, _, _) => {}
                     }
                 }
 

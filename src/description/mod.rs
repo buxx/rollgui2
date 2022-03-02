@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 
 use crate::entity;
+use crate::ui as base_ui;
 
 pub mod grid;
 pub mod helper;
@@ -35,6 +36,7 @@ pub struct UiDescription {
     pub is_first_frame: bool,
     pub loading: bool,
     pub draw_big_button: bool,
+    pub text_input_request: Option<base_ui::text_input::TextInputRequest>,
 }
 
 pub enum UiDescriptionEvent {
@@ -44,6 +46,7 @@ pub enum UiDescriptionEvent {
     ValidateFormInQuery(String),
     ValidateFormInBody(String),
     SetDescriptionUi(Box<UiDescription>),
+    TextEditFocused(String, String, String), // title, name, value
 }
 
 impl UiDescription {
@@ -62,6 +65,17 @@ impl UiDescription {
             is_first_frame: true,
             loading: false,
             draw_big_button: false,
+            text_input_request: None,
+        }
+    }
+
+    fn manage_pending(&mut self, state: &mut UiDescriptionState) {
+        if let Some(request) = &mut self.text_input_request {
+            if let Some(new_value) = request.try_recv() {
+                let key = request.name().to_string();
+                state.string_values.insert(key, new_value);
+                self.text_input_request = None;
+            }
         }
     }
 
@@ -72,6 +86,8 @@ impl UiDescription {
         state: &mut UiDescriptionState,
     ) -> Option<UiDescriptionEvent> {
         self.check_init(egui_ctx, ui);
+        self.manage_pending(state);
+
         let mut ui_message = None;
 
         ui.horizontal(|ui| {
@@ -104,6 +120,18 @@ impl UiDescription {
             if let Some(ui_message_) = self.draw_default(ui, state) {
                 ui_message = Some(ui_message_);
             }
+        }
+
+        // Manage some messages
+        match &ui_message {
+            Some(UiDescriptionEvent::TextEditFocused(title, name, value)) => {
+                self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
+                    title.to_string(),
+                    name.to_string(),
+                    value.to_string(),
+                ));
+            }
+            _ => {}
         }
 
         ui_message

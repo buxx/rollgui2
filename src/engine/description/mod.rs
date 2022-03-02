@@ -103,6 +103,8 @@ impl super::Engine for DescriptionEngine {
                     self.ui_description = *new_description;
                     self.ui_description_state = description::UiDescriptionState::default();
                 }
+                // Managed inside of UiDescription
+                description::UiDescriptionEvent::TextEditFocused(_, _, _) => {}
             }
         }
 
