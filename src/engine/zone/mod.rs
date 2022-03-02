@@ -3,7 +3,7 @@ use quad_net::web_socket::WebSocket;
 
 use crate::{
     action as base_action, animation, client, config, description, entity, event as base_event,
-    graphics, message, util as base_util,
+    graphics, message, ui as ui_base, util as base_util,
 };
 
 use super::Engine;
@@ -67,6 +67,7 @@ pub struct ZoneEngine {
     pub last_begin_click_coordinates: Option<Vec2>,
     pub last_begin_click_was_in_egui: Option<bool>,
     pub highlight_tiles: Vec<(usize, usize)>,
+    pub is_mobile: bool,
 }
 
 impl ZoneEngine {
@@ -114,6 +115,7 @@ impl ZoneEngine {
             last_begin_click_coordinates: None,
             last_begin_click_was_in_egui: None,
             highlight_tiles: vec![],
+            is_mobile: ui_base::utils::is_mobile(),
         })
     }
 
@@ -493,7 +495,13 @@ impl ZoneEngine {
         let zoom_multiplier = match self.zoom_mode {
             ZoomMode::Large => 1.,
             ZoomMode::Normal => 2.,
-            ZoomMode::Double => 4.,
+            ZoomMode::Double => {
+                if self.is_mobile {
+                    8.0
+                } else {
+                    4.0
+                }
+            }
         };
 
         let zoom_x = (self.state.map.concrete_width / screen_width()) * zoom_multiplier;

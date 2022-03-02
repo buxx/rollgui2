@@ -151,11 +151,13 @@ impl Engine for RootScene {
                         RootTextInput::Login => self.state.login.clone(),
                         RootTextInput::Password => "".to_string(),
                     };
-                    self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
-                        input.to_string(),
-                        input.to_string(),
-                        value,
-                    ))
+                    if base_ui::utils::is_mobile() {
+                        self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
+                            input.to_string(),
+                            input.to_string(),
+                            value,
+                        ))
+                    }
                 }
                 RootEvent::RemoveTextInputRequest => {
                     info!("Remove text input request");
