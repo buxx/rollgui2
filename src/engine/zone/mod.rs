@@ -484,7 +484,7 @@ impl ZoneEngine {
             {
                 let position_local = base_util::convert_to_local(Vec2::new(pixels_x, pixels_y));
                 self.user_inputs
-                    .push(UserInput::MovePlayerBy(position_local * 2.0));
+                    .push(UserInput::MovePlayerBy(position_local * 4.5));
             }
         }
     }
