@@ -54,7 +54,7 @@ impl Button {
                 "/_describe/character/{}/main_actions",
                 state.player.id
             )),
-            Button::World => todo!(),
+            Button::World => {}
             Button::Inventory => ButtonAction::OpenInventory,
             Button::Card => ButtonAction::OpenDescription(format!(
                 "/_describe/character/{}/card",
