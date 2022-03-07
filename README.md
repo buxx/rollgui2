@@ -1,10 +1,9 @@
-Rollgui2
-########
+# Rollgui2
 
 TODO
 
-Contributors
-++++++++++++
+## Contributors
+
 
 <a href="https://github.com/buxx/rollgui2/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=buxx/rollgui2" />
