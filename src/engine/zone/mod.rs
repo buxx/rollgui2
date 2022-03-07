@@ -445,7 +445,7 @@ impl ZoneEngine {
         }
 
         // Keyboard inputs without repetition limitation
-        if is_key_down(KeyCode::Up) || is_key_down(KeyCode::Z) {
+        if is_key_down(KeyCode::Up) || is_key_down(KeyCode::Z) || is_key_down(KeyCode::W) {
             self.user_inputs
                 .push(UserInput::MovePlayerBy(Vec2::new(0., -1.)));
         }
@@ -453,7 +453,7 @@ impl ZoneEngine {
             self.user_inputs
                 .push(UserInput::MovePlayerBy(Vec2::new(0., 1.)));
         }
-        if is_key_down(KeyCode::Left) || is_key_down(KeyCode::Q) {
+        if is_key_down(KeyCode::Left) || is_key_down(KeyCode::Q) || is_key_down(KeyCode::A) {
             self.user_inputs
                 .push(UserInput::MovePlayerBy(Vec2::new(-1., 0.)));
         }
