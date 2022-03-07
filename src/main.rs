@@ -23,7 +23,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_scene: Box<dyn engine::Engine> = Box::new(engine::root::RootScene::new());
     let tile_set = load_texture("static/graphics.png").await.unwrap();
     let tiles_mapping = tileset::loader::from_list(hardcoded::get_tiles_list(), 32., 32.);
-    let graphics = graphics::Graphics::new(tile_set, tiles_mapping, 32., 32.);
+    let graphics =
+        graphics::Graphics::new(tile_set, tiles_mapping, 32., 32., ui::utils::is_mobile());
 
     loop {
         clear_background(BLACK);

@@ -16,8 +16,10 @@ pub fn draw_quick_action_button(
     quick_action_key: &Option<char>,
     tick_i: i16,
 ) -> bool {
-    let draw_end_x = draw_x + BUTTON_WIDTH;
-    let draw_end_y = draw_y + BUTTON_HEIGHT;
+    let multiplier = if graphics.draw_as_mobile { 2.0 } else { 1.0 };
+
+    let draw_end_x = draw_x + (BUTTON_WIDTH * multiplier);
+    let draw_end_y = draw_y + (BUTTON_HEIGHT * multiplier);
 
     let source_x = BUTTON_X;
     let source_y = BUTTON_Y;
@@ -30,6 +32,10 @@ pub fn draw_quick_action_button(
         WHITE,
         DrawTextureParams {
             source: Some(Rect::new(source_x, source_y, BUTTON_WIDTH, BUTTON_HEIGHT)),
+            dest_size: Some(Vec2::new(
+                BUTTON_WIDTH * multiplier,
+                BUTTON_HEIGHT * multiplier,
+            )),
             ..Default::default()
         },
     );
@@ -41,8 +47,8 @@ pub fn draw_quick_action_button(
         .expect(&format!("Tile id {} is unknown", tile_id1));
     let tile1_source_rect = tile1_source.to_rect(tick_i);
 
-    let dest_size_x = graphics.tile_width * 1.5;
-    let dest_size_y = graphics.tile_height * 1.5;
+    let dest_size_x = graphics.tile_width * 1.5 * multiplier;
+    let dest_size_y = graphics.tile_height * 1.5 * multiplier;
 
     let tile1_params = DrawTextureParams {
         dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
@@ -68,8 +74,8 @@ pub fn draw_quick_action_button(
         .expect(&format!("Tile id {} is unknown", tile_id2));
     let tile2_source_rect = tile2_source.to_rect(tick_i);
 
-    let dest_size_x = graphics.tile_width * 1.5;
-    let dest_size_y = graphics.tile_height * 1.5;
+    let dest_size_x = graphics.tile_width * 1.5 * multiplier;
+    let dest_size_y = graphics.tile_height * 1.5 * multiplier;
 
     let tile2_params = DrawTextureParams {
         dest_size: Some(Vec2::new(dest_size_x, dest_size_y)),
@@ -77,7 +83,7 @@ pub fn draw_quick_action_button(
         ..Default::default()
     };
 
-    let tile_draw_x = draw_x + 50.;
+    let tile_draw_x = draw_x + (50. * multiplier);
     let tile_draw_y = draw_y + 5.;
 
     draw_texture_ex(

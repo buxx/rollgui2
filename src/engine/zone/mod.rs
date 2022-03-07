@@ -98,7 +98,7 @@ impl ZoneEngine {
             disable_all_user_input_until: get_time(),
             disable_all_user_input: false,
             user_inputs: vec![],
-            running_mode: ui_base::utils::is_mobile(),
+            running_mode: false,
             last_require_around_coordinate: (0, 0),
             quick_actions: vec![],
             selected_quick_action: None,

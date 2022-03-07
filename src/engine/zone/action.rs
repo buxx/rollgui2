@@ -4,12 +4,18 @@ use macroquad::prelude::*;
 
 impl ZoneEngine {
     pub fn draw_quick_actions(&mut self, action_clicked: bool) {
+        let multiplier = if self.graphics.draw_as_mobile {
+            2.0
+        } else {
+            1.0
+        };
         let start_draw_x = LEFT_PANEL_WIDTH + QUICK_ACTION_MARGIN;
-        let start_draw_y = screen_height() - gui::quick::BUTTON_HEIGHT - QUICK_ACTION_MARGIN;
+        let start_draw_y =
+            screen_height() - (gui::quick::BUTTON_HEIGHT * multiplier) - QUICK_ACTION_MARGIN;
         let mut quick_action_just_clicked = false;
 
         for (i, quick_action) in self.quick_actions.iter().enumerate() {
-            let decal = i as f32 * (gui::quick::BUTTON_WIDTH + QUICK_ACTION_MARGIN);
+            let decal = i as f32 * ((gui::quick::BUTTON_WIDTH * multiplier) + QUICK_ACTION_MARGIN);
             let draw_x = start_draw_x + decal;
             let draw_y = start_draw_y;
             // TODO : optimize ?
