@@ -125,11 +125,13 @@ impl UiDescription {
         // Manage some messages
         match &ui_message {
             Some(UiDescriptionEvent::TextEditFocused(title, name, value)) => {
-                self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
-                    title.to_string(),
-                    name.to_string(),
-                    value.to_string(),
-                ));
+                if base_ui::utils::is_mobile() {
+                    self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
+                        title.to_string(),
+                        name.to_string(),
+                        value.to_string(),
+                    ));
+                }
             }
             _ => {}
         }
