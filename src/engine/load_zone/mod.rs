@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 use quad_net::http_request::Request;
 use serde_json::Value;
 
-use crate::{client, entity, hardcoded, message, zone};
+use crate::{client, engine::dead::CheckCharacterIsDeadEngine, entity, hardcoded, message, zone};
 
 use super::Engine;
 
@@ -74,9 +74,14 @@ impl LoadZoneEngine {
                             match serde_json::from_str(&character_json_str) {
                                 Ok(character) => character,
                                 Err(error) => {
-                                    return vec![message::MainMessage::SetErrorEngine(
-                                        error.to_string(),
-                                    )]
+                                    // In case of error, maybe the character is dead
+
+                                    return vec![message::MainMessage::SetEngine(Box::new(
+                                        CheckCharacterIsDeadEngine::new(
+                                            self.character_id.clone(),
+                                            self.client.clone(),
+                                        ),
+                                    ))];
                                 }
                             };
                         self.player = Some(character);

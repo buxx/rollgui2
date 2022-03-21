@@ -131,6 +131,15 @@ impl Client {
             .send()
     }
 
+    pub fn get_character_is_dead_request(&self, character_id: &str) -> Request {
+        let url = format!("{}/character/{}/dead", SERVER_ADDRESS, character_id);
+        info!("Retrieve character from {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .send()
+    }
+
     pub fn get_zone_request(&self, world_row_i: i32, world_col_i: i32) -> Request {
         let url = format!("{}/zones/{}/{}", SERVER_ADDRESS, world_row_i, world_col_i);
         info!("Retrieve zone from {}", url);

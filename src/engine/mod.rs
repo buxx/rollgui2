@@ -1,3 +1,4 @@
+pub mod dead;
 pub mod description;
 pub mod error;
 pub mod load_description;
