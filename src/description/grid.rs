@@ -8,7 +8,7 @@ impl super::UiDescription {
 
         ui.horizontal_wrapped(|ui| {
             self.draw_big_button = true;
-            for (i, part) in self.description.items.iter().enumerate() {
+            for (_i, part) in self.description.items.iter().enumerate() {
                 match self.draw_part(ui, part, state) {
                     Some(event_) => event = Some(event_),
                     None => {}

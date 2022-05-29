@@ -15,7 +15,7 @@ const BOTTOM_PANEL_WIDTH: f32 = 250.;
 const BOTTOM_PANEL_HEIGHT: f32 = 42.;
 
 const START_DRAWING_BUTTONS_X: f32 = 26.5;
-const START_DRAWING_BUTTONS_y: f32 = 175.;
+const START_DRAWING_BUTTONS_Y: f32 = 175.;
 
 const BUTTON_BACKGROUND_X: f32 = 0.;
 const BUTTON_BACKGROUND_Y: f32 = 864.;
@@ -160,7 +160,7 @@ pub fn draw_buttons(
         let draw_to_x =
             START_DRAWING_BUTTONS_X + ((BUTTON_WIDTH as f32 + BUTTON_MARGIN) * col_i as f32);
         let draw_to_y =
-            START_DRAWING_BUTTONS_y + ((BUTTON_HEIGHT as f32 + BUTTON_MARGIN) * row_i as f32);
+            START_DRAWING_BUTTONS_Y + ((BUTTON_HEIGHT as f32 + BUTTON_MARGIN) * row_i as f32);
 
         // Draw background
         draw_texture_ex(

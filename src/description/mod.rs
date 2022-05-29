@@ -152,7 +152,7 @@ impl UiDescription {
                 // .spacing([40.0, 4.0])
                 .striped(true)
                 .show(ui, |ui| {
-                    for (i, part) in self.description.items.iter().enumerate() {
+                    for (_i, part) in self.description.items.iter().enumerate() {
                         match self.draw_part(ui, part, state) {
                             Some(event_) => event = Some(event_),
                             None => {}

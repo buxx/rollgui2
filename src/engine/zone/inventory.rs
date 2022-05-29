@@ -432,7 +432,7 @@ impl super::ZoneEngine {
         post_base_url: String,
     ) {
         // Check if not hover a tile
-        if let Some(tile_id) = self.state.map.tile_id(zone_row_i, zone_col_i) {
+        if let Some(_tile_id) = self.state.map.tile_id(zone_row_i, zone_col_i) {
             let post_url = format!(
                 "{}&zone_row_i={}&zone_col_i={}&quick_action=1",
                 post_base_url, zone_row_i, zone_col_i

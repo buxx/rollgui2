@@ -21,7 +21,7 @@ impl Client {
         match http_error {
             quad_net::http_request::HttpError::IOError => Ok(http_error.to_string()),
             quad_net::http_request::HttpError::UreqError(ureq_error) => match ureq_error {
-                ureq::Error::Status(http_code, response) => {
+                ureq::Error::Status(_http_code, response) => {
                     let response_body = response.into_string().unwrap_or("".to_string());
                     let response_object = serde_json::from_str::<serde_json::Value>(&response_body)
                         .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
@@ -239,7 +239,7 @@ impl Client {
 
         let mut request = RequestBuilder::new(&url).method(Method::Post);
 
-        if let Some(data_) = &data {
+        if let Some(_data_) = &data {
             request = request
                 .body(&serde_json::json!(data).to_string())
                 .header("Content-Type", "application/json");
@@ -266,7 +266,7 @@ impl Client {
             .method(Method::Post)
             .header("Authorization", &self.basic_auth_value());
 
-        if let Some(data_) = &data {
+        if let Some(_data_) = &data {
             request = request
                 .body(&serde_json::json!(data).to_string())
                 .header("Content-Type", "application/json");

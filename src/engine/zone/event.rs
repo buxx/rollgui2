@@ -6,10 +6,10 @@ impl super::ZoneEngine {
     pub fn event(&mut self, event: crate::event::ZoneEvent) {
         match event.event_type {
             event::ZoneEventType::ThereIsAround {
-                stuff_count,
-                resource_count,
-                build_count,
-                character_count,
+                stuff_count: _,
+                resource_count: _,
+                build_count: _,
+                character_count: _,
                 quick_actions,
             } => {
                 // debug!("New quick actions ({:?})", quick_actions);
@@ -23,7 +23,7 @@ impl super::ZoneEngine {
                 build,
                 produced_resource_id,
                 produced_stuff_id,
-                producer_character_id,
+                producer_character_id: _,
             } => {
                 let mut tile_id: Option<String> = None;
                 if let Some(produced_stuff_id) = produced_stuff_id {

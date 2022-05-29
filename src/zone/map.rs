@@ -58,10 +58,6 @@ impl ZoneMap {
     }
 
     pub fn tile_id(&self, row_i: usize, col_i: usize) -> Option<String> {
-        if row_i < 0 || col_i < 0 {
-            return None;
-        }
-
         if let Some(row) = self.tiles.get(row_i) {
             if col_i >= row.len() {
                 return None;

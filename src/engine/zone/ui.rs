@@ -19,7 +19,7 @@ impl super::ZoneEngine {
                 let draw_to_y = DESCRIPTION_WINDOW_MARGIN;
                 let mut ui_message = None;
 
-                let response = egui::Window::new(&description.title())
+                let _response = egui::Window::new(&description.title())
                     .resizable(false)
                     .default_pos((draw_to_x, draw_to_y))
                     .fixed_size((

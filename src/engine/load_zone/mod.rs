@@ -73,7 +73,7 @@ impl LoadZoneEngine {
                         let character: entity::character::Character =
                             match serde_json::from_str(&character_json_str) {
                                 Ok(character) => character,
-                                Err(error) => {
+                                Err(_error) => {
                                     // In case of error, maybe the character is dead
 
                                     return vec![message::MainMessage::SetEngine(Box::new(
