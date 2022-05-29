@@ -2,7 +2,17 @@ use crate::{engine::zone::state, graphics};
 
 use macroquad::prelude::*;
 
-pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i16) {
+fn in_area(row_i: i32, col_i: i32, draw_area: &((i32, i32), (i32, i32))) -> bool {
+    let ((row_min, col_min), (row_max, col_max)) = draw_area;
+    row_i >= *row_min && row_i <= *row_max && col_i >= *col_min && col_i <= *col_max
+}
+
+pub fn scene(
+    graphics: &graphics::Graphics,
+    state: &state::ZoneState,
+    tick_i: i16,
+    draw_area: ((i32, i32), (i32, i32)),
+) {
     let map = &state.map;
     let tiles = &state.map.tiles;
     let player_display = &state.player_display;
@@ -11,7 +21,10 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
     // Draw zone tiles
     for (row_i, row) in tiles.iter().enumerate() {
         for (col_i, tile_id) in row.iter().enumerate() {
-            if tile_id == "UNKNOWN" || tile_id == "NOTHING" {
+            if tile_id == "UNKNOWN"
+                || tile_id == "NOTHING"
+                || !in_area(row_i as i32, col_i as i32, &draw_area)
+            {
                 continue;
             }
 
@@ -38,6 +51,10 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
     for (_, build) in &state.builds {
         let dest_x = build.col_i as f32 * graphics.tile_width;
         let dest_y = build.row_i as f32 * graphics.tile_height;
+
+        if !in_area(build.row_i, build.col_i, &draw_area) {
+            continue;
+        }
 
         // TODO : optimize by compute each stuff_id / tile_id a zone creation
         let tile_id = graphics.find_tile_id_from_classes(&build.classes);
@@ -72,6 +89,10 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
     // Draw resource tiles
     for resources in state.resources.values() {
         for resource in resources {
+            if !in_area(resource.zone_row_i, resource.zone_col_i, &draw_area) {
+                continue;
+            }
+
             let dest_x = resource.zone_col_i as f32 * graphics.tile_width;
             let dest_y = resource.zone_row_i as f32 * graphics.tile_height;
 
@@ -92,6 +113,10 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
     // TODO : draw only visible tiles
     // Draw stuff tiles
     for (_, stuff) in &state.stuffs {
+        if !in_area(stuff.zone_row_i, stuff.zone_col_i, &draw_area) {
+            continue;
+        }
+
         let dest_x = stuff.zone_col_i as f32 * graphics.tile_width;
         let dest_y = stuff.zone_row_i as f32 * graphics.tile_height;
 
@@ -117,6 +142,10 @@ pub fn scene(graphics: &graphics::Graphics, state: &state::ZoneState, tick_i: i1
     }
 
     for character in state.characters.values() {
+        if !in_area(character.zone_row_i, character.zone_col_i, &draw_area) {
+            continue;
+        }
+
         let dest_x = character.zone_col_i as f32 * graphics.tile_width;
         let dest_y = character.zone_row_i as f32 * graphics.tile_height;
 

@@ -496,27 +496,35 @@ impl ZoneEngine {
         }
     }
 
-    fn camera(&mut self) {
-        let zoom_multiplier = match self.zoom_mode {
-            ZoomMode::Large => 1.,
-            ZoomMode::Normal => 2.,
-            ZoomMode::Double => {
-                if self.is_mobile {
-                    8.0
-                } else {
-                    4.0
-                }
-            }
-        };
-
-        let zoom_x = (self.state.map.concrete_width / screen_width()) * zoom_multiplier;
-        let zoom_y = (self.state.map.concrete_height / screen_height()) * zoom_multiplier;
+    fn camera(&mut self) -> ((i32, i32), (i32, i32)) {
+        let screen_width = screen_width();
+        let screen_height = screen_height();
+        let zoom_multiplier = self.zoom_mode.factor(self.is_mobile);
+        let zoom_x = (self.state.map.concrete_width / screen_width) * zoom_multiplier;
+        let zoom_y = (self.state.map.concrete_height / screen_height) * zoom_multiplier;
         let zoom = Vec2::new(zoom_x, zoom_y);
 
         let target_x = self.state.player_display.position.x / self.state.map.concrete_width;
         // Invert Y axis because the camera is Y inverted
         let target_y = -(self.state.player_display.position.y / self.state.map.concrete_height);
         let target = Vec2::new(target_x, target_y);
+
+        let tiles_in_width = (screen_width / self.graphics.tile_width) as i32;
+        let tiles_in_height = (screen_height / self.graphics.tile_height) as i32;
+        let player_col_i = (self.state.player_display.position.x / self.graphics.tile_width) as i32;
+        let player_row_i =
+            (self.state.player_display.position.y / self.graphics.tile_height) as i32;
+        let start_area_col_i = player_col_i - tiles_in_width / 2;
+        let start_area_row_i = player_row_i - tiles_in_height / 2;
+        let displayed_area = (
+            (start_area_row_i, start_area_col_i),
+            (
+                start_area_row_i + tiles_in_height + 1,
+                start_area_col_i + tiles_in_width + 1,
+            ),
+        );
+
+        // debug!("{}", target);
 
         set_camera(&Camera2D {
             zoom: zoom,
@@ -534,10 +542,12 @@ impl ZoneEngine {
         let zone_row_i = (concrete_mouse_y / self.graphics.tile_height) as usize;
         let zone_col_i = (concrete_mouse_x / self.graphics.tile_width) as usize;
         self.mouse_zone_coordinates = (zone_row_i + 1, zone_col_i);
+
+        displayed_area
     }
 
-    pub fn scene(&self) {
-        scene::scene(&self.graphics, &self.state, self.tick_i);
+    pub fn scene(&self, draw_area: ((i32, i32), (i32, i32))) {
+        scene::scene(&self.graphics, &self.state, self.tick_i, draw_area);
     }
 
     fn draw_zone_ux(&mut self) {
@@ -626,10 +636,10 @@ impl Engine for ZoneEngine {
         self.proceed_description_requests();
         self.proceed_inventory_requests();
         messages.extend(self.recv_events());
-        self.camera();
+        let draw_area = self.camera();
 
         // Game
-        self.scene();
+        self.scene(draw_area);
         self.animations();
         self.draw_zone_ux();
         let action_clicked = self.draw_current_action();
@@ -672,6 +682,22 @@ pub enum ZoomMode {
     Normal,
     Double,
     Large,
+}
+
+impl ZoomMode {
+    pub fn factor(&self, is_mobile: bool) -> f32 {
+        match self {
+            ZoomMode::Large => 1.,
+            ZoomMode::Normal => 2.,
+            ZoomMode::Double => {
+                if is_mobile {
+                    6.
+                } else {
+                    4.
+                }
+            }
+        }
+    }
 }
 
 pub enum UserEvent {
