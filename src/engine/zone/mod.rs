@@ -524,8 +524,6 @@ impl ZoneEngine {
             ),
         );
 
-        // debug!("{}", target);
-
         set_camera(&Camera2D {
             zoom: zoom,
             target: target,

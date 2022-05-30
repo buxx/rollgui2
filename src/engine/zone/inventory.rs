@@ -5,7 +5,7 @@ use crate::{entity, util};
 
 use super::gui;
 
-const INVENTORY_BOX_MARGIN: f32 = 175.;
+const INVENTORY_BOX_MARGIN: f32 = 50.;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Inventory {
@@ -18,23 +18,33 @@ pub struct Inventory {
 }
 
 pub struct InventoryState {
+    pub active_stuff_i: Option<usize>,
     pub dragging_stuff_i: Option<usize>,
+    pub active_resource_i: Option<usize>,
     pub dragging_resource_i: Option<usize>,
     pub help_text: Option<String>,
     pub drop_request: Option<quad_net::http_request::Request>,
     pub hide: bool,
     pub must_hover_before_hide: bool,
+    pub scroll_value: f32,
+    pub last_scroll_value: f32,
+    pub begin_click_in_inventory: Option<bool>,
 }
 
 impl Default for InventoryState {
     fn default() -> Self {
         Self {
+            active_stuff_i: None,
             dragging_stuff_i: None,
+            active_resource_i: None,
             dragging_resource_i: None,
             help_text: None,
             drop_request: None,
             hide: false,
             must_hover_before_hide: false,
+            scroll_value: 0.0,
+            last_scroll_value: 0.0,
+            begin_click_in_inventory: None,
         }
     }
 }
@@ -151,138 +161,139 @@ impl super::ZoneEngine {
                 let columns = (box_width
                     / (gui::inventory::BUTTON_WIDTH + gui::inventory::BUTTON_MARGIN))
                     as usize;
-                let max_rows = ((box_height / 2.)
-                    / (gui::inventory::BUTTON_HEIGHT + gui::inventory::BUTTON_MARGIN))
-                    as usize;
+                // let max_rows = ((box_height / 2.)
+                //     / (gui::inventory::BUTTON_HEIGHT + gui::inventory::BUTTON_MARGIN))
+                //     as usize;
 
-                if max_rows < 1 {
-                    self.helper_text = Some("Écran trop petit pout inventaire !".to_string());
-                }
+                // if max_rows < 1 {
+                //     self.helper_text = Some("Écran trop petit pout inventaire !".to_string());
+                // }
 
-                if max_rows > 0 {
-                    let start_draw_stuff_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
-                    let start_draw_stuff_y = box_dest_y + (gui::inventory::BUTTON_MARGIN / 2.);
-                    let mut last_draw_y = box_dest_y;
-                    for (i, stuff) in inventory.stuff.iter().enumerate() {
-                        let row_i = i / columns;
-                        let col_i = i % columns;
-                        let stuff_dest_x = start_draw_stuff_x
-                            + ((gui::inventory::BUTTON_WIDTH as f32
-                                + gui::inventory::BUTTON_MARGIN)
-                                * col_i as f32);
-                        let stuff_dest_y = start_draw_stuff_y
-                            + ((gui::inventory::BUTTON_HEIGHT as f32
-                                + gui::inventory::BUTTON_MARGIN)
-                                * row_i as f32);
-                        last_draw_y = stuff_dest_y;
+                // if max_rows > 0 {
+                let start_draw_stuff_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
+                let start_draw_stuff_y = box_dest_y
+                    + (gui::inventory::BUTTON_MARGIN / 2.)
+                    + inventory_state.scroll_value.min(0.);
+                let mut last_draw_y = box_dest_y;
+                for (i, stuff) in inventory.stuff.iter().enumerate() {
+                    let row_i = i / columns;
+                    let col_i = i % columns;
+                    let stuff_dest_x = start_draw_stuff_x
+                        + ((gui::inventory::BUTTON_WIDTH as f32 + gui::inventory::BUTTON_MARGIN)
+                            * col_i as f32);
+                    let stuff_dest_y = start_draw_stuff_y
+                        + ((gui::inventory::BUTTON_HEIGHT as f32 + gui::inventory::BUTTON_MARGIN)
+                            * row_i as f32);
+                    last_draw_y = stuff_dest_y;
 
-                        let drawing_last_available_row = row_i == max_rows - 1;
-                        let drawing_last_column = col_i == columns - 1;
-                        let drawing_last_stuff = i == inventory.stuff.len() - 1;
+                    // let drawing_last_available_row = row_i == max_rows - 1;
+                    let drawing_last_column = col_i == columns - 1;
+                    let drawing_last_stuff = i == inventory.stuff.len() - 1;
 
-                        let stuff_quantity = if stuff.count > 1 {
-                            Some(stuff.count.to_string())
+                    let stuff_quantity = if stuff.count > 1 {
+                        Some(stuff.count.to_string())
+                    } else {
+                        None
+                    };
+
+                    // // If all available rows done and there is more than this stuff, don't draw this stuff
+                    // if drawing_last_available_row && drawing_last_column && !drawing_last_stuff {
+                    //     gui::inventory::draw_more(&self.graphics, stuff_dest_x, stuff_dest_y);
+                    //     break;
+                    // } else {
+                    let (stuff_dest_x, stuff_dest_y) =
+                        if let Some(dragged_stuff_i) = inventory_state.dragging_stuff_i {
+                            if dragged_stuff_i == i {
+                                let mouse_position = mouse_position();
+                                (mouse_position.0, mouse_position.1)
+                            } else {
+                                (stuff_dest_x, stuff_dest_y)
+                            }
                         } else {
-                            None
+                            (stuff_dest_x, stuff_dest_y)
                         };
 
-                        // If all available rows done and there is more than this stuff, don't draw this stuff
-                        if drawing_last_available_row && drawing_last_column && !drawing_last_stuff
-                        {
-                            gui::inventory::draw_more(&self.graphics, stuff_dest_x, stuff_dest_y);
-                            break;
-                        } else {
-                            let (stuff_dest_x, stuff_dest_y) =
-                                if let Some(dragged_stuff_i) = inventory_state.dragging_stuff_i {
-                                    if dragged_stuff_i == i {
-                                        let mouse_position = mouse_position();
-                                        (mouse_position.0, mouse_position.1)
-                                    } else {
-                                        (stuff_dest_x, stuff_dest_y)
-                                    }
-                                } else {
-                                    (stuff_dest_x, stuff_dest_y)
-                                };
-
-                            let tile_id = self.graphics.find_tile_id_from_classes(&stuff.classes);
-                            if gui::inventory::draw_item(
-                                &self.graphics,
-                                &tile_id,
-                                stuff_dest_x,
-                                stuff_dest_y,
-                                stuff_quantity,
-                                stuff.is_cumbersome || stuff.is_heavy,
-                                stuff.is_equip,
-                            ) {
-                                mouse_is_hover_stuff = Some(i);
-                                inventory_state.help_text = Some(stuff.infos.clone());
-                            }
-                        }
+                    let tile_id = self.graphics.find_tile_id_from_classes(&stuff.classes);
+                    let force_border = if let Some(active_stuff_i) = inventory_state.active_stuff_i
+                    {
+                        active_stuff_i == i
+                    } else {
+                        false
+                    };
+                    if gui::inventory::draw_item(
+                        &self.graphics,
+                        &tile_id,
+                        stuff_dest_x,
+                        stuff_dest_y,
+                        stuff_quantity,
+                        stuff.is_cumbersome || stuff.is_heavy,
+                        stuff.is_equip,
+                        force_border,
+                    ) {
+                        mouse_is_hover_stuff = Some(i);
+                        inventory_state.help_text = Some(stuff.infos.clone());
                     }
-
-                    let start_draw_resource_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
-                    let start_draw_resource_y = last_draw_y
-                        + gui::inventory::BUTTON_HEIGHT as f32
-                        + gui::inventory::BUTTON_MARGIN;
-                    for (i, resource) in inventory.resource.iter().enumerate() {
-                        let row_i = i / columns;
-                        let col_i = i % columns;
-                        let resource_dest_x = start_draw_resource_x
-                            + ((gui::inventory::BUTTON_WIDTH as f32
-                                + gui::inventory::BUTTON_MARGIN)
-                                * col_i as f32);
-                        let resource_dest_y = start_draw_resource_y
-                            + ((gui::inventory::BUTTON_HEIGHT as f32
-                                + gui::inventory::BUTTON_MARGIN)
-                                * row_i as f32);
-
-                        let drawing_last_available_row = row_i == max_rows - 1;
-                        let drawing_last_column = col_i == columns - 1;
-                        let drawing_last_resource = i == inventory.resource.len() - 1;
-
-                        // If all available rows done and there is more than this resource, don't draw this resource
-                        if drawing_last_available_row
-                            && drawing_last_column
-                            && !drawing_last_resource
-                        {
-                            gui::inventory::draw_more(
-                                &self.graphics,
-                                resource_dest_x,
-                                resource_dest_y,
-                            );
-                            break;
-                        } else {
-                            let (resource_dest_x, resource_dest_y) =
-                                if let Some(dragged_resource_i) =
-                                    inventory_state.dragging_resource_i
-                                {
-                                    if dragged_resource_i == i {
-                                        let mouse_position = mouse_position();
-                                        (mouse_position.0, mouse_position.1)
-                                    } else {
-                                        (resource_dest_x, resource_dest_y)
-                                    }
-                                } else {
-                                    (resource_dest_x, resource_dest_y)
-                                };
-
-                            let tile_id =
-                                self.graphics.find_tile_id_from_classes(&resource.classes);
-                            if gui::inventory::draw_item(
-                                &self.graphics,
-                                &tile_id,
-                                resource_dest_x,
-                                resource_dest_y,
-                                None,
-                                resource.is_cumbersome || resource.is_heavy,
-                                false,
-                            ) {
-                                mouse_is_hover_resource = Some(i);
-                                inventory_state.help_text = Some(resource.infos.clone());
-                            }
-                        }
-                    }
+                    // }
                 }
+
+                let start_draw_resource_x = box_dest_x + (gui::inventory::BUTTON_MARGIN / 2.);
+                let start_draw_resource_y = last_draw_y
+                    + gui::inventory::BUTTON_HEIGHT as f32
+                    + gui::inventory::BUTTON_MARGIN;
+                for (i, resource) in inventory.resource.iter().enumerate() {
+                    let row_i = i / columns;
+                    let col_i = i % columns;
+                    let resource_dest_x = start_draw_resource_x
+                        + ((gui::inventory::BUTTON_WIDTH as f32 + gui::inventory::BUTTON_MARGIN)
+                            * col_i as f32);
+                    let resource_dest_y = start_draw_resource_y
+                        + ((gui::inventory::BUTTON_HEIGHT as f32 + gui::inventory::BUTTON_MARGIN)
+                            * row_i as f32);
+
+                    // let drawing_last_available_row = row_i == max_rows - 1;
+                    let drawing_last_column = col_i == columns - 1;
+                    let drawing_last_resource = i == inventory.resource.len() - 1;
+
+                    // // If all available rows done and there is more than this resource, don't draw this resource
+                    // if drawing_last_available_row && drawing_last_column && !drawing_last_resource {
+                    //     gui::inventory::draw_more(&self.graphics, resource_dest_x, resource_dest_y);
+                    //     break;
+                    // } else {
+                    let (resource_dest_x, resource_dest_y) =
+                        if let Some(dragged_resource_i) = inventory_state.dragging_resource_i {
+                            if dragged_resource_i == i {
+                                let mouse_position = mouse_position();
+                                (mouse_position.0, mouse_position.1)
+                            } else {
+                                (resource_dest_x, resource_dest_y)
+                            }
+                        } else {
+                            (resource_dest_x, resource_dest_y)
+                        };
+
+                    let tile_id = self.graphics.find_tile_id_from_classes(&resource.classes);
+                    let force_border =
+                        if let Some(active_resource_i) = inventory_state.active_resource_i {
+                            active_resource_i == i
+                        } else {
+                            false
+                        };
+                    if gui::inventory::draw_item(
+                        &self.graphics,
+                        &tile_id,
+                        resource_dest_x,
+                        resource_dest_y,
+                        None,
+                        resource.is_cumbersome || resource.is_heavy,
+                        false,
+                        force_border,
+                    ) {
+                        mouse_is_hover_resource = Some(i);
+                        inventory_state.help_text = Some(resource.infos.clone());
+                    }
+                    // }
+                }
+                // }
 
                 if let Some(help_text) = &inventory_state.help_text {
                     draw_text(
@@ -337,6 +348,7 @@ impl super::ZoneEngine {
                     )
                 }
 
+                // When inventory is hide, it means prepare to drop, so highlight the tile under the cursor
                 self.highlight_tiles
                     .push((self.mouse_zone_coordinates.0, self.mouse_zone_coordinates.1));
             }
@@ -346,24 +358,66 @@ impl super::ZoneEngine {
                     && inventory_state.dragging_stuff_i.is_none()
                 {
                     if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
-                        let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
-                            .ids
-                            .first()
-                            .unwrap()
-                            .clone();
-                        let request = self
-                            .client
-                            .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
-                        self.description_request = Some(request);
-                        self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                        if let Some(active_stuff_i) = inventory_state.active_stuff_i {
+                            if active_stuff_i == mouse_is_hover_stuff {
+                                let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
+                                    .ids
+                                    .first()
+                                    .unwrap()
+                                    .clone();
+                                let request = self
+                                    .client
+                                    .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
+                                self.description_request = Some(request);
+                                self.current_left_panel_button =
+                                    Some(gui::panel::Button::Inventory);
+                            } else {
+                                println!(
+                                    "Select inventory stuff at position '{}'",
+                                    mouse_is_hover_stuff
+                                );
+                                inventory_state.active_resource_i = None;
+                                inventory_state.active_stuff_i = Some(mouse_is_hover_stuff)
+                            }
+                        } else {
+                            println!(
+                                "Select inventory stuff at position '{}'",
+                                mouse_is_hover_stuff
+                            );
+                            inventory_state.active_resource_i = None;
+                            inventory_state.active_stuff_i = Some(mouse_is_hover_stuff)
+                        }
                     } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
-                        let resource_id: String =
-                            inventory.resource[mouse_is_hover_resource].id.clone();
-                        let request = self
-                            .client
-                            .get_look_at_inventory_resource(&self.state.player.id, &resource_id);
-                        self.description_request = Some(request);
-                        self.current_left_panel_button = Some(gui::panel::Button::Inventory);
+                        if let Some(active_resource_i) = inventory_state.active_resource_i {
+                            if active_resource_i == mouse_is_hover_resource {
+                                let resource_id: String =
+                                    inventory.resource[mouse_is_hover_resource].id.clone();
+                                let request = self.client.get_look_at_inventory_resource(
+                                    &self.state.player.id,
+                                    &resource_id,
+                                );
+                                self.description_request = Some(request);
+                                self.current_left_panel_button =
+                                    Some(gui::panel::Button::Inventory);
+                            } else {
+                                println!(
+                                    "Select inventory resource at position '{}'",
+                                    mouse_is_hover_resource
+                                );
+                                inventory_state.active_stuff_i = None;
+                                inventory_state.active_resource_i = Some(mouse_is_hover_resource)
+                            }
+                        } else {
+                            println!(
+                                "Select inventory resource at position '{}'",
+                                mouse_is_hover_resource
+                            );
+                            inventory_state.active_stuff_i = None;
+                            inventory_state.active_resource_i = Some(mouse_is_hover_resource)
+                        }
+                    } else {
+                        inventory_state.active_resource_i = None;
+                        inventory_state.active_stuff_i = None;
                     }
                 }
 
@@ -381,7 +435,7 @@ impl super::ZoneEngine {
                             let resource = &inventory.resource[dragged_resource_i];
                             resource.drop_base_url.clone()
                         } else {
-                            panic!("Should ne here")
+                            panic!("Should not be here")
                         };
                         self.pending_events
                             .push(super::UserEvent::InventoryItemDropped(
@@ -390,12 +444,21 @@ impl super::ZoneEngine {
                                 post_base_url,
                             ));
                     }
-                    self.inventory = None;
+
+                    // Close inventory only if whole click was outside
+                    if !inventory_state.begin_click_in_inventory.unwrap_or(false) {
+                        self.inventory = None;
+                    }
                 }
 
                 inventory_state.dragging_stuff_i = None;
                 inventory_state.dragging_resource_i = None;
+                inventory_state.begin_click_in_inventory = None;
+                inventory_state.last_scroll_value = inventory_state.scroll_value;
             } else if util::mouse_pressed() {
+                if inventory_state.begin_click_in_inventory.is_none() {
+                    inventory_state.begin_click_in_inventory = Some(mouse_is_hover_box);
+                }
                 if inventory_state.dragging_stuff_i.is_none()
                     && inventory_state.dragging_resource_i.is_none()
                 {
@@ -407,10 +470,41 @@ impl super::ZoneEngine {
                             || change_vector.x < -3.
                             || change_vector.y < -3.
                         {
-                            if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
-                                inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
+                            // Move from stuff icon
+                            let dragging_resource_or_stuff = if let Some(mouse_is_hover_stuff) =
+                                mouse_is_hover_stuff
+                            {
+                                if let Some(active_stuff_i) = inventory_state.active_stuff_i {
+                                    if active_stuff_i == mouse_is_hover_stuff {
+                                        inventory_state.dragging_stuff_i =
+                                            Some(mouse_is_hover_stuff);
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                } else {
+                                    false
+                                }
+                            // Move from resource icon
                             } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
-                                inventory_state.dragging_resource_i = Some(mouse_is_hover_resource);
+                                if let Some(active_resource_i) = inventory_state.active_resource_i {
+                                    if active_resource_i == mouse_is_hover_resource {
+                                        inventory_state.dragging_resource_i =
+                                            Some(mouse_is_hover_resource);
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                } else {
+                                    false
+                                }
+                            } else {
+                                false
+                            };
+
+                            if !dragging_resource_or_stuff {
+                                inventory_state.scroll_value =
+                                    change_vector.y + inventory_state.last_scroll_value;
                             }
                         }
                     }
