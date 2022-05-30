@@ -1102,6 +1102,7 @@ dependencies = [
 name = "rollgui2"
 version = "0.1.0"
 dependencies = [
+ "ahash 0.7.6",
  "base64",
  "egui",
  "egui-macroquad",

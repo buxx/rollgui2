@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 pub mod loader;
 pub mod source;
 
 pub type TileId = String;
-pub type TileMapping = HashMap<TileId, source::TileSource>;
+pub type TileMapping = AHashMap<TileId, source::TileSource>;

@@ -1,16 +1,16 @@
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 use crate::{entity, zone};
 use macroquad::prelude::*;
 
 pub struct ZoneState {
     pub map: zone::map::ZoneMap,
-    pub characters: HashMap<String, entity::character::Character>,
+    pub characters: AHashMap<String, entity::character::Character>,
     pub player: entity::character::Character,
     pub player_display: CharacterDisplay,
-    pub stuffs: HashMap<i32, entity::stuff::Stuff>,
-    pub resources: HashMap<(i32, i32), Vec<entity::resource::Resource>>,
-    pub builds: HashMap<(i32, i32), entity::build::Build>,
+    pub stuffs: AHashMap<i32, entity::stuff::Stuff>,
+    pub resources: AHashMap<(i32, i32), Vec<entity::resource::Resource>>,
+    pub builds: AHashMap<(i32, i32), entity::build::Build>,
 }
 
 impl ZoneState {
@@ -23,12 +23,12 @@ impl ZoneState {
         resources: Vec<entity::resource::Resource>,
         builds: Vec<entity::build::Build>,
     ) -> Self {
-        let mut builds_ = HashMap::new();
+        let mut builds_ = AHashMap::new();
         for build in builds {
             builds_.insert((build.row_i, build.col_i), build);
         }
 
-        let mut stuffs_ = HashMap::new();
+        let mut stuffs_ = AHashMap::new();
         for stuff in stuffs {
             stuffs_.insert(stuff.id.clone(), stuff);
         }
@@ -41,14 +41,14 @@ impl ZoneState {
             ..Default::default()
         };
 
-        let mut resources_: HashMap<(i32, i32), Vec<entity::resource::Resource>> = HashMap::new();
+        let mut resources_: AHashMap<(i32, i32), Vec<entity::resource::Resource>> = AHashMap::new();
         for resource in &resources {
             resources_
                 .entry((resource.zone_row_i, resource.zone_col_i))
                 .or_insert(vec![])
                 .push(resource.clone());
         }
-        let characters: HashMap<String, entity::character::Character> = characters
+        let characters: AHashMap<String, entity::character::Character> = characters
             .iter()
             .map(|c| (c.id.clone(), c.clone()))
             .collect();

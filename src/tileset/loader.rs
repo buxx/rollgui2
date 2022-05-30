@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 use crate::config;
 
@@ -9,7 +9,7 @@ pub fn from_list(
     tile_width: f32,
     tile_height: f32,
 ) -> TileMapping {
-    let mut mapping = HashMap::new();
+    let mut mapping = AHashMap::new();
 
     for (id, row_i, col_i, sprites_count) in source {
         let tile_source = TileSource::new(

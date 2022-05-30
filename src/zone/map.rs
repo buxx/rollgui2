@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 use crate::entity;
 
@@ -6,7 +6,7 @@ use super::ZoneMapTiles;
 
 #[derive(Clone)]
 pub struct ZoneMap {
-    pub tiles_definitions: HashMap<String, entity::tile::Tile>,
+    pub tiles_definitions: AHashMap<String, entity::tile::Tile>,
     pub tiles: ZoneMapTiles,
     pub background_tile_id: String,
     pub width: usize,
@@ -33,7 +33,7 @@ impl ZoneMap {
         let map_height_count = tiles.len() as f32;
         let concrete_width = map_width_count * tiles_width;
         let concrete_height = map_height_count * tiles_height;
-        let tiles_definitions: HashMap<String, entity::tile::Tile> = tiles_definitions
+        let tiles_definitions: AHashMap<String, entity::tile::Tile> = tiles_definitions
             .into_iter()
             .map(|tile| (tile.id.clone(), tile))
             .collect();
