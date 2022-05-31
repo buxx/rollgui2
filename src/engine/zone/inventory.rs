@@ -11,15 +11,11 @@ fn was_scroll(last_begin_click_coordinates: Option<Vec2>) -> bool {
     if let Some(last_position) = last_begin_click_coordinates {
         let mouse_position = Vec2::from(mouse_position());
         let change_vector = mouse_position - last_position;
-        if change_vector.x > 3.
-            || change_vector.y > 3.
-            || change_vector.x < -3.
-            || change_vector.y < -3.
-        {
+
+        if change_vector.length() > 0. {
             return true;
         }
     }
-
     false
 }
 
@@ -39,9 +35,7 @@ pub struct Inventory {
 }
 
 pub struct InventoryState {
-    pub active_stuff_i: Option<usize>,
     pub dragging_stuff_i: Option<usize>,
-    pub active_resource_i: Option<usize>,
     pub dragging_resource_i: Option<usize>,
     pub help_text: Option<String>,
     pub drop_request: Option<quad_net::http_request::Request>,
@@ -55,9 +49,7 @@ pub struct InventoryState {
 impl Default for InventoryState {
     fn default() -> Self {
         Self {
-            active_stuff_i: None,
             dragging_stuff_i: None,
-            active_resource_i: None,
             dragging_resource_i: None,
             help_text: None,
             drop_request: None,
@@ -235,12 +227,6 @@ impl super::ZoneEngine {
                         };
 
                     let tile_id = self.graphics.find_tile_id_from_classes(&stuff.classes);
-                    let force_border = if let Some(active_stuff_i) = inventory_state.active_stuff_i
-                    {
-                        active_stuff_i == i
-                    } else {
-                        false
-                    };
                     if gui::inventory::draw_item(
                         &self.graphics,
                         &tile_id,
@@ -249,7 +235,6 @@ impl super::ZoneEngine {
                         stuff_quantity,
                         stuff.is_cumbersome || stuff.is_heavy,
                         stuff.is_equip,
-                        force_border,
                     ) {
                         mouse_is_hover_stuff = Some(i);
                         inventory_state.help_text = Some(stuff.infos.clone());
@@ -293,12 +278,6 @@ impl super::ZoneEngine {
                         };
 
                     let tile_id = self.graphics.find_tile_id_from_classes(&resource.classes);
-                    let force_border =
-                        if let Some(active_resource_i) = inventory_state.active_resource_i {
-                            active_resource_i == i
-                        } else {
-                            false
-                        };
                     if gui::inventory::draw_item(
                         &self.graphics,
                         &tile_id,
@@ -307,7 +286,6 @@ impl super::ZoneEngine {
                         None,
                         resource.is_cumbersome || resource.is_heavy,
                         false,
-                        force_border,
                     ) {
                         mouse_is_hover_resource = Some(i);
                         inventory_state.help_text = Some(resource.infos.clone());
@@ -375,70 +353,30 @@ impl super::ZoneEngine {
             }
 
             if util::mouse_clicked() {
+                // Are we dragging an stuff or resource ?
                 if inventory_state.dragging_resource_i.is_none()
                     && inventory_state.dragging_stuff_i.is_none()
+                // FIXME BS NOW ?
                 {
                     if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
-                        if let Some(active_stuff_i) = inventory_state.active_stuff_i {
-                            if active_stuff_i == mouse_is_hover_stuff {
-                                let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
-                                    .ids
-                                    .first()
-                                    .unwrap()
-                                    .clone();
-                                let request = self
-                                    .client
-                                    .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
-                                self.description_request = Some(request);
-                                self.current_left_panel_button =
-                                    Some(gui::panel::Button::Inventory);
-                            } else {
-                                println!(
-                                    "Select inventory stuff at position '{}'",
-                                    mouse_is_hover_stuff
-                                );
-                                inventory_state.active_resource_i = None;
-                                inventory_state.active_stuff_i = Some(mouse_is_hover_stuff)
-                            }
-                        } else {
-                            println!(
-                                "Select inventory stuff at position '{}'",
-                                mouse_is_hover_stuff
-                            );
-                            inventory_state.active_resource_i = None;
-                            inventory_state.active_stuff_i = Some(mouse_is_hover_stuff)
-                        }
+                        let stuff_id: i32 = inventory.stuff[mouse_is_hover_stuff]
+                            .ids
+                            .first()
+                            .unwrap()
+                            .clone();
+                        let request = self
+                            .client
+                            .get_look_at_inventory_stuff(&self.state.player.id, stuff_id);
+                        self.description_request = Some(request);
+                        self.current_left_panel_button = Some(gui::panel::Button::Inventory);
                     } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
-                        if let Some(active_resource_i) = inventory_state.active_resource_i {
-                            if active_resource_i == mouse_is_hover_resource {
-                                let resource_id: String =
-                                    inventory.resource[mouse_is_hover_resource].id.clone();
-                                let request = self.client.get_look_at_inventory_resource(
-                                    &self.state.player.id,
-                                    &resource_id,
-                                );
-                                self.description_request = Some(request);
-                                self.current_left_panel_button =
-                                    Some(gui::panel::Button::Inventory);
-                            } else {
-                                println!(
-                                    "Select inventory resource at position '{}'",
-                                    mouse_is_hover_resource
-                                );
-                                inventory_state.active_stuff_i = None;
-                                inventory_state.active_resource_i = Some(mouse_is_hover_resource)
-                            }
-                        } else {
-                            println!(
-                                "Select inventory resource at position '{}'",
-                                mouse_is_hover_resource
-                            );
-                            inventory_state.active_stuff_i = None;
-                            inventory_state.active_resource_i = Some(mouse_is_hover_resource)
-                        }
-                    } else {
-                        inventory_state.active_resource_i = None;
-                        inventory_state.active_stuff_i = None;
+                        let resource_id: String =
+                            inventory.resource[mouse_is_hover_resource].id.clone();
+                        let request = self
+                            .client
+                            .get_look_at_inventory_resource(&self.state.player.id, &resource_id);
+                        self.description_request = Some(request);
+                        self.current_left_panel_button = Some(gui::panel::Button::Inventory);
                     }
                 }
 
@@ -486,29 +424,17 @@ impl super::ZoneEngine {
                     if was_scroll(self.last_begin_click_coordinates) {
                         let change_vector =
                             scroll_value(self.last_begin_click_coordinates.unwrap());
-                        // Move from stuff icon
+
                         let dragging_resource_or_stuff =
-                            if let (Some(mouse_is_hover_stuff), Some(active_stuff_i)) =
-                                (mouse_is_hover_stuff, inventory_state.active_stuff_i)
-                            {
-                                if active_stuff_i == mouse_is_hover_stuff {
-                                    inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
-                                    true
-                                } else {
-                                    false
-                                }
+                            // Move from stuff icon
+                            if let Some(mouse_is_hover_stuff) = mouse_is_hover_stuff {
+                                inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
+                                true
 
                             // Move from resource icon
-                            } else if let (Some(mouse_is_hover_resource), Some(active_resource_i)) =
-                                (mouse_is_hover_resource, inventory_state.active_resource_i)
-                            {
-                                if active_resource_i == mouse_is_hover_resource {
-                                    inventory_state.dragging_resource_i =
-                                        Some(mouse_is_hover_resource);
-                                    true
-                                } else {
-                                    false
-                                }
+                            } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
+                                inventory_state.dragging_resource_i = Some(mouse_is_hover_resource);
+                                true
                             } else {
                                 false
                             };
@@ -516,6 +442,7 @@ impl super::ZoneEngine {
                         if !dragging_resource_or_stuff {
                             inventory_state.scroll_value =
                                 change_vector.y + inventory_state.last_scroll_value;
+                            inventory_state.scroll_value = inventory_state.scroll_value.min(0.);
                         }
                     }
                 } else {

@@ -60,7 +60,6 @@ pub fn draw_item(
     quantity: Option<String>,
     draw_heavy_icon: bool,
     draw_is_equip: bool,
-    force_border: bool,
 ) -> bool {
     // Background
     draw_texture_ex(
@@ -145,7 +144,7 @@ pub fn draw_item(
         && mouse_y > dest_y
         && mouse_y < dest_y + BUTTON_HEIGHT as f32;
 
-    if mouse_hover || force_border {
+    if mouse_hover {
         draw_rectangle_lines(dest_x, dest_y, BUTTON_WIDTH, BUTTON_HEIGHT, 4.0, BLUE)
     }
 
