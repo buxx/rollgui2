@@ -7,6 +7,27 @@ use super::gui;
 
 const INVENTORY_BOX_MARGIN: f32 = 50.;
 
+fn was_scroll(last_begin_click_coordinates: Option<Vec2>) -> bool {
+    if let Some(last_position) = last_begin_click_coordinates {
+        let mouse_position = Vec2::from(mouse_position());
+        let change_vector = mouse_position - last_position;
+        if change_vector.x > 3.
+            || change_vector.y > 3.
+            || change_vector.x < -3.
+            || change_vector.y < -3.
+        {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn scroll_value(last_begin_click_coordinates: Vec2) -> Vec2 {
+    let mouse_position = Vec2::from(mouse_position());
+    mouse_position - last_begin_click_coordinates
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Inventory {
     stuff: Vec<entity::stuff::StuffApi>,
@@ -445,8 +466,8 @@ impl super::ZoneEngine {
                             ));
                     }
 
-                    // Close inventory only if whole click was outside
-                    if !inventory_state.begin_click_in_inventory.unwrap_or(false) {
+                    // Close inventory only if not scrolling
+                    if !was_scroll(self.last_begin_click_coordinates_this_frame) {
                         self.inventory = None;
                     }
                 }
@@ -462,39 +483,29 @@ impl super::ZoneEngine {
                 if inventory_state.dragging_stuff_i.is_none()
                     && inventory_state.dragging_resource_i.is_none()
                 {
-                    if let Some(last_position) = self.last_begin_click_coordinates {
-                        let mouse_position = Vec2::from(mouse_position());
-                        let change_vector = mouse_position - last_position;
-                        if change_vector.x > 3.
-                            || change_vector.y > 3.
-                            || change_vector.x < -3.
-                            || change_vector.y < -3.
-                        {
-                            // Move from stuff icon
-                            let dragging_resource_or_stuff = if let Some(mouse_is_hover_stuff) =
-                                mouse_is_hover_stuff
+                    if was_scroll(self.last_begin_click_coordinates) {
+                        let change_vector =
+                            scroll_value(self.last_begin_click_coordinates.unwrap());
+                        // Move from stuff icon
+                        let dragging_resource_or_stuff =
+                            if let (Some(mouse_is_hover_stuff), Some(active_stuff_i)) =
+                                (mouse_is_hover_stuff, inventory_state.active_stuff_i)
                             {
-                                if let Some(active_stuff_i) = inventory_state.active_stuff_i {
-                                    if active_stuff_i == mouse_is_hover_stuff {
-                                        inventory_state.dragging_stuff_i =
-                                            Some(mouse_is_hover_stuff);
-                                        true
-                                    } else {
-                                        false
-                                    }
+                                if active_stuff_i == mouse_is_hover_stuff {
+                                    inventory_state.dragging_stuff_i = Some(mouse_is_hover_stuff);
+                                    true
                                 } else {
                                     false
                                 }
+
                             // Move from resource icon
-                            } else if let Some(mouse_is_hover_resource) = mouse_is_hover_resource {
-                                if let Some(active_resource_i) = inventory_state.active_resource_i {
-                                    if active_resource_i == mouse_is_hover_resource {
-                                        inventory_state.dragging_resource_i =
-                                            Some(mouse_is_hover_resource);
-                                        true
-                                    } else {
-                                        false
-                                    }
+                            } else if let (Some(mouse_is_hover_resource), Some(active_resource_i)) =
+                                (mouse_is_hover_resource, inventory_state.active_resource_i)
+                            {
+                                if active_resource_i == mouse_is_hover_resource {
+                                    inventory_state.dragging_resource_i =
+                                        Some(mouse_is_hover_resource);
+                                    true
                                 } else {
                                     false
                                 }
@@ -502,10 +513,9 @@ impl super::ZoneEngine {
                                 false
                             };
 
-                            if !dragging_resource_or_stuff {
-                                inventory_state.scroll_value =
-                                    change_vector.y + inventory_state.last_scroll_value;
-                            }
+                        if !dragging_resource_or_stuff {
+                            inventory_state.scroll_value =
+                                change_vector.y + inventory_state.last_scroll_value;
                         }
                     }
                 } else {

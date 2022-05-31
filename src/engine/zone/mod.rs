@@ -65,6 +65,7 @@ pub struct ZoneEngine {
     pub inventory: Option<inventory::Inventory>,
     pub inventory_state: Option<inventory::InventoryState>,
     pub last_begin_click_coordinates: Option<Vec2>,
+    pub last_begin_click_coordinates_this_frame: Option<Vec2>,
     pub last_begin_click_was_in_egui: Option<bool>,
     pub highlight_tiles: Vec<(usize, usize)>,
     pub is_mobile: bool,
@@ -118,6 +119,7 @@ impl ZoneEngine {
             inventory: None,
             inventory_state: None,
             last_begin_click_coordinates: None,
+            last_begin_click_coordinates_this_frame: None,
             last_begin_click_was_in_egui: None,
             highlight_tiles: vec![],
             is_mobile: ui_base::utils::is_mobile(),
@@ -271,7 +273,11 @@ impl ZoneEngine {
             self.last_begin_click_coordinates = Some(Vec2::from(mouse_position()));
         }
         if base_util::mouse_clicked() {
+            self.last_begin_click_coordinates_this_frame =
+                self.last_begin_click_coordinates.clone();
             self.last_begin_click_coordinates = None;
+        } else {
+            self.last_begin_click_coordinates_this_frame = None;
         }
     }
 
