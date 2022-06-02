@@ -81,7 +81,7 @@ impl UiDescription {
 
     pub fn draw(
         &mut self,
-        egui_ctx: &egui::CtxRef,
+        egui_ctx: &egui::Context,
         ui: &mut egui::Ui,
         state: &mut UiDescriptionState,
     ) -> Option<UiDescriptionEvent> {
