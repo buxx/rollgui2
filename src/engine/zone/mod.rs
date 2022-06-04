@@ -3,7 +3,7 @@ use quad_net::web_socket::WebSocket;
 
 use crate::{
     action as base_action, animation, client, config, description, entity, event as base_event,
-    graphics, message, ui as ui_base, util as base_util,
+    graphics, message, ui::utils::is_mobile, util as base_util,
 };
 
 use super::Engine;
@@ -68,7 +68,6 @@ pub struct ZoneEngine {
     pub last_begin_click_coordinates_this_frame: Option<Vec2>,
     pub last_begin_click_was_in_egui: Option<bool>,
     pub highlight_tiles: Vec<(usize, usize)>,
-    pub is_mobile: bool,
 }
 
 impl ZoneEngine {
@@ -78,7 +77,7 @@ impl ZoneEngine {
         state: state::ZoneState,
     ) -> Result<Self, String> {
         let socket = socket::get_socket(&state)?;
-        let zoom_mode = if ui_base::utils::is_mobile() {
+        let zoom_mode = if is_mobile() {
             ZoomMode::Double
         } else {
             ZoomMode::Normal
@@ -122,7 +121,6 @@ impl ZoneEngine {
             last_begin_click_coordinates_this_frame: None,
             last_begin_click_was_in_egui: None,
             highlight_tiles: vec![],
-            is_mobile: ui_base::utils::is_mobile(),
         })
     }
 
@@ -505,7 +503,7 @@ impl ZoneEngine {
     fn camera(&mut self) -> ((i32, i32), (i32, i32)) {
         let screen_width = screen_width();
         let screen_height = screen_height();
-        let zoom_multiplier = self.zoom_mode.factor(self.is_mobile);
+        let zoom_multiplier = self.zoom_mode.factor();
         let zoom_x = (self.state.map.concrete_width / screen_width) * zoom_multiplier;
         let zoom_y = (self.state.map.concrete_height / screen_height) * zoom_multiplier;
         let zoom = Vec2::new(zoom_x, zoom_y);
@@ -689,12 +687,12 @@ pub enum ZoomMode {
 }
 
 impl ZoomMode {
-    pub fn factor(&self, is_mobile: bool) -> f32 {
+    pub fn factor(&self) -> f32 {
         match self {
             ZoomMode::Large => 1.,
             ZoomMode::Normal => 2.,
             ZoomMode::Double => {
-                if is_mobile {
+                if is_mobile() {
                     6.
                 } else {
                     4.

@@ -1,4 +1,4 @@
-use crate::{client, engine::root::util::auth_failed, message};
+use crate::{client, engine::root::util::auth_failed, message, ui::utils::is_mobile};
 use macroquad::prelude::*;
 use quad_net::http_request::Request;
 
@@ -151,7 +151,7 @@ impl Engine for RootScene {
                         RootTextInput::Login => self.state.login.clone(),
                         RootTextInput::Password => "".to_string(),
                     };
-                    if base_ui::utils::is_mobile() {
+                    if is_mobile() {
                         self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
                             input.to_string(),
                             input.to_string(),

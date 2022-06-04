@@ -10,7 +10,7 @@ opt-level = 3
 # IMPORTANT NOTE : When modifying quad dependencies, think about update the rolling js builder script
 macroquad = "0.3"
 egui = "0.18.1"
-egui-macroquad = "0.11.0"
+egui-macroquad = { path = "../egui-macroquad" }
 structopt = "0.3.21"
 serde = {version="1.0.104", features = ["derive"]}
 serde_derive = "1.0.104"

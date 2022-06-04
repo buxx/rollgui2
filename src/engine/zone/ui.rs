@@ -1,8 +1,8 @@
 use macroquad::prelude::*;
 
-use crate::{description, message, util};
+use crate::{description, message, ui::utils::egui_scale, util};
 
-pub const DESCRIPTION_WINDOW_MARGIN: f32 = 150.;
+pub const DESCRIPTION_WINDOW_MARGIN: f32 = 15.;
 
 impl super::ZoneEngine {
     pub fn ui(&mut self) -> Vec<message::MainMessage> {
@@ -13,14 +13,14 @@ impl super::ZoneEngine {
                 self.current_description.as_mut(),
                 self.current_description_state.as_mut(),
             ) {
-                let screen_width = screen_width();
-                let screen_height = screen_height();
+                let screen_width = screen_width() / egui_scale();
+                let screen_height = screen_height() / egui_scale();
                 let draw_to_x = DESCRIPTION_WINDOW_MARGIN;
                 let draw_to_y = DESCRIPTION_WINDOW_MARGIN;
                 let mut ui_message = None;
 
                 let _response = egui::Window::new(&description.title())
-                    .resizable(false)
+                    .resizable(true)
                     .default_pos((draw_to_x, draw_to_y))
                     .fixed_size((
                         screen_width - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,

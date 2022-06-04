@@ -4,6 +4,7 @@ use macroquad::prelude::*;
 
 use crate::entity;
 use crate::ui as base_ui;
+use crate::ui::utils::is_mobile;
 
 pub mod grid;
 pub mod helper;
@@ -125,7 +126,7 @@ impl UiDescription {
         // Manage some messages
         match &ui_message {
             Some(UiDescriptionEvent::TextEditFocused(title, name, value)) => {
-                if base_ui::utils::is_mobile() {
+                if is_mobile() {
                     self.text_input_request = Some(base_ui::text_input::TextInputRequest::new(
                         title.to_string(),
                         name.to_string(),

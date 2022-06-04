@@ -8,7 +8,6 @@ pub struct Graphics {
     pub tiles_mapping: tileset::TileMapping,
     pub tile_width: f32,
     pub tile_height: f32,
-    pub draw_as_mobile: bool,
 }
 
 impl Graphics {
@@ -17,14 +16,12 @@ impl Graphics {
         tiles_mapping: tileset::TileMapping,
         tile_width: f32,
         tile_height: f32,
-        draw_as_mobile: bool,
     ) -> Self {
         Self {
             tileset_texture,
             tiles_mapping,
             tile_width,
             tile_height,
-            draw_as_mobile,
         }
     }
 

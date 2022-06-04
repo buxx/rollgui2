@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use ui::utils::egui_scale;
 
 pub mod action;
 pub mod animation;
@@ -17,14 +18,24 @@ pub mod util;
 pub mod zone;
 
 const SERVER_ADDRESS: &'static str = env!("SERVER_ADDRESS");
-
-#[macroquad::main("RollGui2")]
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "Rolling".to_owned(),
+        window_resizable: true,
+        window_width: 1280,
+        window_height: 800,
+        ..Default::default()
+    }
+}
+#[macroquad::main(window_conf)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_scene: Box<dyn engine::Engine> = Box::new(engine::root::RootScene::new());
     let tile_set = load_texture("static/graphics.png").await.unwrap();
     let tiles_mapping = tileset::loader::from_list(hardcoded::get_tiles_list(), 32., 32.);
-    let graphics =
-        graphics::Graphics::new(tile_set, tiles_mapping, 32., 32., ui::utils::is_mobile());
+    let graphics = graphics::Graphics::new(tile_set, tiles_mapping, 32., 32.);
+
+    // Set egui scale
+    egui_macroquad::egui_mq_cfg(|equi_mq| equi_mq.set_scale(egui_scale()));
 
     loop {
         clear_background(BLACK);
