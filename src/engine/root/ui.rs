@@ -47,8 +47,9 @@ pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
             });
 
             ui.horizontal(|ui| {
-                if ui.button("Se connecter").clicked() {
+                if ui.button("Se connecter").clicked() || state.validate_immediately {
                     event = Some(super::RootEvent::DoLogin);
+                    state.validate_immediately = false;
                 }
                 if ui.button("Mot de passe perdu").clicked() {
                     // take some action here

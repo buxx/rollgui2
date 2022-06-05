@@ -1,4 +1,4 @@
-use crate::{client, engine::root::util::auth_failed, message, ui::utils::is_mobile};
+use crate::{client, engine::root::util::auth_failed, message, ui::utils::is_mobile, Opt};
 use macroquad::prelude::*;
 use quad_net::http_request::Request;
 
@@ -16,16 +16,20 @@ pub struct RootScene {
 }
 
 impl RootScene {
-    pub fn new() -> Self {
+    pub fn new(opt: &Opt) -> Self {
         Self {
-            state: state::RootState::new("", ""),
+            state: state::RootState::new(
+                &opt.login.as_ref().unwrap_or(&"".to_string()),
+                &opt.password.as_ref().unwrap_or(&"".to_string()),
+                opt.login.is_some() && opt.password.is_some(),
+            ),
             do_login_request: None,
             text_input_request: None,
         }
     }
 
     pub fn with_home_message(message: String, color: Option<egui::Color32>) -> Self {
-        let mut state = state::RootState::new("", "");
+        let mut state = state::RootState::new("", "", false);
         state.home_message = Some((message, color.unwrap_or(egui::Color32::WHITE)));
 
         Self {

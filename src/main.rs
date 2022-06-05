@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use structopt::StructOpt;
 use ui::utils::egui_scale;
 
 pub mod action;
@@ -17,6 +18,16 @@ pub mod ui;
 pub mod util;
 pub mod zone;
 
+#[derive(StructOpt, Debug)]
+#[structopt(name = "basic")]
+pub struct Opt {
+    #[structopt(short, long)]
+    login: Option<String>,
+
+    #[structopt(short, long)]
+    password: Option<String>,
+}
+
 const SERVER_ADDRESS: &'static str = env!("SERVER_ADDRESS");
 fn window_conf() -> Conf {
     Conf {
@@ -29,7 +40,8 @@ fn window_conf() -> Conf {
 }
 #[macroquad::main(window_conf)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut current_scene: Box<dyn engine::Engine> = Box::new(engine::root::RootScene::new());
+    let opt = Opt::from_args();
+    let mut current_scene: Box<dyn engine::Engine> = Box::new(engine::root::RootScene::new(&opt));
     let tile_set = load_texture("static/graphics.png").await.unwrap();
     let tiles_mapping = tileset::loader::from_list(hardcoded::get_tiles_list(), 32., 32.);
     let graphics = graphics::Graphics::new(tile_set, tiles_mapping, 32., 32.);
@@ -103,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )?);
                 }
                 message::MainMessage::SetRootEngine => {
-                    current_scene = Box::new(engine::root::RootScene::new());
+                    current_scene = Box::new(engine::root::RootScene::new(&opt));
                 }
                 message::MainMessage::SetErrorEngine(error_message) => {
                     current_scene = Box::new(engine::error::ErrorEngine::new(error_message));
