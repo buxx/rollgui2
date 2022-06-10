@@ -79,7 +79,11 @@ impl ZoneEngine {
             }
         }
 
-        if base_util::mouse_clicked() && !quick_action_just_clicked && !action_clicked {
+        if base_util::mouse_clicked()
+            && !quick_action_just_clicked
+            && !action_clicked
+            && self.quick_action_requests.len() == 0
+        {
             self.selected_quick_action = None;
             self.current_action = None;
             self.pending_exploitable_tiles = vec![];
