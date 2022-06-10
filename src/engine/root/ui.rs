@@ -27,7 +27,13 @@ pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
 
             ui.horizontal(|ui| {
                 ui.label("Login: ");
-                if ui.text_edit_singleline(&mut state.login).gained_focus() {
+                let login_input = ui.text_edit_singleline(&mut state.login);
+
+                if state.first_frame {
+                    login_input.request_focus();
+                }
+
+                if login_input.gained_focus() {
                     event = Some(super::RootEvent::TextEditFocused(
                         super::RootTextInput::Login,
                     ));
