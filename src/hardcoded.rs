@@ -104,6 +104,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("COPPER", 5, 18, 1),
         ("TIN", 5, 19, 1),
         ("IRON", 5, 20, 1),
+        ("BRONZE", 4, 18, 1),
         ("VEGETAL_FIBER", 5, 21, 1),
         ("CLOTH", 5, 22, 1),
         ("GROUND", 0, 10, 1),
