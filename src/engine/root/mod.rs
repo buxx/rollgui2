@@ -106,6 +106,13 @@ impl Engine for RootScene {
         let mut messages = vec![];
         let mut events = vec![];
 
+        // Accept Enter key for login form
+        if is_key_released(KeyCode::Enter) | is_key_released(KeyCode::KpEnter)
+            && self.do_login_request.is_none()
+        {
+            events.push(RootEvent::DoLogin);
+        }
+
         events.extend(self.manage_do_login());
         events.extend(self.manage_text_inputs());
         events.extend(ui::ui(&mut self.state));
