@@ -14,13 +14,15 @@ const BOTTOM_PANEL_Y: f32 = 464.;
 const BOTTOM_PANEL_WIDTH: f32 = 250.;
 const BOTTOM_PANEL_HEIGHT: f32 = 42.;
 
-const START_DRAWING_BUTTONS_X: f32 = 26.5;
+const START_DRAWING_BUTTONS_X: f32 = 23.;
 const START_DRAWING_BUTTONS_Y: f32 = 175.;
 
 const BUTTON_BACKGROUND_X: f32 = 0.;
 const BUTTON_BACKGROUND_Y: f32 = 864.;
 const BUTTON_WIDTH: f32 = 96.;
 const BUTTON_HEIGHT: f32 = 96.;
+const DISPLAY_BUTTON_WIDTH: f32 = 64.;
+const DISPLAY_BUTTON_HEIGHT: f32 = 64.;
 const BUTTON_MARGIN: f32 = 5.;
 
 const LOADING_X: f32 = 96.;
@@ -154,13 +156,13 @@ pub fn draw_buttons(
     let mut hover_button = None;
 
     for (i, (button, button_source_rect)) in buttons.iter().enumerate() {
-        let row_i = i / 2;
-        let col_i = i % 2;
+        let row_i = i / 3;
+        let col_i = i % 3;
 
-        let draw_to_x =
-            START_DRAWING_BUTTONS_X + ((BUTTON_WIDTH as f32 + BUTTON_MARGIN) * col_i as f32);
-        let draw_to_y =
-            START_DRAWING_BUTTONS_Y + ((BUTTON_HEIGHT as f32 + BUTTON_MARGIN) * row_i as f32);
+        let draw_to_x = START_DRAWING_BUTTONS_X
+            + ((DISPLAY_BUTTON_WIDTH as f32 + BUTTON_MARGIN) * col_i as f32);
+        let draw_to_y = START_DRAWING_BUTTONS_Y
+            + ((DISPLAY_BUTTON_HEIGHT as f32 + BUTTON_MARGIN) * row_i as f32);
 
         // Draw background
         draw_texture_ex(
@@ -175,6 +177,7 @@ pub fn draw_buttons(
                     BUTTON_WIDTH,
                     BUTTON_HEIGHT,
                 )),
+                dest_size: Some(Vec2::new(DISPLAY_BUTTON_WIDTH, DISPLAY_BUTTON_HEIGHT)),
                 ..Default::default()
             },
         );
@@ -194,6 +197,7 @@ pub fn draw_buttons(
                 WHITE,
                 DrawTextureParams {
                     source: Some(*button_source_rect),
+                    dest_size: Some(Vec2::new(DISPLAY_BUTTON_WIDTH, DISPLAY_BUTTON_HEIGHT)),
                     ..Default::default()
                 },
             );
@@ -205,6 +209,7 @@ pub fn draw_buttons(
                 WHITE,
                 DrawTextureParams {
                     source: Some(Rect::new(LOADING_X, LOADING_Y, BUTTON_WIDTH, BUTTON_HEIGHT)),
+                    dest_size: Some(Vec2::new(DISPLAY_BUTTON_WIDTH, DISPLAY_BUTTON_HEIGHT)),
                     ..Default::default()
                 },
             );
@@ -212,15 +217,22 @@ pub fn draw_buttons(
 
         if let Some(highlight_button_) = &highlight_button {
             if highlight_button_ == button {
-                draw_rectangle_lines(draw_to_x, draw_to_y, BUTTON_WIDTH, BUTTON_HEIGHT, 2.0, BLUE);
+                draw_rectangle_lines(
+                    draw_to_x,
+                    draw_to_y,
+                    DISPLAY_BUTTON_WIDTH,
+                    DISPLAY_BUTTON_HEIGHT,
+                    2.0,
+                    BLUE,
+                );
             }
         }
 
         let (mouse_x, mouse_y) = mouse_position();
         if mouse_x > draw_to_x
-            && mouse_x < draw_to_x + BUTTON_WIDTH as f32
+            && mouse_x < draw_to_x + DISPLAY_BUTTON_WIDTH as f32
             && mouse_y > draw_to_y
-            && mouse_y < draw_to_y + BUTTON_HEIGHT as f32
+            && mouse_y < draw_to_y + DISPLAY_BUTTON_HEIGHT as f32
         {
             hover_button = Some(button.clone());
         }
