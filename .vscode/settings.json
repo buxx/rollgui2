@@ -5,6 +5,7 @@
         "DARKGRAY",
         "egui",
         "ehttp",
+        "inconnue",
         "macroquad",
         "tileset",
         "ureq"

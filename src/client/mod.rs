@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use quad_net::http_request::{Method, Request, RequestBuilder};
 
-use crate::{entity, SERVER_ADDRESS};
+use crate::{entity, types::AvatarUuid, SERVER_ADDRESS};
 
 #[derive(Clone)]
 pub struct Client {
@@ -307,6 +307,29 @@ impl Client {
         RequestBuilder::new(&url)
             .header("Authorization", &self.basic_auth_value())
             .method(Method::Post)
+            .send()
+    }
+
+    pub fn get_avatar_request(&self, avatar_uuid: &AvatarUuid) -> Request {
+        // NOTE : Should be different than zone_thumb but same used currently ?
+        let media_file_name = format!("character_avatar__zone_thumb__{}.png", avatar_uuid);
+        let url = format!("{}/media/{}", SERVER_ADDRESS, media_file_name);
+        info!("Retrieve avatar media at {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Get)
+            .send()
+    }
+
+    pub fn get_avatar_zone_thumb_request(&self, avatar_uuid: &AvatarUuid) -> Request {
+        let media_file_name = format!("character_avatar__zone_thumb__{}.png", avatar_uuid);
+        let url = format!("{}/media/{}", SERVER_ADDRESS, media_file_name);
+        info!("Retrieve avatar media at {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Get)
             .send()
     }
 }
