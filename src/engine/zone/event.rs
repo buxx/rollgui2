@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{action, animation, entity, event};
+use crate::{action, animation, engine::zone::resume::CharacterResume, entity, event};
 
 impl super::ZoneEngine {
     pub fn event(&mut self, event: crate::event::ZoneEvent) {
@@ -142,6 +142,15 @@ impl super::ZoneEngine {
                         classes,
                     },
                 );
+            }
+            event::ZoneEventType::NewResumeText { resume } => {
+                dbg!(&resume);
+                match CharacterResume::from_resume_texts(resume) {
+                    Ok(resume_) => self.resume = Some(resume_),
+                    Err(error) => {
+                        error!("{}", error);
+                    }
+                }
             }
             _ => {}
         }
