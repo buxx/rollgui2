@@ -48,6 +48,12 @@ impl ZoneEngine {
         }
     }
 
+    pub fn draw_resume_items(&mut self) {
+        if let Some(resume) = &self.resume {
+            gui::resume::draw_resume_items(&self.graphics, resume);
+        }
+    }
+
     fn get_highlighted_left_panel_button(&self) -> Option<gui::panel::Button> {
         // If dragging an inventory item for dropping it, highlight the inventory button
         if let Some(inventory_state) = &self.inventory_state {

@@ -655,6 +655,7 @@ impl Engine for ZoneEngine {
         set_default_camera();
         self.disable_all_user_input = false;
         self.draw_left_panel();
+        self.draw_resume_items();
         self.draw_user_logs();
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();

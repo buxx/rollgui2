@@ -1,6 +1,7 @@
 use crate::event::model::ItemModel;
+use macroquad::prelude::*;
 
-use super::gui::component::ProgressBar;
+use super::gui::{component::ProgressBar, resume::ResumeItem};
 
 #[derive(Debug, Clone)]
 pub enum Health {
@@ -23,6 +24,15 @@ impl Health {
         };
 
         Err("Unable to understand Health : no value".to_string())
+    }
+
+    pub fn item(&self) -> ResumeItem {
+        match self {
+            Health::Ok => ResumeItem::GoodSmiley,
+            Health::Middle => ResumeItem::NeutralSmiley,
+            Health::Bad => ResumeItem::BadSmiley,
+            Health::Critical => ResumeItem::CriticalSmiley,
+        }
     }
 }
 
@@ -82,16 +92,16 @@ impl CanDrink {
 
 #[derive(Debug)]
 pub struct CharacterResume {
-    health: Health,
-    action_points: f32,
-    hungry: ProgressBar,
-    thirsty: ProgressBar,
-    tiredness: ProgressBar,
-    can_drink: CanDrink,
-    can_eat: CanEat,
-    follower: i32,
-    follow: i32,
-    fighters: i32,
+    pub health: Health,
+    pub action_points: f32,
+    pub hungry: ProgressBar,
+    pub thirsty: ProgressBar,
+    pub tiredness: ProgressBar,
+    pub can_drink: CanDrink,
+    pub can_eat: CanEat,
+    pub follower: i32,
+    pub follow: i32,
+    pub fighters: i32,
 }
 
 impl CharacterResume {
