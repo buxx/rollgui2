@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use macroquad::prelude::*;
 
-use crate::tileset;
+use crate::{tileset, types::AvatarUuid};
 
 #[derive(Clone)]
 pub struct Graphics {
@@ -8,6 +10,7 @@ pub struct Graphics {
     pub tiles_mapping: tileset::TileMapping,
     pub tile_width: f32,
     pub tile_height: f32,
+    pub avatars: HashMap<AvatarUuid, Texture2D>,
 }
 
 impl Graphics {
@@ -22,6 +25,7 @@ impl Graphics {
             tiles_mapping,
             tile_width,
             tile_height,
+            avatars: HashMap::new(),
         }
     }
 
@@ -120,5 +124,9 @@ impl Graphics {
             2.0 / area_width,
             BLUE,
         );
+    }
+
+    pub fn add_avatar_texture(&mut self, avatar_uuid: AvatarUuid, texture: Texture2D) {
+        self.avatars.insert(avatar_uuid, texture);
     }
 }
