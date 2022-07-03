@@ -1,4 +1,10 @@
 use crate::event::model::ItemModel;
+use macroquad::prelude::*;
+
+const START_X: f32 = 194.;
+const START_Y: f32 = 1000.;
+const WIDTH: f32 = 7.;
+const HEIGHT: f32 = 6.;
 
 #[derive(Debug, Clone)]
 pub enum ProgressBarColor {
@@ -7,9 +13,19 @@ pub enum ProgressBarColor {
     Red,
 }
 
+impl ProgressBarColor {
+    pub fn position(&self) -> f32 {
+        match self {
+            Self::Green => 1.0,
+            Self::Yellow => 2.0,
+            Self::Red => 3.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ProgressBar {
-    percent: i32,
+    percent: f32,
     color: ProgressBarColor,
     inverted: bool,
 }
@@ -47,12 +63,42 @@ impl ProgressBar {
 
         if let Some(color_) = color {
             Ok(Self {
-                percent: percent as i32,
+                percent: percent,
                 color: color_,
                 inverted,
             })
         } else {
             Err("no color".to_string())
         }
+    }
+
+    pub fn draw_params(&self, width: f32, height: f32) -> Vec<DrawTextureParams> {
+        let progress = if self.inverted {
+            (100. - self.percent).max(5.)
+        } else {
+            self.percent.max(5.)
+        };
+        vec![
+            DrawTextureParams {
+                source: Some(Rect {
+                    x: START_X,
+                    y: START_Y,
+                    w: WIDTH,
+                    h: HEIGHT,
+                }),
+                dest_size: Some(Vec2::new(width, height)),
+                ..Default::default()
+            },
+            DrawTextureParams {
+                source: Some(Rect {
+                    x: START_X,
+                    y: START_Y + (HEIGHT * self.color.position()),
+                    w: WIDTH,
+                    h: HEIGHT,
+                }),
+                dest_size: Some(Vec2::new(width * (progress / 100.), height)),
+                ..Default::default()
+            },
+        ]
     }
 }

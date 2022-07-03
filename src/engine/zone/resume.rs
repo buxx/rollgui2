@@ -61,6 +61,14 @@ impl CanEat {
             return Err("Unable to understand A manger : no value".to_string());
         }
     }
+
+    pub fn item(&self) -> ResumeItem {
+        match self {
+            Self::Yes => ResumeItem::Ok,
+            Self::Lower => ResumeItem::Warning,
+            Self::No => ResumeItem::Ko,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -86,6 +94,14 @@ impl CanDrink {
             }
         } else {
             return Err("Unable to understand A boire : no value".to_string());
+        }
+    }
+
+    pub fn item(&self) -> ResumeItem {
+        match self {
+            Self::Yes => ResumeItem::Ok,
+            Self::Lower => ResumeItem::Warning,
+            Self::No => ResumeItem::Ko,
         }
     }
 }
