@@ -520,44 +520,21 @@ impl Engine for LoadZoneEngine {
             self.stuffs.as_mut(),
             self.builds.as_mut(),
         ) {
-            // Check all avatar have been retrieved
-            if self.avatars_zone_thumbs.len() == characters.len() {
-                // Load player avatar in GPU and reference it in graphics object
-                let avatar_uuid = player.private_avatar_uuid();
-                let avatar_texture = Texture2D::from_file_with_format(player_avatar, None);
-                self.graphics
-                    .add_avatar_texture(avatar_uuid.clone(), avatar_texture);
+            // Build final state
+            let state = super::zone::state::ZoneState::new(
+                &self.graphics,
+                map.clone(),
+                characters.clone(),
+                player.clone(),
+                stuffs.clone(),
+                resources.clone(),
+                builds.clone(),
+            );
 
-                // Load characters avatars in GPU and reference them in graphics object
-                for (avatar_uuid, avatar_zone_thumb) in &self.avatars_zone_thumbs {
-                    let avatar_texture = Texture2D::from_file_with_format(avatar_zone_thumb, None);
-                    self.graphics
-                        .add_avatar_texture(avatar_uuid.clone(), avatar_texture);
-                }
-
-                // Build final state
-                let state = super::zone::state::ZoneState::new(
-                    &self.graphics,
-                    map.clone(),
-                    characters.clone(),
-                    player.clone(),
-                    stuffs.clone(),
-                    resources.clone(),
-                    builds.clone(),
-                );
-                match super::zone::ZoneEngine::new(
-                    self.client.clone(),
-                    self.graphics.clone(),
-                    state,
-                ) {
-                    Ok(engine) => {
-                        messages.push(message::MainMessage::SetEngine(Box::new(engine)));
-                    }
-                    Err(error) => {
-                        messages.push(message::MainMessage::SetErrorEngine(error));
-                    }
-                };
-            }
+            messages.push(message::MainMessage::SetZoneEngine(
+                self.client.clone(),
+                state,
+            ));
         }
 
         egui_macroquad::ui(|egui_ctx| {

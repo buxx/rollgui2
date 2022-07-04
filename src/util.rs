@@ -20,3 +20,23 @@ pub fn char_to_key_code(char_: &char) -> Option<KeyCode> {
         _ => None,
     }
 }
+
+pub async fn texture_from_cache_or_from_file(file_path: &str) -> Result<Texture2D, String> {
+    let storage = &mut quad_storage::STORAGE.lock();
+    let storage = match storage {
+        Ok(storage_) => storage_,
+        Err(error) => return Err(format!("Storage error : '{}'", error)),
+    };
+    if let Some(file_as_b64) = storage.get(file_path) {
+        let file_as_bytes = match base64::decode(file_as_b64) {
+            Ok(file_as_bytes_) => file_as_bytes_,
+            Err(error) => return Err(format!("Unable to decode cached file : '{}'", error)),
+        };
+        Ok(Texture2D::from_file_with_format(&file_as_bytes[..], None))
+    } else {
+        match load_texture(file_path).await {
+            Ok(texture_) => Ok(texture_),
+            Err(error) => return Err(format!("Unable to load texture : '{}'", error)),
+        }
+    }
+}

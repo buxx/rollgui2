@@ -3,6 +3,11 @@ use macroquad::prelude::*;
 
 use crate::util as base_util;
 
+const AVATAR_DRAW_X: f32 = 32.;
+const AVATAR_DRAW_Y: f32 = 32.;
+const AVATAR_DRAW_WIDTH: f32 = 100.;
+const AVATAR_DRAW_HEIGHT: f32 = 115.;
+
 impl ZoneEngine {
     pub fn draw_left_panel(&mut self) {
         let highlight_button = self.get_highlighted_left_panel_button();
@@ -46,6 +51,8 @@ impl ZoneEngine {
                 _ => {}
             }
         }
+
+        self.draw_player_avatar();
     }
 
     pub fn draw_resume_items(&mut self) {
@@ -66,6 +73,22 @@ impl ZoneEngine {
         }
 
         None
+    }
+
+    pub fn draw_player_avatar(&self) {
+        let avatar_uuid = self.state.player.private_avatar_uuid();
+        if let Some(avatar_texture) = self.graphics.avatars.get(&avatar_uuid) {
+            draw_texture_ex(
+                *avatar_texture,
+                AVATAR_DRAW_X,
+                AVATAR_DRAW_Y,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(Vec2::new(AVATAR_DRAW_WIDTH, AVATAR_DRAW_HEIGHT)),
+                    ..Default::default()
+                },
+            );
+        }
     }
 
     pub fn draw_helper_text(&self) {

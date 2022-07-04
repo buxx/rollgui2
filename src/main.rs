@@ -122,6 +122,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 message::MainMessage::SetErrorEngine(error_message) => {
                     current_scene = Box::new(engine::error::ErrorEngine::new(error_message));
                 }
+                message::MainMessage::SetZoneEngine(client, state) => {
+                    let mut graphics = graphics.clone();
+                    graphics = match graphics::utils::fill_avatars_from_zone_state(&state, graphics)
+                        .await
+                    {
+                        Ok(graphics_) => graphics_,
+                        Err(error) => {
+                            current_scene = Box::new(engine::error::ErrorEngine::new(error));
+                            continue;
+                        }
+                    };
+
+                    match engine::zone::ZoneEngine::new(client, graphics, state) {
+                        Ok(engine) => {
+                            current_scene = Box::new(engine);
+                        }
+                        Err(error) => {
+                            current_scene = Box::new(engine::error::ErrorEngine::new(error));
+                        }
+                    };
+                }
                 message::MainMessage::SetEngine(engine) => {
                     current_scene = engine;
                 }
