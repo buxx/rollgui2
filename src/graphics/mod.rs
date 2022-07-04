@@ -126,7 +126,7 @@ impl Graphics {
         );
     }
 
-    pub async fn add_avatar_texture(&mut self, avatar_uuid: AvatarUuid, texture: Texture2D) {
+    pub fn add_avatar_texture(&mut self, avatar_uuid: AvatarUuid, texture: Texture2D) {
         self.avatars.insert(avatar_uuid, texture);
     }
 }

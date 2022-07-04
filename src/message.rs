@@ -1,9 +1,15 @@
-use crate::{client, description, engine, entity};
+use crate::{
+    client, description,
+    engine::{self, zone::state::ZoneState},
+    entity,
+    types::AvatarUuid,
+};
 
 pub enum MainMessage {
     Quit,
     SetRootEngine,
     SetLoadZoneEngine(String, String, String),
+    SetZoneEngine(client::Client, ZoneState),
     SetLoadDescriptionEngine(
         String,
         Option<serde_json::Map<String, serde_json::Value>>,
