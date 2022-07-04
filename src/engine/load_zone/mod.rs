@@ -1,13 +1,8 @@
-use std::collections::HashMap;
-
 use macroquad::prelude::*;
 use quad_net::http_request::Request;
 use serde_json::Value;
 
-use crate::{
-    client, engine::dead::CheckCharacterIsDeadEngine, entity, hardcoded, message,
-    types::AvatarUuid, zone,
-};
+use crate::{client, engine::dead::CheckCharacterIsDeadEngine, entity, hardcoded, message, zone};
 
 use super::Engine;
 
@@ -23,10 +18,6 @@ pub struct LoadZoneEngine {
     zone: Option<zone::map::ZoneMap>,
     get_characters_request: Option<Request>,
     characters: Option<Vec<entity::character::Character>>,
-    get_player_avatar_request: Option<Request>,
-    player_avatar: Option<Vec<u8>>,
-    get_avatars_zone_thumbs_requests: Vec<(AvatarUuid, Request)>,
-    avatars_zone_thumbs: HashMap<AvatarUuid, Vec<u8>>,
     get_resources_request: Option<Request>,
     resources: Option<Vec<entity::resource::Resource>>,
     get_stuffs_request: Option<Request>,
@@ -55,10 +46,6 @@ impl LoadZoneEngine {
             zone: None,
             get_characters_request: None,
             characters: None,
-            get_player_avatar_request: None,
-            player_avatar: None,
-            get_avatars_zone_thumbs_requests: vec![],
-            avatars_zone_thumbs: HashMap::new(),
             get_resources_request: None,
             resources: None,
             get_stuffs_request: None,
@@ -72,28 +59,6 @@ impl LoadZoneEngine {
         if self.get_player_request.is_none() && self.player.is_none() {
             info!("Request player character");
             self.get_player_request = Some(self.client.get_character_request(&self.character_id));
-        }
-
-        vec![]
-    }
-
-    fn make_player_avatar_request(&mut self) -> Vec<message::MainMessage> {
-        if let Some(player) = &self.player {
-            if self.get_player_avatar_request.is_none() && self.player_avatar.is_none() {
-                info!("Request player avatar");
-                let avatar_uuid = player.private_avatar_uuid();
-                let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                if let Some(avatar_as_b64) =
-                    storage.get(&format!("player_avatar__{}", avatar_uuid.0))
-                {
-                    // TODO : manage unwrap
-                    let avatar_bytes = base64::decode(&avatar_as_b64).unwrap();
-                    self.player_avatar = Some(avatar_bytes);
-                } else {
-                    let request = self.client.get_avatar_request(&avatar_uuid);
-                    self.get_player_avatar_request = Some(request);
-                };
-            }
         }
 
         vec![]
@@ -121,35 +86,6 @@ impl LoadZoneEngine {
                             };
                         self.player = Some(character);
                         debug!("{:?}", self.player);
-                    }
-                    Err(error) => {
-                        return vec![message::MainMessage::SetErrorEngine(error.to_string())];
-                    }
-                }
-            }
-        };
-
-        vec![]
-    }
-
-    fn retrieve_player_avatar(&mut self) -> Vec<message::MainMessage> {
-        if let Some(get_player_avatar_request) = self.get_player_avatar_request.as_mut() {
-            if let Some(data) = get_player_avatar_request.try_recv() {
-                let player = self
-                    .player
-                    .as_ref()
-                    .expect("Player must be defined at this point");
-                let avatar_uuid = player.private_avatar_uuid();
-                info!("Player avatar received");
-                match data {
-                    Ok(avatar) => {
-                        dbg!(&avatar);
-                        let avatar_ = avatar.as_bytes();
-                        self.player_avatar = Some(avatar_.to_vec());
-                        // Store in cache too
-                        let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                        let avatar_as_b64 = base64::encode(&avatar_);
-                        storage.set(&format!("player_avatar__{}", avatar_uuid), &avatar_as_b64);
                     }
                     Err(error) => {
                         return vec![message::MainMessage::SetErrorEngine(error.to_string())];
@@ -194,34 +130,6 @@ impl LoadZoneEngine {
                 );
             }
         }
-
-        vec![]
-    }
-
-    fn make_avatars_zone_thumbs_requests(&mut self) -> Vec<message::MainMessage> {
-        if let Some(characters) = &self.characters {
-            for character in characters {
-                // Grab avatar from local storage if it exists or make a request to get it
-                let avatar_uuid = character.public_avatar_uuid();
-                // But only if avatar is not yet known
-                if self.avatars_zone_thumbs.get(&avatar_uuid).is_some() {
-                    continue;
-                }
-                let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                if let Some(avatar_as_b64) =
-                    storage.get(&format!("avatar_zone_thumb__{}", avatar_uuid.0))
-                {
-                    // TODO : manage unwrap
-                    let avatar_bytes = base64::decode(&avatar_as_b64).unwrap();
-                    self.avatars_zone_thumbs
-                        .insert(avatar_uuid.clone(), avatar_bytes);
-                } else {
-                    let request = self.client.get_avatar_zone_thumb_request(&avatar_uuid);
-                    self.get_avatars_zone_thumbs_requests
-                        .push((avatar_uuid.clone(), request));
-                };
-            }
-        };
 
         vec![]
     }
@@ -369,34 +277,6 @@ impl LoadZoneEngine {
         vec![]
     }
 
-    fn retrieve_avatars_zone_thumbs(&mut self) -> Vec<message::MainMessage> {
-        for (avatar_uuid, get_avatar_zone_thumb_request) in
-            &mut self.get_avatars_zone_thumbs_requests
-        {
-            if let Some(data) = get_avatar_zone_thumb_request.try_recv() {
-                info!("Avatar '{}' zone thumbs received", avatar_uuid);
-                match data {
-                    Ok(avatar) => {
-                        let avatar_ = avatar.as_bytes();
-                        self.avatars_zone_thumbs
-                            .insert(avatar_uuid.clone(), avatar_.to_vec());
-                        // Put this image in cache too
-                        let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                        storage.set(
-                            &format!("avatar_zone_thumb__{}", avatar_uuid),
-                            &base64::encode(avatar_),
-                        );
-                    }
-                    Err(error) => {
-                        return vec![message::MainMessage::SetErrorEngine(error.to_string())];
-                    }
-                }
-            }
-        }
-
-        vec![]
-    }
-
     fn retrieve_resources(&mut self) -> Vec<message::MainMessage> {
         if self.resources.is_none() {
             if let Some(get_resources_request) = self.get_resources_request.as_mut() {
@@ -492,12 +372,9 @@ impl Engine for LoadZoneEngine {
         messages.extend(self.make_tiles_request());
         messages.extend(self.make_player_request());
         messages.extend(self.retrieve_player());
-        messages.extend(self.make_player_avatar_request());
-        messages.extend(self.retrieve_player_avatar());
 
         messages.extend(self.make_zone_request());
         messages.extend(self.make_characters_request());
-        messages.extend(self.make_avatars_zone_thumbs_requests());
         messages.extend(self.make_resources_request());
         messages.extend(self.make_stuffs_request());
         messages.extend(self.make_builds_request());
@@ -505,14 +382,12 @@ impl Engine for LoadZoneEngine {
         messages.extend(self.retrieve_tiles());
         messages.extend(self.retrieve_zone());
         messages.extend(self.retrieve_characters());
-        messages.extend(self.retrieve_avatars_zone_thumbs());
         messages.extend(self.retrieve_resources());
         messages.extend(self.retrieve_stuffs());
         messages.extend(self.retrieve_builds());
 
         if let (
             Some(player),
-            Some(player_avatar),
             Some(map),
             Some(characters),
             Some(resources),
@@ -520,52 +395,27 @@ impl Engine for LoadZoneEngine {
             Some(builds),
         ) = (
             self.player.as_mut(),
-            self.player_avatar.as_mut(),
             self.zone.as_mut(),
             self.characters.as_mut(),
             self.resources.as_mut(),
             self.stuffs.as_mut(),
             self.builds.as_mut(),
         ) {
-            // Check all characters avatar have been retrieved
-            dbg!("{} {}", self.avatars_zone_thumbs.len(), characters.len());
-            if self.avatars_zone_thumbs.len() == characters.len() {
-                // Load player avatar in GPU and reference it in graphics object
-                let avatar_uuid = player.private_avatar_uuid();
-                let avatar_texture = Texture2D::from_file_with_format(player_avatar, None);
-                self.graphics
-                    .add_avatar_texture(avatar_uuid.clone(), avatar_texture);
+            // Build final state
+            let state = super::zone::state::ZoneState::new(
+                &self.graphics,
+                map.clone(),
+                characters.clone(),
+                player.clone(),
+                stuffs.clone(),
+                resources.clone(),
+                builds.clone(),
+            );
 
-                // Load characters avatars in GPU and reference them in graphics object
-                for (avatar_uuid, avatar_zone_thumb) in &self.avatars_zone_thumbs {
-                    let avatar_texture = Texture2D::from_file_with_format(avatar_zone_thumb, None);
-                    self.graphics
-                        .add_avatar_texture(avatar_uuid.clone(), avatar_texture);
-                }
-
-                // Build final state
-                let state = super::zone::state::ZoneState::new(
-                    &self.graphics,
-                    map.clone(),
-                    characters.clone(),
-                    player.clone(),
-                    stuffs.clone(),
-                    resources.clone(),
-                    builds.clone(),
-                );
-                match super::zone::ZoneEngine::new(
-                    self.client.clone(),
-                    self.graphics.clone(),
-                    state,
-                ) {
-                    Ok(engine) => {
-                        messages.push(message::MainMessage::SetEngine(Box::new(engine)));
-                    }
-                    Err(error) => {
-                        messages.push(message::MainMessage::SetErrorEngine(error));
-                    }
-                };
-            }
+            messages.push(message::MainMessage::SetZoneEngine(
+                self.client.clone(),
+                state,
+            ));
         }
 
         egui_macroquad::ui(|egui_ctx| {
