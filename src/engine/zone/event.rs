@@ -144,7 +144,6 @@ impl super::ZoneEngine {
                 );
             }
             event::ZoneEventType::NewResumeText { resume } => {
-                dbg!(&resume);
                 match CharacterResume::from_resume_texts(resume) {
                     Ok(resume_) => self.resume = Some(resume_),
                     Err(error) => {

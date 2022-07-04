@@ -3,10 +3,10 @@ use macroquad::prelude::*;
 
 use crate::util as base_util;
 
-const AVATAR_DRAW_X: f32 = 32.;
-const AVATAR_DRAW_Y: f32 = 32.;
-const AVATAR_DRAW_WIDTH: f32 = 100.;
-const AVATAR_DRAW_HEIGHT: f32 = 115.;
+const AVATAR_DRAW_X: f32 = 40.;
+const AVATAR_DRAW_Y: f32 = 30.;
+const AVATAR_DRAW_WIDTH: f32 = 92.;
+const AVATAR_DRAW_HEIGHT: f32 = 102.;
 
 impl ZoneEngine {
     pub fn draw_left_panel(&mut self) {
