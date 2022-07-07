@@ -28,8 +28,8 @@ pub fn is_mobile() -> bool {
 
 pub fn egui_scale() -> f32 {
     if is_mobile() {
-        2.0
+        1.7
     } else {
-        1.3
+        1.2
     }
 }
