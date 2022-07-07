@@ -6,6 +6,8 @@ use crate::{
     graphics, message, ui::utils::is_mobile, util as base_util,
 };
 
+use self::resume::CharacterResume;
+
 use super::Engine;
 
 pub mod action;
@@ -15,6 +17,7 @@ pub mod gui;
 pub mod inventory;
 pub mod left_panel;
 pub mod log;
+pub mod resume;
 pub mod scene;
 pub mod socket;
 pub mod state;
@@ -68,6 +71,7 @@ pub struct ZoneEngine {
     pub last_begin_click_coordinates_this_frame: Option<Vec2>,
     pub last_begin_click_was_in_egui: Option<bool>,
     pub highlight_tiles: Vec<(usize, usize)>,
+    pub resume: Option<CharacterResume>,
 }
 
 impl ZoneEngine {
@@ -121,6 +125,7 @@ impl ZoneEngine {
             last_begin_click_coordinates_this_frame: None,
             last_begin_click_was_in_egui: None,
             highlight_tiles: vec![],
+            resume: None,
         })
     }
 
@@ -650,6 +655,7 @@ impl Engine for ZoneEngine {
         set_default_camera();
         self.disable_all_user_input = false;
         self.draw_left_panel();
+        self.draw_resume_items();
         self.draw_user_logs();
         self.draw_quick_actions(action_clicked);
         self.draw_buttons();

@@ -199,10 +199,6 @@ impl super::ZoneEngine {
                             * row_i as f32);
                     last_draw_y = stuff_dest_y;
 
-                    // let drawing_last_available_row = row_i == max_rows - 1;
-                    let drawing_last_column = col_i == columns - 1;
-                    let drawing_last_stuff = i == inventory.stuff.len() - 1;
-
                     let stuff_quantity = if stuff.count > 1 {
                         Some(stuff.count.to_string())
                     } else {
@@ -255,10 +251,6 @@ impl super::ZoneEngine {
                     let resource_dest_y = start_draw_resource_y
                         + ((gui::inventory::BUTTON_HEIGHT as f32 + gui::inventory::BUTTON_MARGIN)
                             * row_i as f32);
-
-                    // let drawing_last_available_row = row_i == max_rows - 1;
-                    let drawing_last_column = col_i == columns - 1;
-                    let drawing_last_resource = i == inventory.resource.len() - 1;
 
                     // // If all available rows done and there is more than this resource, don't draw this resource
                     // if drawing_last_available_row && drawing_last_column && !drawing_last_resource {

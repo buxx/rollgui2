@@ -3,10 +3,10 @@ use macroquad::prelude::*;
 
 use crate::util as base_util;
 
-const AVATAR_DRAW_X: f32 = 32.;
-const AVATAR_DRAW_Y: f32 = 32.;
-const AVATAR_DRAW_WIDTH: f32 = 100.;
-const AVATAR_DRAW_HEIGHT: f32 = 115.;
+const AVATAR_DRAW_X: f32 = 40.;
+const AVATAR_DRAW_Y: f32 = 30.;
+const AVATAR_DRAW_WIDTH: f32 = 92.;
+const AVATAR_DRAW_HEIGHT: f32 = 102.;
 
 impl ZoneEngine {
     pub fn draw_left_panel(&mut self) {
@@ -53,6 +53,12 @@ impl ZoneEngine {
         }
 
         self.draw_player_avatar();
+    }
+
+    pub fn draw_resume_items(&mut self) {
+        if let Some(resume) = &self.resume {
+            gui::resume::draw_resume_items(&self.graphics, resume);
+        }
     }
 
     fn get_highlighted_left_panel_button(&self) -> Option<gui::panel::Button> {
