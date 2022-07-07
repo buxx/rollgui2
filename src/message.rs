@@ -2,7 +2,6 @@ use crate::{
     client, description,
     engine::{self, zone::state::ZoneState},
     entity,
-    types::AvatarUuid,
 };
 
 pub enum MainMessage {

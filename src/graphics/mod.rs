@@ -4,6 +4,8 @@ use macroquad::prelude::*;
 
 use crate::{tileset, types::AvatarUuid};
 
+pub mod utils;
+
 #[derive(Clone)]
 pub struct Graphics {
     pub tileset_texture: Texture2D,

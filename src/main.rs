@@ -49,7 +49,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let graphics = graphics::Graphics::new(tile_set, tiles_mapping, 32., 32.);
 
     // Set egui scale
-    egui_macroquad::egui_mq_cfg(|equi_mq| equi_mq.set_scale(egui_scale()));
+    egui_macroquad::egui_mq_cfg(|equi_mq| {
+        equi_mq.egui_input().pixels_per_point = Some(egui_scale())
+    });
 
     loop {
         clear_background(BLACK);
