@@ -4,6 +4,15 @@ use crate::{description, message, ui::utils::egui_scale, util};
 
 pub const DESCRIPTION_WINDOW_MARGIN: f32 = 15.;
 
+pub fn window_size() -> (f32, f32) {
+    let screen_width = screen_width() / egui_scale();
+    let screen_height = screen_height() / egui_scale();
+    (
+        screen_width - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
+        screen_height - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
+    )
+}
+
 impl super::ZoneEngine {
     pub fn ui(&mut self) -> Vec<message::MainMessage> {
         let mut messages = vec![];
@@ -13,8 +22,6 @@ impl super::ZoneEngine {
                 self.current_description.as_mut(),
                 self.current_description_state.as_mut(),
             ) {
-                let screen_width = screen_width() / egui_scale();
-                let screen_height = screen_height() / egui_scale();
                 let draw_to_x = DESCRIPTION_WINDOW_MARGIN;
                 let draw_to_y = DESCRIPTION_WINDOW_MARGIN;
                 let mut ui_message = None;
@@ -22,10 +29,7 @@ impl super::ZoneEngine {
                 let _response = egui::Window::new(&description.title())
                     .resizable(true)
                     .default_pos((draw_to_x, draw_to_y))
-                    .fixed_size((
-                        screen_width - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
-                        screen_height - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
-                    ))
+                    .fixed_size(window_size())
                     .show(egui_ctx, |ui| {
                         ui_message = description.draw(egui_ctx, ui, description_state);
                     });

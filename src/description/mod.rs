@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
+use crate::engine::zone::ui::window_size;
 use crate::entity;
 use crate::ui as base_ui;
 use crate::ui::utils::is_mobile;
@@ -147,21 +148,17 @@ impl UiDescription {
     ) -> Option<UiDescriptionEvent> {
         let mut event = None;
 
-        egui::ScrollArea::vertical().show(ui, |ui| {
-            egui::Grid::new("root_grid")
-                .num_columns(2)
-                // .spacing([40.0, 4.0])
-                .striped(true)
-                .show(ui, |ui| {
-                    for (_i, part) in self.description.items.iter().enumerate() {
-                        match self.draw_part(ui, part, state) {
-                            Some(event_) => event = Some(event_),
-                            None => {}
-                        }
-                        ui.end_row();
+        egui::ScrollArea::vertical()
+            .auto_shrink([false, false])
+            .show(ui, |ui| {
+                for (_i, part) in self.description.items.iter().enumerate() {
+                    match self.draw_part(ui, part, state) {
+                        Some(event_) => event = Some(event_),
+                        None => {}
                     }
-                });
-        });
+                    // ui.end_row();
+                }
+            });
 
         event
     }
@@ -181,12 +178,10 @@ impl UiDescription {
             }
         } else if part.is_text() {
             if let (Some(label), Some(text)) = (&part.label, &part.text) {
-                ui.add(egui::Label::new(format!("{} :", label)));
-                ui.add(egui::Label::new(text).wrap(true));
+                ui.add(egui::Label::new(format!("{} : {}", label, text)));
             } else if let Some(label) = &part.label {
                 ui.add(egui::Label::new(label));
             } else if let Some(text) = &part.text {
-                ui.add(egui::Label::new(format!("")));
                 ui.add(egui::Label::new(text).wrap(true));
             }
         } else if part.is_input() {
@@ -200,24 +195,31 @@ impl UiDescription {
                 None => {}
             }
         } else if part.is_form {
-            for form_part in &part.items {
-                match self.draw_part(ui, form_part, state) {
-                    Some(event_) => event = Some(event_),
-                    None => {}
-                }
-                ui.end_row();
-            }
-            if ui.button("Valider").clicked() {
-                if let Some(url) = &part.form_action {
-                    if part.form_values_in_query {
-                        event = Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
-                    } else {
-                        event = Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
+            egui::Grid::new("root_grid")
+                .num_columns(2)
+                // .spacing([40.0, 4.0])
+                .striped(true)
+                .min_col_width(window_size().0 / 2.0)
+                .show(ui, |ui| {
+                    for form_part in &part.items {
+                        match self.draw_part(ui, form_part, state) {
+                            Some(event_) => event = Some(event_),
+                            None => {}
+                        }
+                        ui.end_row();
                     }
-                } else {
-                    error!("Description form has no form action");
-                }
-            };
+                    if ui.button("Valider").clicked() {
+                        if let Some(url) = &part.form_action {
+                            if part.form_values_in_query {
+                                event = Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
+                            } else {
+                                event = Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
+                            }
+                        } else {
+                            error!("Description form has no form action");
+                        }
+                    };
+                });
         }
 
         event

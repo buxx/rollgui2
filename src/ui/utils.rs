@@ -30,6 +30,6 @@ pub fn egui_scale() -> f32 {
     if is_mobile() {
         1.7
     } else {
-        1.2
+        1.4
     }
 }
