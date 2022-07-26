@@ -344,7 +344,7 @@ impl super::ZoneEngine {
                     .push((self.mouse_zone_coordinates.0, self.mouse_zone_coordinates.1));
             }
 
-            if util::mouse_clicked() {
+            if util::mouse_clicked() && self.current_description.is_none() {
                 // Are we dragging an stuff or resource ?
                 if inventory_state.dragging_resource_i.is_none()
                     && inventory_state.dragging_stuff_i.is_none()
@@ -406,7 +406,7 @@ impl super::ZoneEngine {
                 inventory_state.dragging_resource_i = None;
                 inventory_state.begin_click_in_inventory = None;
                 inventory_state.last_scroll_value = inventory_state.scroll_value;
-            } else if util::mouse_pressed() {
+            } else if util::mouse_pressed() && self.current_description.is_none() {
                 if inventory_state.begin_click_in_inventory.is_none() {
                     inventory_state.begin_click_in_inventory = Some(mouse_is_hover_box);
                 }
