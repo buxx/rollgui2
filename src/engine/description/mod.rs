@@ -1,4 +1,4 @@
-use crate::{client, description, entity, message};
+use crate::{client, description, entity, graphics, message};
 
 pub struct DescriptionEngine {
     pub client: Option<client::Client>, // Client means authenticated requests
@@ -9,10 +9,11 @@ pub struct DescriptionEngine {
 impl DescriptionEngine {
     pub fn new(
         description: entity::description::Description,
+        graphics: graphics::Graphics,
         client: Option<client::Client>,
     ) -> Self {
         Self {
-            ui_description: description::UiDescription::new(description, None),
+            ui_description: description::UiDescription::new(description, graphics, None),
             ui_description_state: description::UiDescriptionState {
                 ..Default::default()
             },

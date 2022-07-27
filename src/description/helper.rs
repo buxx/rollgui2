@@ -13,12 +13,24 @@ impl UiDescription {
         }
     }
 
-    pub fn check_init(&mut self, egui_ctx: &egui::Context, _ui: &mut egui::Ui) {
+    pub fn check_init(&mut self, egui_ctx: &egui::Context, ui: &mut egui::Ui) {
         if self.is_first_frame {
             let mut style = (*egui_ctx.style()).clone();
+            // FIXME BS NOW : still required ?
             // TODO : with new egui, do https://discord.com/channels/900275882684477440/900275883124858921/938081008568377354
             style.override_text_style = Some(egui::TextStyle::Heading);
             egui_ctx.set_style(style);
+
+            for part in &self.description.items {
+                let tile_id = &self.graphics.find_tile_id_from_classes(&part.classes);
+                if tile_id != "UNKNOWN" {
+                    if let Some(image_data) = self.graphics.tiles_data.get(tile_id) {
+                        let texture: egui::TextureHandle =
+                            ui.ctx().load_texture(tile_id, image_data.clone());
+                        self.tiles_textures.insert(tile_id.to_string(), texture);
+                    }
+                }
+            }
         }
         self.is_first_frame = false;
     }
@@ -32,12 +44,18 @@ impl UiDescription {
         let mut event = None;
 
         let label = part.label();
-        let widget = egui::Button::new(&label);
+        let tile_id = self.graphics.find_tile_id_from_classes(&part.classes);
 
         let clicked = if self.draw_big_button {
-            ui.add_sized(BIG_BUTTON_SIZE, widget).clicked()
+            ui.add_sized(BIG_BUTTON_SIZE, egui::Button::new(&label))
+                .clicked()
         } else {
-            ui.add(widget).clicked()
+            if let Some(texture) = self.tiles_textures.get(&tile_id) {
+                ui.add(egui::ImageButton::new(texture, egui::Vec2::new(32., 32.)))
+                    .clicked()
+            } else {
+                ui.add(egui::Button::new(&label)).clicked()
+            }
         };
 
         if clicked {

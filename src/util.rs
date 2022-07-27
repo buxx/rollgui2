@@ -40,3 +40,23 @@ pub async fn texture_from_cache_or_from_file(file_path: &str) -> Result<Texture2
         }
     }
 }
+
+pub async fn bytes_from_cache_or_file(file_path: &str) -> Result<Vec<u8>, String> {
+    let storage = &mut quad_storage::STORAGE.lock();
+    let storage = match storage {
+        Ok(storage_) => storage_,
+        Err(error) => return Err(format!("Storage error : '{}'", error)),
+    };
+    if let Some(file_as_b64) = storage.get(file_path) {
+        let file_as_bytes = match base64::decode(file_as_b64) {
+            Ok(file_as_bytes_) => file_as_bytes_,
+            Err(error) => return Err(format!("Unable to decode cached file : '{}'", error)),
+        };
+        Ok(file_as_bytes)
+    } else {
+        match load_file(file_path).await {
+            Ok(bytes) => Ok(bytes),
+            Err(error) => return Err(format!("Unable to load file : '{}'", error)),
+        }
+    }
+}

@@ -1,8 +1,10 @@
+use image::io::Reader as ImageReader;
 use std::collections::HashMap;
+use std::io::Cursor;
 
 use macroquad::prelude::*;
 
-use crate::{tileset, types::AvatarUuid};
+use crate::{hardcoded::get_tiles_list, tileset, types::AvatarUuid};
 
 pub mod utils;
 
@@ -10,6 +12,7 @@ pub mod utils;
 pub struct Graphics {
     pub tileset_texture: Texture2D,
     pub tiles_mapping: tileset::TileMapping,
+    pub tiles_data: HashMap<String, egui::ImageData>,
     pub tile_width: f32,
     pub tile_height: f32,
     pub avatars: HashMap<AvatarUuid, Texture2D>,
@@ -18,13 +21,37 @@ pub struct Graphics {
 impl Graphics {
     pub fn new(
         tileset_texture: Texture2D,
+        tile_set_bytes: Vec<u8>,
         tiles_mapping: tileset::TileMapping,
         tile_width: f32,
         tile_height: f32,
     ) -> Self {
+        // FIXME manage errors
+        let tile_set_image = ImageReader::new(Cursor::new(tile_set_bytes))
+            .with_guessed_format()
+            .unwrap()
+            .decode()
+            .unwrap();
+
+        // TODO : crop all tiles images and make egui texture with it, then store it
+        let mut tiles_data = HashMap::new();
+        for (tile_id, row_i, col_i, _) in get_tiles_list() {
+            let x = col_i as f32 * tile_width;
+            let y = row_i as f32 * tile_height;
+            let tile_image =
+                tile_set_image.crop_imm(x as u32, y as u32, tile_width as u32, tile_height as u32);
+            let tile_bytes = tile_image.as_bytes().to_vec();
+            let image_data = egui::ImageData::Color(egui::ColorImage::from_rgba_unmultiplied(
+                [tile_width as usize, tile_height as usize],
+                &tile_bytes,
+            ));
+            tiles_data.insert(tile_id.to_string(), image_data);
+        }
+
         Self {
             tileset_texture,
             tiles_mapping,
+            tiles_data,
             tile_width,
             tile_height,
             avatars: HashMap::new(),

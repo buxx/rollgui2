@@ -4,6 +4,7 @@ use macroquad::prelude::*;
 
 use crate::engine::zone::ui::window_size;
 use crate::entity;
+use crate::graphics;
 use crate::ui as base_ui;
 use crate::ui::utils::is_mobile;
 
@@ -34,11 +35,13 @@ impl Default for UiDescriptionState {
 #[derive(Clone)]
 pub struct UiDescription {
     pub description: entity::description::Description,
+    pub graphics: graphics::Graphics,
     pub previous: Option<Box<UiDescription>>,
     pub is_first_frame: bool,
     pub loading: bool,
     pub draw_big_button: bool,
     pub text_input_request: Option<base_ui::text_input::TextInputRequest>,
+    pub tiles_textures: HashMap<String, egui::TextureHandle>,
 }
 
 pub enum UiDescriptionEvent {
@@ -54,6 +57,7 @@ pub enum UiDescriptionEvent {
 impl UiDescription {
     pub fn new(
         description: entity::description::Description,
+        graphics: graphics::Graphics,
         previous: Option<UiDescription>,
     ) -> Self {
         let previous = if let Some(previous_) = previous {
@@ -63,11 +67,13 @@ impl UiDescription {
         };
         Self {
             description,
+            graphics,
             previous,
             is_first_frame: true,
             loading: false,
             draw_big_button: false,
             text_input_request: None,
+            tiles_textures: HashMap::new(),
         }
     }
 
