@@ -1,4 +1,6 @@
+use image::io::Reader as ImageReader;
 use std::collections::HashMap;
+use std::io::Cursor;
 
 use macroquad::prelude::*;
 
@@ -18,10 +20,20 @@ pub struct Graphics {
 impl Graphics {
     pub fn new(
         tileset_texture: Texture2D,
+        tile_set_bytes: Vec<u8>,
         tiles_mapping: tileset::TileMapping,
         tile_width: f32,
         tile_height: f32,
     ) -> Self {
+        // FIXME manage errors
+        let tile_set_image = ImageReader::new(Cursor::new(tile_set_bytes))
+            .with_guessed_format()
+            .unwrap()
+            .decode()
+            .unwrap();
+
+        // TODO : crop all tiles images and make egui texture with it, then store it
+
         Self {
             tileset_texture,
             tiles_mapping,

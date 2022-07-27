@@ -32,12 +32,21 @@ impl UiDescription {
         let mut event = None;
 
         let label = part.label();
-        let widget = egui::Button::new(&label);
+        let tile_id = self.graphics.find_tile_id_from_classes(&part.classes);
 
         let clicked = if self.draw_big_button {
-            ui.add_sized(BIG_BUTTON_SIZE, widget).clicked()
+            ui.add_sized(BIG_BUTTON_SIZE, egui::Button::new(&label))
+                .clicked()
         } else {
-            ui.add(widget).clicked()
+            if tile_id != "UNKNOWN" {
+                // FIXME BS NOW : load once (use option get or insert)
+                let texture: egui::TextureHandle =
+                    ui.ctx().load_texture(tile_id, egui::ColorImage::example());
+                ui.add(egui::ImageButton::new(&texture, egui::Vec2::new(32., 32.)))
+                    .clicked()
+            } else {
+                ui.add(egui::Button::new(&label)).clicked()
+            }
         };
 
         if clicked {

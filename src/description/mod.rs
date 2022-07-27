@@ -4,6 +4,7 @@ use macroquad::prelude::*;
 
 use crate::engine::zone::ui::window_size;
 use crate::entity;
+use crate::graphics;
 use crate::ui as base_ui;
 use crate::ui::utils::is_mobile;
 
@@ -34,6 +35,7 @@ impl Default for UiDescriptionState {
 #[derive(Clone)]
 pub struct UiDescription {
     pub description: entity::description::Description,
+    pub graphics: graphics::Graphics,
     pub previous: Option<Box<UiDescription>>,
     pub is_first_frame: bool,
     pub loading: bool,
@@ -54,6 +56,7 @@ pub enum UiDescriptionEvent {
 impl UiDescription {
     pub fn new(
         description: entity::description::Description,
+        graphics: graphics::Graphics,
         previous: Option<UiDescription>,
     ) -> Self {
         let previous = if let Some(previous_) = previous {
@@ -63,6 +66,7 @@ impl UiDescription {
         };
         Self {
             description,
+            graphics,
             previous,
             is_first_frame: true,
             loading: false,

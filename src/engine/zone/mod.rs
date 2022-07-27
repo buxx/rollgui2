@@ -424,6 +424,8 @@ impl ZoneEngine {
                             Ok(description) => {
                                 self.current_description = Some(description::UiDescription::new(
                                     description,
+                                    // FIXME : how it cost ?
+                                    self.graphics.clone(),
                                     self.current_description.clone(),
                                 ));
                                 self.current_description_state =
