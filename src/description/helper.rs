@@ -4,6 +4,7 @@ use super::UiDescription;
 use crate::entity;
 
 pub const BIG_BUTTON_SIZE: [f32; 2] = [150.0, 150.0];
+pub const IMG_BUTTON_SIZE: [f32; 2] = [64., 64.];
 
 impl UiDescription {
     pub fn title(&self) -> String {
@@ -51,8 +52,12 @@ impl UiDescription {
                 .clicked()
         } else {
             if let Some(texture) = self.tiles_textures.get(&tile_id) {
-                ui.add(egui::ImageButton::new(texture, egui::Vec2::new(32., 32.)))
-                    .clicked()
+                ui.add(egui::ImageButton::new(
+                    texture,
+                    egui::Vec2::new(IMG_BUTTON_SIZE[0], IMG_BUTTON_SIZE[1]),
+                ))
+                .on_hover_text(&label)
+                .clicked()
             } else {
                 ui.add(egui::Button::new(&label)).clicked()
             }
@@ -65,6 +70,28 @@ impl UiDescription {
                 error!("Description button '{}' has no form action", &label);
             }
         };
+
+        event
+    }
+
+    pub fn draw_buttons_group(
+        &self,
+        ui: &mut egui::Ui,
+        parts: &Vec<entity::description::Part>,
+        state: &mut super::UiDescriptionState,
+        link_group_name: &str,
+    ) -> Option<super::UiDescriptionEvent> {
+        let mut event = None;
+
+        for part in parts {
+            if let Some(link_group_name_) = &part.link_group_name {
+                if link_group_name_ == link_group_name {
+                    if let Some(event_) = self.draw_button(ui, part, state) {
+                        event = Some(event_);
+                    }
+                }
+            }
+        }
 
         event
     }

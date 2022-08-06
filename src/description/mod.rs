@@ -19,6 +19,7 @@ pub struct UiDescriptionState {
     pub numeric_values: HashMap<String, (f32, Option<String>)>, // field_name, (value, suffix)
     pub boolean_values: HashMap<String, bool>,
     pub error_message: Option<String>,
+    pub already_displayed_groups: Vec<String>,
 }
 
 impl Default for UiDescriptionState {
@@ -28,6 +29,7 @@ impl Default for UiDescriptionState {
             numeric_values: HashMap::new(),
             boolean_values: HashMap::new(),
             error_message: None,
+            already_displayed_groups: vec![],
         }
     }
 }
@@ -152,17 +154,35 @@ impl UiDescription {
         ui: &mut egui::Ui,
         state: &mut UiDescriptionState,
     ) -> Option<UiDescriptionEvent> {
+        state.already_displayed_groups = vec![];
         let mut event = None;
 
         egui::ScrollArea::vertical()
             .auto_shrink([false, false])
             .show(ui, |ui| {
-                for (_i, part) in self.description.items.iter().enumerate() {
-                    match self.draw_part(ui, part, state) {
-                        Some(event_) => event = Some(event_),
-                        None => {}
+                for part in &self.description.items {
+                    if let Some(link_group_name) = &part.link_group_name {
+                        if !state.already_displayed_groups.contains(link_group_name) {
+                            ui.add(egui::Label::new(
+                                egui::RichText::new(link_group_name).heading(),
+                            ));
+                            ui.horizontal_wrapped(|ui| {
+                                if let Some(event_) = self.draw_buttons_group(
+                                    ui,
+                                    &self.description.items,
+                                    state,
+                                    link_group_name,
+                                ) {
+                                    event = Some(event_)
+                                }
+                            });
+                            state.already_displayed_groups.push(link_group_name.clone());
+                        }
+                    } else {
+                        if let Some(event_) = self.draw_part(ui, part, state) {
+                            event = Some(event_)
+                        }
                     }
-                    // ui.end_row();
                 }
             });
 
