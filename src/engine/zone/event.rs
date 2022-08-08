@@ -145,7 +145,15 @@ impl super::ZoneEngine {
             }
             event::ZoneEventType::NewResumeText { resume } => {
                 match CharacterResume::from_resume_texts(resume) {
-                    Ok(resume_) => self.resume = Some(resume_),
+                    Ok(resume_) => {
+                        // For each item which change, do pop animation
+                        if let Some(before) = &self.resume {
+                            self.blinking_icons
+                                .extend(before.icons_from_compare(&resume_));
+                        }
+
+                        self.resume = Some(resume_);
+                    }
                     Err(error) => {
                         error!("{}", error);
                     }

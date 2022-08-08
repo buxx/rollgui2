@@ -30,6 +30,12 @@ pub struct ProgressBar {
     inverted: bool,
 }
 
+impl PartialEq for ProgressBar {
+    fn eq(&self, other: &Self) -> bool {
+        self.percent == other.percent
+    }
+}
+
 impl ProgressBar {
     pub fn from_item(item: &ItemModel) -> Result<Self, String> {
         let percent = if let Some(value) = item.value_float {

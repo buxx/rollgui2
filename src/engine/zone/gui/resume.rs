@@ -1,9 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{
-    engine::zone::{log, resume::CharacterResume, HELPER_TEXT_FONT_SIZE},
-    graphics::Graphics,
-};
+use crate::{engine::zone::resume::CharacterResume, graphics::Graphics};
 
 const START_X: f32 = 200.;
 const START_Y: f32 = 1100.;
@@ -35,8 +32,8 @@ pub enum ResumeItem {
 }
 
 impl ResumeItem {
-    pub fn draw_param(&self) -> DrawTextureParams {
-        let source = match self {
+    pub fn source(&self) -> Rect {
+        match self {
             ResumeItem::Heart => Rect {
                 x: START_X,
                 y: START_Y + (HEIGHT * 0.),
@@ -139,7 +136,11 @@ impl ResumeItem {
                 w: WIDTH,
                 h: HEIGHT,
             },
-        };
+        }
+    }
+
+    pub fn draw_param(&self) -> DrawTextureParams {
+        let source = self.source();
 
         DrawTextureParams {
             source: Some(source),
@@ -165,7 +166,7 @@ pub fn draw_resume_items(graphics: &Graphics, resume: &CharacterResume) {
         DRAW_START_X,
         DRAW_START_Y + MARGIN_BOTTOM + (HEIGHT * 1.),
     );
-    // Can drink
+    // Thirsty
     draw_item(
         graphics,
         ResumeItem::Water.draw_param(),
@@ -205,14 +206,14 @@ pub fn draw_resume_items(graphics: &Graphics, resume: &CharacterResume) {
         DRAW_START_X,
         DRAW_START_Y + MARGIN_BOTTOM + (HEIGHT * 6.),
     );
-    // TODO: ceil with 2 digits
     draw_text(
-        &format!("{}", resume.action_points),
+        &format!("{:.2}", resume.action_points),
         DRAW_START_X + WIDTH + MARGIN_RIGHT,
         DRAW_START_Y + MARGIN_BOTTOM + (HEIGHT * 6.) + (HEIGHT - 5.0),
         HEIGHT,
         BLACK,
     );
+    // Follow
     draw_item(
         graphics,
         ResumeItem::Follow.draw_param(),
@@ -227,6 +228,7 @@ pub fn draw_resume_items(graphics: &Graphics, resume: &CharacterResume) {
         HEIGHT,
         BLACK,
     );
+    // Follower
     draw_item(
         graphics,
         ResumeItem::Follower.draw_param(),

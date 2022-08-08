@@ -19,6 +19,7 @@ impl Engine for ErrorEngine {
                 ui.colored_label(egui::Color32::RED, &self.error_message);
             });
         });
+        egui_macroquad::draw();
 
         vec![]
     }

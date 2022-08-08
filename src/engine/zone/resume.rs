@@ -1,9 +1,9 @@
 use crate::event::model::ItemModel;
 use macroquad::prelude::*;
 
-use super::gui::{component::ProgressBar, resume::ResumeItem};
+use super::gui::{blink::BlinkingIcon, component::ProgressBar, resume::ResumeItem};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Health {
     Ok,
     Middle,
@@ -36,7 +36,7 @@ impl Health {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum CanEat {
     Yes,
     Lower,
@@ -71,7 +71,7 @@ impl CanEat {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum CanDrink {
     Yes,
     Lower,
@@ -264,5 +264,48 @@ impl CharacterResume {
         };
 
         return Err("No PV resume found".to_string());
+    }
+
+    pub fn icons_from_compare(&self, after: &CharacterResume) -> Vec<BlinkingIcon> {
+        let mut resume_items = vec![];
+
+        if self.action_points != after.action_points {
+            resume_items.push(ResumeItem::Clock);
+        }
+        if self.health != after.health {
+            resume_items.push(ResumeItem::Heart);
+        }
+        if self.hungry != after.hungry {
+            resume_items.push(ResumeItem::Food);
+        }
+        if self.thirsty != after.thirsty {
+            resume_items.push(ResumeItem::Water);
+        }
+        if self.tiredness != after.tiredness {
+            resume_items.push(ResumeItem::Sleep);
+        }
+        if self.can_drink != after.can_drink {
+            resume_items.push(ResumeItem::HaveWater);
+        }
+        if self.can_eat != after.can_eat {
+            resume_items.push(ResumeItem::HaveFood);
+        }
+        if self.follow != after.follow {
+            resume_items.push(ResumeItem::Follow);
+        }
+        if self.follower != after.follower {
+            resume_items.push(ResumeItem::Follower);
+        }
+        if self.fighters != after.fighters {
+            resume_items.push(ResumeItem::Shield);
+        }
+
+        let mut blinking_icons: Vec<BlinkingIcon> = Vec::new();
+        for resume_item in resume_items {
+            let source = resume_item.source();
+            blinking_icons.push(BlinkingIcon::new(source.clone()));
+        }
+
+        blinking_icons
     }
 }

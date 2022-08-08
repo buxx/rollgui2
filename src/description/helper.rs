@@ -22,6 +22,7 @@ impl UiDescription {
             style.override_text_style = Some(egui::TextStyle::Heading);
             egui_ctx.set_style(style);
 
+            // Prepare textures for tiles images
             for part in &self.description.items {
                 let tile_id = &self.graphics.find_tile_id_from_classes(&part.classes);
                 if tile_id != "UNKNOWN" {
@@ -29,6 +30,16 @@ impl UiDescription {
                         let texture: egui::TextureHandle =
                             ui.ctx().load_texture(tile_id, image_data.clone());
                         self.tiles_textures.insert(tile_id.to_string(), texture);
+
+                        // Prepare texture with action points if needed
+                        if let Some(cost) = part.cost {
+                            if let Some(tile_with_ap) = self.graphics.tile_with_ap(tile_id, cost) {
+                                let name = format!("{}__{}AP", tile_id, cost);
+                                let texture: egui::TextureHandle =
+                                    ui.ctx().load_texture(&name, tile_with_ap.clone());
+                                self.tiles_textures.insert(name, texture);
+                            }
+                        }
                     }
                 }
             }
@@ -51,7 +62,17 @@ impl UiDescription {
             ui.add_sized(BIG_BUTTON_SIZE, egui::Button::new(&label))
                 .clicked()
         } else {
-            if let Some(texture) = self.tiles_textures.get(&tile_id) {
+            let tile_name = if let Some(cost) = part.cost {
+                if cost > 0. {
+                    format!("{}__{}AP", &tile_id, cost)
+                } else {
+                    tile_id.clone()
+                }
+            } else {
+                tile_id.clone()
+            };
+
+            if let Some(texture) = self.tiles_textures.get(&tile_name) {
                 ui.add(egui::ImageButton::new(
                     texture,
                     egui::Vec2::new(IMG_BUTTON_SIZE[0], IMG_BUTTON_SIZE[1]),

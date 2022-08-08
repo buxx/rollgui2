@@ -64,6 +64,7 @@ impl super::Engine for LoadDescriptionEngine {
                 ui.colored_label(egui::Color32::LIGHT_GRAY, "Chargement ...");
             });
         });
+        egui_macroquad::draw();
 
         vec![]
     }

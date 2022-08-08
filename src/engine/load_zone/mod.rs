@@ -542,6 +542,7 @@ impl Engine for LoadZoneEngine {
                 ui.colored_label(egui::Color32::LIGHT_GRAY, "Chargement ...");
             });
         });
+        egui_macroquad::draw();
 
         messages
     }

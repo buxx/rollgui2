@@ -1,4 +1,4 @@
-use image::io::Reader as ImageReader;
+use image::{io::Reader as ImageReader, DynamicImage};
 use std::collections::HashMap;
 use std::io::Cursor;
 
@@ -8,10 +8,77 @@ use crate::{hardcoded::get_tiles_list, tileset, types::AvatarUuid};
 
 pub mod utils;
 
+const NUMBER_START_X: f32 = 0.;
+const NUMBER_START_Y: f32 = 704.;
+const NUMBER_WIDTH: f32 = 32.;
+const NUMBER_HEIGHT: f32 = 32.;
+
+enum Number {
+    Zero,
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+    Seven,
+    Eight,
+    Nine,
+}
+
+impl Number {
+    fn x(&self) -> f32 {
+        match self {
+            Number::Zero => NUMBER_START_X + NUMBER_WIDTH * 0.,
+            Number::One => NUMBER_START_X + NUMBER_WIDTH * 1.,
+            Number::Two => NUMBER_START_X + NUMBER_WIDTH * 2.,
+            Number::Three => NUMBER_START_X + NUMBER_WIDTH * 3.,
+            Number::Four => NUMBER_START_X + NUMBER_WIDTH * 4.,
+            Number::Five => NUMBER_START_X + NUMBER_WIDTH * 5.,
+            Number::Six => NUMBER_START_X + NUMBER_WIDTH * 6.,
+            Number::Seven => NUMBER_START_X + NUMBER_WIDTH * 7.,
+            Number::Eight => NUMBER_START_X + NUMBER_WIDTH * 8.,
+            Number::Nine => NUMBER_START_X + NUMBER_WIDTH * 9.,
+        }
+    }
+
+    fn from_digit(digit: u8) -> Self {
+        match digit {
+            0 => Self::Zero,
+            1 => Self::One,
+            2 => Self::Two,
+            3 => Self::Three,
+            4 => Self::Four,
+            5 => Self::Five,
+            6 => Self::Six,
+            7 => Self::Seven,
+            8 => Self::Eight,
+            9 => Self::Nine,
+            _ => panic!("Invalid digit"),
+        }
+    }
+
+    fn from_number(number: u32) -> (Option<Self>, Self) {
+        if number < 10 {
+            return (None, Self::from_digit(number as u8));
+        }
+
+        if number < 99 {
+            let tens = (number / 10) as u8;
+            let ones = (number % 10) as u8;
+            return (Some(Self::from_digit(tens)), Self::from_digit(ones));
+        }
+
+        (Some(Self::from_digit(9)), Self::from_digit(9))
+    }
+}
+
 #[derive(Clone)]
 pub struct Graphics {
+    pub tile_set_image: DynamicImage,
     pub tileset_texture: Texture2D,
     pub tiles_mapping: tileset::TileMapping,
+    pub tiles_bytes: HashMap<String, Vec<u8>>,
     pub tiles_data: HashMap<String, egui::ImageData>,
     pub tile_width: f32,
     pub tile_height: f32,
@@ -34,6 +101,7 @@ impl Graphics {
             .unwrap();
 
         // TODO : crop all tiles images and make egui texture with it, then store it
+        let mut tiles_bytes = HashMap::new();
         let mut tiles_data = HashMap::new();
         for (tile_id, row_i, col_i, _) in get_tiles_list() {
             let x = col_i as f32 * tile_width;
@@ -45,12 +113,15 @@ impl Graphics {
                 [tile_width as usize, tile_height as usize],
                 &tile_bytes,
             ));
+            tiles_bytes.insert(tile_id.to_string(), tile_bytes);
             tiles_data.insert(tile_id.to_string(), image_data);
         }
 
         Self {
+            tile_set_image,
             tileset_texture,
             tiles_mapping,
+            tiles_bytes,
             tiles_data,
             tile_width,
             tile_height,
@@ -65,6 +136,48 @@ impl Graphics {
             }
         }
         return "UNKNOWN".to_string();
+    }
+
+    pub fn tile_with_ap(&self, tile_id: &str, cost: f32) -> Option<egui::ImageData> {
+        if let Some(sprite) = self.tiles_mapping.get(tile_id) {
+            let (_tens, ones) = Number::from_number(cost as u32);
+
+            let ones_image = self
+                .tile_set_image
+                .crop_imm(
+                    ones.x() as u32,
+                    NUMBER_START_Y as u32,
+                    NUMBER_WIDTH as u32,
+                    NUMBER_HEIGHT as u32,
+                )
+                .resize(
+                    (NUMBER_WIDTH / 2.) as u32,
+                    (NUMBER_HEIGHT / 2.0) as u32,
+                    image::imageops::FilterType::Nearest,
+                );
+
+            let mut final_image = self.tile_set_image.crop_imm(
+                sprite.sprites[0].x as u32,
+                sprite.sprites[0].y as u32,
+                sprite.width as u32,
+                sprite.height as u32,
+            );
+            image::imageops::overlay(
+                &mut final_image,
+                &ones_image,
+                (sprite.width / 2.0) as i64,
+                (sprite.height / 2.0) as i64,
+            );
+
+            return Some(egui::ImageData::Color(
+                egui::ColorImage::from_rgba_unmultiplied(
+                    [self.tile_width as usize, self.tile_height as usize],
+                    &final_image.as_bytes().to_vec(),
+                ),
+            ));
+        }
+
+        None
     }
 
     pub fn draw_tile_in_camera(

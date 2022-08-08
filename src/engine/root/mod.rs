@@ -185,6 +185,7 @@ impl Engine for RootScene {
             }
         }
 
+        egui_macroquad::draw();
         self.state.first_frame = false;
         messages
     }

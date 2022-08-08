@@ -157,7 +157,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        egui_macroquad::draw();
         next_frame().await
     }
 }

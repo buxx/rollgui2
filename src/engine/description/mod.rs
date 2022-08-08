@@ -58,6 +58,7 @@ impl super::Engine for DescriptionEngine {
                     .draw(egui_ctx, ui, &mut self.ui_description_state);
             });
         });
+        egui_macroquad::draw();
 
         if let Some(event_) = event {
             match event_ {

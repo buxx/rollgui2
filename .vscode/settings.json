@@ -9,6 +9,7 @@
         "ehttp",
         "Faible",
         "Faim",
+        "imageops",
         "inconnue",
         "macroquad",
         "Mauvais",
@@ -17,6 +18,7 @@
         "Suiveurs",
         "Suivis",
         "tileset",
+        "unmultiplied",
         "ureq"
     ]
 }

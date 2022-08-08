@@ -50,6 +50,7 @@ impl Engine for CheckCharacterIsDeadEngine {
             }
         };
 
+        egui_macroquad::draw();
         vec![]
     }
 }

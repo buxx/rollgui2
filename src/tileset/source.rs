@@ -2,15 +2,15 @@ use macroquad::prelude::*;
 
 #[derive(Clone, Debug)]
 pub struct Sprite {
-    x: f32,
-    y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[derive(Clone, Debug)]
 pub struct TileSource {
-    sprites: Vec<Sprite>,
-    width: f32,
-    height: f32,
+    pub sprites: Vec<Sprite>,
+    pub width: f32,
+    pub height: f32,
 }
 
 impl TileSource {

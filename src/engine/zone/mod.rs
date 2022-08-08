@@ -6,12 +6,13 @@ use crate::{
     graphics, message, ui::utils::is_mobile, util as base_util,
 };
 
-use self::resume::CharacterResume;
+use self::{gui::blink::BlinkingIcon, resume::CharacterResume};
 
 use super::Engine;
 
 pub mod action;
 pub mod animations;
+pub mod blink;
 pub mod event;
 pub mod gui;
 pub mod inventory;
@@ -72,6 +73,7 @@ pub struct ZoneEngine {
     pub last_begin_click_was_in_egui: Option<bool>,
     pub highlight_tiles: Vec<(usize, usize)>,
     pub resume: Option<CharacterResume>,
+    pub blinking_icons: Vec<BlinkingIcon>,
 }
 
 impl ZoneEngine {
@@ -126,6 +128,7 @@ impl ZoneEngine {
             last_begin_click_was_in_egui: None,
             highlight_tiles: vec![],
             resume: None,
+            blinking_icons: vec![],
         })
     }
 
@@ -663,9 +666,11 @@ impl Engine for ZoneEngine {
         self.draw_buttons();
         self.draw_helper_text();
         self.draw_inventory();
+        self.draw_blinking_icons();
         self.helper_text = None;
 
         messages.extend(self.ui());
+        egui_macroquad::draw();
 
         messages
     }
