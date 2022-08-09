@@ -27,4 +27,5 @@ pub enum MainMessage {
     AccountCreated,
     CharacterCreated(String, String, String), // login, password, character_id
     SetEngine(Box<dyn engine::Engine>),
+    LoadIllustration(String),
 }

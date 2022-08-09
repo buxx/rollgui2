@@ -1,4 +1,10 @@
-use crate::{client, engine::root::util::auth_failed, message, ui::utils::is_mobile, Opt};
+use crate::{
+    client::{self, Client},
+    engine::root::util::auth_failed,
+    message,
+    ui::utils::is_mobile,
+    Opt,
+};
 use macroquad::prelude::*;
 use quad_net::http_request::Request;
 
@@ -13,10 +19,14 @@ pub struct RootScene {
     state: state::RootState,
     do_login_request: Option<Request>,
     text_input_request: Option<base_ui::text_input::TextInputRequest>,
+    get_illustrations_names_request: Option<Request>,
+    illustrations_names_to_load: Option<Vec<String>>,
 }
 
 impl RootScene {
     pub fn new(opt: &Opt) -> Self {
+        let get_illustrations_names_request =
+            Some(client::Client::get_anonymous_illustrations_names_request());
         Self {
             state: state::RootState::new(
                 &opt.login.as_ref().unwrap_or(&"".to_string()),
@@ -25,6 +35,8 @@ impl RootScene {
             ),
             do_login_request: None,
             text_input_request: None,
+            get_illustrations_names_request,
+            illustrations_names_to_load: None,
         }
     }
 
@@ -36,6 +48,8 @@ impl RootScene {
             state,
             do_login_request: None,
             text_input_request: None,
+            get_illustrations_names_request: None,
+            illustrations_names_to_load: None,
         }
     }
 
@@ -106,6 +120,63 @@ impl Engine for RootScene {
         let mut messages = vec![];
         let mut events = vec![];
 
+        // Load illustrations is priority
+        if let Some(request) = self.get_illustrations_names_request.as_mut() {
+            if let Some(data) = request.try_recv() {
+                match data {
+                    Ok(illustrations_names_str) => {
+                        match serde_json::from_str(&illustrations_names_str) {
+                            Ok(illustrations_names) => {
+                                self.illustrations_names_to_load = Some(illustrations_names);
+                            }
+                            Err(error) => {
+                                return vec![message::MainMessage::SetErrorEngine(
+                                    error.to_string(),
+                                )];
+                            }
+                        };
+                        self.get_illustrations_names_request = None;
+                    }
+                    Err(error) => {
+                        return vec![message::MainMessage::SetErrorEngine(error.to_string())];
+                    }
+                }
+            }
+
+            // Display new egui frame with home message
+            ui::ui(&mut self.state, true);
+            egui_macroquad::draw();
+
+            // Freeze ui during loading
+            return vec![];
+        }
+
+        // If still illustrations to load
+        if let Some(illustrations_names_to_load) = &mut self.illustrations_names_to_load {
+            if let Some(illustrations_name_to_load) = illustrations_names_to_load.pop() {
+                // Change home message to indicate loading
+                self.state.home_message = Some((
+                    format!(
+                        "Chargement de l'illustration {}",
+                        illustrations_name_to_load
+                    ),
+                    egui::Color32::WHITE,
+                ));
+
+                // Display new egui frame with home message
+                ui::ui(&mut self.state, true);
+                egui_macroquad::draw();
+
+                // Require texture load from main loop
+                return vec![message::MainMessage::LoadIllustration(
+                    illustrations_name_to_load,
+                )];
+            } else {
+                self.illustrations_names_to_load = None;
+                self.state.home_message = None;
+            }
+        }
+
         // Accept Enter key for login form
         if is_key_released(KeyCode::Enter) | is_key_released(KeyCode::KpEnter)
             && self.do_login_request.is_none()
@@ -115,7 +186,7 @@ impl Engine for RootScene {
 
         events.extend(self.manage_do_login());
         events.extend(self.manage_text_inputs());
-        events.extend(ui::ui(&mut self.state));
+        events.extend(ui::ui(&mut self.state, false));
 
         for event in events {
             match event {

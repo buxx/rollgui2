@@ -248,6 +248,12 @@ impl Client {
         request.send()
     }
 
+    pub fn get_anonymous_illustrations_names_request() -> Request {
+        let url = format!("{}/system/illustrations-names", SERVER_ADDRESS);
+        info!("Request anonymous illustrations names {}", url);
+        RequestBuilder::new(&url).method(Method::Get).send()
+    }
+
     pub fn get_description_request(
         &self,
         url: String,

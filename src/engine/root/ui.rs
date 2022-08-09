@@ -1,7 +1,10 @@
 use crate::engine::root::state;
 use egui;
 
-pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
+pub fn ui(
+    state: &mut state::RootState,
+    avoid_validate_immediately: bool,
+) -> Option<super::RootEvent> {
     let mut event = None;
 
     egui_macroquad::ui(|egui_ctx| {
@@ -53,7 +56,9 @@ pub fn ui(state: &mut state::RootState) -> Option<super::RootEvent> {
             });
 
             ui.horizontal(|ui| {
-                if ui.button("Se connecter").clicked() || state.validate_immediately {
+                if ui.button("Se connecter").clicked()
+                    || (state.validate_immediately && !avoid_validate_immediately)
+                {
                     event = Some(super::RootEvent::DoLogin);
                     state.validate_immediately = false;
                 }

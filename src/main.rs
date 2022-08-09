@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use structopt::StructOpt;
 use ui::utils::egui_scale;
-use util::bytes_from_cache_or_file;
 
 pub mod action;
 pub mod animation;
@@ -49,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tile_set = load_texture("static/graphics.png").await.unwrap();
     let tile_set_bytes = load_file("static/graphics.png").await.unwrap();
     let tiles_mapping = tileset::loader::from_list(hardcoded::get_tiles_list(), 32., 32.);
-    let graphics = graphics::Graphics::new(tile_set, tile_set_bytes, tiles_mapping, 32., 32.);
+    let mut graphics = graphics::Graphics::new(tile_set, tile_set_bytes, tiles_mapping, 32., 32.);
 
     // Set egui scale
     egui_macroquad::egui_mq_cfg(|equi_mq| {
@@ -154,6 +153,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     current_scene = engine;
                 }
                 message::MainMessage::Quit => return Ok(()),
+                message::MainMessage::LoadIllustration(illustration_name) => {
+                    info!("Load illustration {}", illustration_name);
+                    graphics.load_illustration(&illustration_name).await;
+                }
             }
         }
 

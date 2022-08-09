@@ -1,12 +1,12 @@
 use macroquad::prelude::*;
 
-use crate::{description, message, ui::utils::egui_scale, util};
+use crate::{description, message, util};
 
-pub const DESCRIPTION_WINDOW_MARGIN: f32 = 15.;
+pub const DESCRIPTION_WINDOW_MARGIN: f32 = 45.;
 
 pub fn window_size() -> (f32, f32) {
-    let screen_width = screen_width() / egui_scale();
-    let screen_height = screen_height() / egui_scale();
+    let screen_width = screen_width();
+    let screen_height = screen_height();
     (
         screen_width - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,
         screen_height - DESCRIPTION_WINDOW_MARGIN - DESCRIPTION_WINDOW_MARGIN,

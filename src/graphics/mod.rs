@@ -4,6 +4,7 @@ use std::io::Cursor;
 
 use macroquad::prelude::*;
 
+use crate::util::bytes_from_cache_or_file;
 use crate::{hardcoded::get_tiles_list, tileset, types::AvatarUuid};
 
 pub mod utils;
@@ -83,6 +84,7 @@ pub struct Graphics {
     pub tile_width: f32,
     pub tile_height: f32,
     pub avatars: HashMap<AvatarUuid, Texture2D>,
+    pub illustrations: HashMap<String, egui::ImageData>,
 }
 
 impl Graphics {
@@ -126,6 +128,7 @@ impl Graphics {
             tile_width,
             tile_height,
             avatars: HashMap::new(),
+            illustrations: HashMap::new(),
         }
     }
 
@@ -270,5 +273,32 @@ impl Graphics {
 
     pub fn add_avatar_texture(&mut self, avatar_uuid: AvatarUuid, texture: Texture2D) {
         self.avatars.insert(avatar_uuid, texture);
+    }
+
+    pub async fn load_illustration(&mut self, illustration_name: &str) {
+        match bytes_from_cache_or_file(&format!("media/{}", illustration_name), true).await {
+            Ok(illustration_bytes) => {
+                // TODO : used to determine image size, but some heavy no ?
+                let illustration_image = ImageReader::new(Cursor::new(illustration_bytes.clone()))
+                    .with_guessed_format()
+                    .unwrap()
+                    .decode()
+                    .unwrap();
+
+                let illustration_data =
+                    egui::ImageData::Color(egui::ColorImage::from_rgba_unmultiplied(
+                        [
+                            illustration_image.width() as usize,
+                            illustration_image.height() as usize,
+                        ],
+                        &illustration_image.to_rgba8(),
+                    ));
+                self.illustrations
+                    .insert(illustration_name.to_string(), illustration_data);
+            }
+            Err(error) => {
+                error!("Error during illustration loading : {}", error);
+            }
+        };
     }
 }

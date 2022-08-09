@@ -44,6 +44,7 @@ pub struct UiDescription {
     pub draw_big_button: bool,
     pub text_input_request: Option<base_ui::text_input::TextInputRequest>,
     pub tiles_textures: HashMap<String, egui::TextureHandle>,
+    pub illustration_texture: Option<egui::TextureHandle>,
 }
 
 pub enum UiDescriptionEvent {
@@ -76,6 +77,7 @@ impl UiDescription {
             draw_big_button: false,
             text_input_request: None,
             tiles_textures: HashMap::new(),
+            illustration_texture: None,
         }
     }
 
@@ -160,6 +162,15 @@ impl UiDescription {
         egui::ScrollArea::vertical()
             .auto_shrink([false, false])
             .show(ui, |ui| {
+                if let Some(illustration_texture) = &self.illustration_texture {
+                    ui.horizontal_top(|ui| {
+                        let width = window_size().0.min(768.);
+                        let height = 300.0 / (768.0 / width);
+                        ui.image(illustration_texture, egui::Vec2::new(width, height));
+                    });
+                    ui.separator();
+                }
+
                 for part in &self.description.items {
                     if let Some(link_group_name) = &part.link_group_name {
                         if !state.already_displayed_groups.contains(link_group_name) {

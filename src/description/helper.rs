@@ -43,6 +43,17 @@ impl UiDescription {
                     }
                 }
             }
+
+            // Illustration case
+            if let Some(illustration_name) = &self.description.illustration_name {
+                if let Some(illustration_data) = self.graphics.illustrations.get(illustration_name)
+                {
+                    let illustration_texture: egui::TextureHandle = ui
+                        .ctx()
+                        .load_texture(illustration_name, illustration_data.clone());
+                    self.illustration_texture = Some(illustration_texture);
+                }
+            }
         }
         self.is_first_frame = false;
     }

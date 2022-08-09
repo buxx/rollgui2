@@ -22,8 +22,7 @@ pub fn char_to_key_code(char_: &char) -> Option<KeyCode> {
 }
 
 pub async fn texture_from_cache_or_from_file(file_path: &str) -> Result<Texture2D, String> {
-    let storage = &mut quad_storage::STORAGE.lock();
-    let storage = match storage {
+    let storage = match quad_storage::STORAGE.lock() {
         Ok(storage_) => storage_,
         Err(error) => return Err(format!("Storage error : '{}'", error)),
     };
@@ -41,21 +40,31 @@ pub async fn texture_from_cache_or_from_file(file_path: &str) -> Result<Texture2
     }
 }
 
-pub async fn bytes_from_cache_or_file(file_path: &str) -> Result<Vec<u8>, String> {
+pub async fn bytes_from_cache_or_file(
+    file_path: &str,
+    cache_if_not_in: bool,
+) -> Result<Vec<u8>, String> {
     let storage = &mut quad_storage::STORAGE.lock();
     let storage = match storage {
         Ok(storage_) => storage_,
         Err(error) => return Err(format!("Storage error : '{}'", error)),
     };
     if let Some(file_as_b64) = storage.get(file_path) {
+        debug!("Found file in cache : '{}'", file_path);
         let file_as_bytes = match base64::decode(file_as_b64) {
             Ok(file_as_bytes_) => file_as_bytes_,
             Err(error) => return Err(format!("Unable to decode cached file : '{}'", error)),
         };
         Ok(file_as_bytes)
     } else {
+        debug!("Load file : '{}'", file_path);
         match load_file(file_path).await {
-            Ok(bytes) => Ok(bytes),
+            Ok(bytes) => {
+                if cache_if_not_in {
+                    storage.set(file_path, &base64::encode(bytes.clone()));
+                }
+                Ok(bytes)
+            }
             Err(error) => return Err(format!("Unable to load file : '{}'", error)),
         }
     }
