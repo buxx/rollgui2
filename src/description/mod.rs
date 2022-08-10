@@ -45,6 +45,7 @@ pub struct UiDescription {
     pub text_input_request: Option<base_ui::text_input::TextInputRequest>,
     pub tiles_textures: HashMap<String, egui::TextureHandle>,
     pub illustration_texture: Option<egui::TextureHandle>,
+    pub illustration_load_requested: bool,
 }
 
 pub enum UiDescriptionEvent {
@@ -55,6 +56,7 @@ pub enum UiDescriptionEvent {
     ValidateFormInBody(String),
     SetDescriptionUi(Box<UiDescription>),
     TextEditFocused(String, String, String), // title, name, value
+    RequireIllustrationLoad(String),
 }
 
 impl UiDescription {
@@ -78,6 +80,7 @@ impl UiDescription {
             text_input_request: None,
             tiles_textures: HashMap::new(),
             illustration_texture: None,
+            illustration_load_requested: false,
         }
     }
 
@@ -97,10 +100,12 @@ impl UiDescription {
         ui: &mut egui::Ui,
         state: &mut UiDescriptionState,
     ) -> Option<UiDescriptionEvent> {
-        self.check_init(egui_ctx, ui);
-        self.manage_pending(state);
-
         let mut ui_message = None;
+
+        if let Some(event) = self.check_init(egui_ctx, ui) {
+            ui_message = Some(event);
+        };
+        self.manage_pending(state);
 
         ui.horizontal(|ui| {
             if ui.button("Fermer").clicked() {

@@ -674,6 +674,20 @@ impl Engine for ZoneEngine {
 
         messages
     }
+
+    fn signal_illustration_loaded(&mut self, _illustration_name: &str) {
+        if let Some(current_description) = self.current_description.as_mut() {
+            // Faking is_first_frame will permit to rerun .check_init description function
+            current_description.is_first_frame = true;
+        }
+    }
+
+    fn replace_graphics(&mut self, graphics: crate::graphics::Graphics) {
+        self.graphics = graphics.clone();
+        if let Some(current_description) = self.current_description.as_mut() {
+            current_description.graphics = graphics;
+        }
+    }
 }
 
 pub enum PlayerRunning {

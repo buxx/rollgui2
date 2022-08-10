@@ -53,4 +53,8 @@ impl Engine for CheckCharacterIsDeadEngine {
         egui_macroquad::draw();
         vec![]
     }
+
+    fn signal_illustration_loaded(&mut self, _illustration_name: &str) {}
+
+    fn replace_graphics(&mut self, _graphics: crate::graphics::Graphics) {}
 }

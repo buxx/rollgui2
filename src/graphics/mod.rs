@@ -7,8 +7,6 @@ use macroquad::prelude::*;
 use crate::util::bytes_from_cache_or_file;
 use crate::{hardcoded::get_tiles_list, tileset, types::AvatarUuid};
 
-pub mod utils;
-
 const NUMBER_START_X: f32 = 0.;
 const NUMBER_START_Y: f32 = 704.;
 const NUMBER_WIDTH: f32 = 32.;

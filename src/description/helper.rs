@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use super::UiDescription;
+use super::{UiDescription, UiDescriptionEvent};
 use crate::entity;
 
 pub const BIG_BUTTON_SIZE: [f32; 2] = [150.0, 150.0];
@@ -14,13 +14,33 @@ impl UiDescription {
         }
     }
 
-    pub fn check_init(&mut self, egui_ctx: &egui::Context, ui: &mut egui::Ui) {
+    pub fn check_init(
+        &mut self,
+        egui_ctx: &egui::Context,
+        ui: &mut egui::Ui,
+    ) -> Option<UiDescriptionEvent> {
         if self.is_first_frame {
             let mut style = (*egui_ctx.style()).clone();
             // FIXME BS NOW : still required ?
             // TODO : with new egui, do https://discord.com/channels/900275882684477440/900275883124858921/938081008568377354
             style.override_text_style = Some(egui::TextStyle::Heading);
             egui_ctx.set_style(style);
+
+            // Illustration case
+            if let Some(illustration_name) = &self.description.illustration_name {
+                if let Some(illustration_data) = self.graphics.illustrations.get(illustration_name)
+                {
+                    let illustration_texture: egui::TextureHandle = ui
+                        .ctx()
+                        .load_texture(illustration_name, illustration_data.clone());
+                    self.illustration_texture = Some(illustration_texture);
+                } else if !self.illustration_load_requested {
+                    self.illustration_load_requested = true;
+                    return Some(UiDescriptionEvent::RequireIllustrationLoad(
+                        illustration_name.clone(),
+                    ));
+                }
+            }
 
             // Prepare textures for tiles images
             for part in &self.description.items {
@@ -43,19 +63,9 @@ impl UiDescription {
                     }
                 }
             }
-
-            // Illustration case
-            if let Some(illustration_name) = &self.description.illustration_name {
-                if let Some(illustration_data) = self.graphics.illustrations.get(illustration_name)
-                {
-                    let illustration_texture: egui::TextureHandle = ui
-                        .ctx()
-                        .load_texture(illustration_name, illustration_data.clone());
-                    self.illustration_texture = Some(illustration_texture);
-                }
-            }
+            self.is_first_frame = false;
         }
-        self.is_first_frame = false;
+        None
     }
 
     pub fn draw_button(

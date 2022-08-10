@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 use structopt::StructOpt;
 use ui::utils::egui_scale;
+use util::texture_from_cache_or_from_file;
 
 pub mod action;
 pub mod animation;
@@ -129,18 +130,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     current_scene = Box::new(engine::error::ErrorEngine::new(error_message));
                 }
                 message::MainMessage::SetZoneEngine(client, state) => {
-                    let mut graphics = graphics.clone();
-                    graphics = match graphics::utils::fill_avatars_from_zone_state(&state, graphics)
-                        .await
-                    {
-                        Ok(graphics_) => graphics_,
-                        Err(error) => {
-                            current_scene = Box::new(engine::error::ErrorEngine::new(error));
-                            continue;
-                        }
-                    };
+                    let player_avatar_uuid = state.player.private_avatar_uuid();
+                    let player_avatar_texture = texture_from_cache_or_from_file(&format!(
+                        "media/character_avatar__original__{}.png",
+                        player_avatar_uuid
+                    ))
+                    .await?;
+                    graphics.add_avatar_texture(player_avatar_uuid, player_avatar_texture);
 
-                    match engine::zone::ZoneEngine::new(client, graphics, state) {
+                    match engine::zone::ZoneEngine::new(client, graphics.clone(), state) {
                         Ok(engine) => {
                             current_scene = Box::new(engine);
                         }
@@ -156,6 +154,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 message::MainMessage::LoadIllustration(illustration_name) => {
                     info!("Load illustration {}", illustration_name);
                     graphics.load_illustration(&illustration_name).await;
+                    current_scene.replace_graphics(graphics.clone());
+                    current_scene.signal_illustration_loaded(&illustration_name);
                 }
             }
         }

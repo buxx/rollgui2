@@ -107,9 +107,18 @@ impl super::Engine for DescriptionEngine {
                 }
                 // Managed inside of UiDescription
                 description::UiDescriptionEvent::TextEditFocused(_, _, _) => {}
+                description::UiDescriptionEvent::RequireIllustrationLoad(illustration_name) => {
+                    return vec![message::MainMessage::LoadIllustration(illustration_name)];
+                }
             }
         }
 
         vec![]
+    }
+
+    fn signal_illustration_loaded(&mut self, _illustration_name: &str) {}
+
+    fn replace_graphics(&mut self, graphics: crate::graphics::Graphics) {
+        self.ui_description.graphics = graphics;
     }
 }

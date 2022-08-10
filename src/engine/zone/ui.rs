@@ -68,6 +68,12 @@ impl super::ZoneEngine {
                         }
                         // Managed inside of UiDescription
                         description::UiDescriptionEvent::TextEditFocused(_, _, _) => {}
+                        description::UiDescriptionEvent::RequireIllustrationLoad(
+                            illustration_name,
+                        ) => {
+                            messages
+                                .push(message::MainMessage::LoadIllustration(illustration_name));
+                        }
                     }
                 }
 
