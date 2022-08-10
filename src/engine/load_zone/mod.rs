@@ -21,8 +21,6 @@ pub struct LoadZoneEngine {
     zone: Option<zone::map::ZoneMap>,
     get_characters_request: Option<Request>,
     characters: Option<Vec<entity::character::Character>>,
-    get_player_avatar_request: Option<Request>,
-    player_avatar: Option<Vec<u8>>,
     get_avatars_zone_thumbs_requests: Vec<(AvatarUuid, Request)>,
     avatars_zone_thumbs: Vec<(AvatarUuid, Vec<u8>)>,
     get_resources_request: Option<Request>,
@@ -53,8 +51,6 @@ impl LoadZoneEngine {
             zone: None,
             get_characters_request: None,
             characters: None,
-            get_player_avatar_request: None,
-            player_avatar: None,
             get_avatars_zone_thumbs_requests: vec![],
             avatars_zone_thumbs: vec![],
             get_resources_request: None,
@@ -70,28 +66,6 @@ impl LoadZoneEngine {
         if self.get_player_request.is_none() && self.player.is_none() {
             info!("Request player character");
             self.get_player_request = Some(self.client.get_character_request(&self.character_id));
-        }
-
-        vec![]
-    }
-
-    fn make_player_avatar_request(&mut self) -> Vec<message::MainMessage> {
-        if let Some(player) = &self.player {
-            if self.get_player_avatar_request.is_none() && self.player_avatar.is_none() {
-                info!("Request player avatar");
-                let avatar_uuid = player.private_avatar_uuid();
-                let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                if let Some(avatar_as_b64) =
-                    storage.get(&format!("player_avatar__{}", avatar_uuid.0))
-                {
-                    // TODO : manage unwrap
-                    let avatar_bytes = base64::decode(&avatar_as_b64).unwrap();
-                    self.player_avatar = Some(avatar_bytes);
-                } else {
-                    let request = self.client.get_avatar_request(&avatar_uuid);
-                    self.get_player_avatar_request = Some(request);
-                };
-            }
         }
 
         vec![]
@@ -119,34 +93,6 @@ impl LoadZoneEngine {
                             };
                         self.player = Some(character);
                         debug!("{:?}", self.player);
-                    }
-                    Err(error) => {
-                        return vec![message::MainMessage::SetErrorEngine(error.to_string())];
-                    }
-                }
-            }
-        };
-
-        vec![]
-    }
-
-    fn retrieve_player_avatar(&mut self) -> Vec<message::MainMessage> {
-        if let Some(get_player_avatar_request) = self.get_player_avatar_request.as_mut() {
-            if let Some(data) = get_player_avatar_request.try_recv() {
-                let player = self
-                    .player
-                    .as_ref()
-                    .expect("Player must be defined at this point");
-                let avatar_uuid = player.private_avatar_uuid();
-                info!("Player avatar received");
-                match data {
-                    Ok(avatar) => {
-                        let avatar_ = avatar.as_bytes();
-                        self.player_avatar = Some(avatar_.to_vec());
-                        // Store in cache too
-                        let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                        let avatar_as_b64 = base64::encode(&avatar_);
-                        storage.set(&format!("player_avatar__{}", avatar_uuid), &avatar_as_b64);
                     }
                     Err(error) => {
                         return vec![message::MainMessage::SetErrorEngine(error.to_string())];
@@ -485,8 +431,6 @@ impl Engine for LoadZoneEngine {
         messages.extend(self.make_tiles_request());
         messages.extend(self.make_player_request());
         messages.extend(self.retrieve_player());
-        messages.extend(self.make_player_avatar_request());
-        messages.extend(self.retrieve_player_avatar());
 
         messages.extend(self.make_zone_request());
         messages.extend(self.make_characters_request());
@@ -505,7 +449,6 @@ impl Engine for LoadZoneEngine {
 
         if let (
             Some(player),
-            Some(player_avatar),
             Some(map),
             Some(characters),
             Some(resources),
@@ -513,7 +456,6 @@ impl Engine for LoadZoneEngine {
             Some(builds),
         ) = (
             self.player.as_mut(),
-            self.player_avatar.as_mut(),
             self.zone.as_mut(),
             self.characters.as_mut(),
             self.resources.as_mut(),
