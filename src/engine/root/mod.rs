@@ -1,5 +1,5 @@
 use crate::{
-    client::{self, Client},
+    client::{self},
     engine::root::util::auth_failed,
     message,
     ui::utils::is_mobile,

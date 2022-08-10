@@ -143,7 +143,7 @@ impl Graphics {
 
     pub fn tile_with_ap(&self, tile_id: &str, cost: f32) -> Option<egui::ImageData> {
         if let Some(sprite) = self.tiles_mapping.get(tile_id) {
-            let (_tens, ones) = Number::from_number(cost as u32);
+            let (tens, ones) = Number::from_number(cost as u32);
 
             let ones_image = self
                 .tile_set_image
@@ -171,6 +171,29 @@ impl Graphics {
                 (sprite.width / 2.0) as i64,
                 (sprite.height / 2.0) as i64,
             );
+
+            if let Some(tens) = tens {
+                let tens_image = self
+                    .tile_set_image
+                    .crop_imm(
+                        tens.x() as u32,
+                        NUMBER_START_Y as u32,
+                        NUMBER_WIDTH as u32,
+                        NUMBER_HEIGHT as u32,
+                    )
+                    .resize(
+                        (NUMBER_WIDTH / 2.) as u32,
+                        (NUMBER_HEIGHT / 2.0) as u32,
+                        image::imageops::FilterType::Nearest,
+                    );
+
+                image::imageops::overlay(
+                    &mut final_image,
+                    &tens_image,
+                    0,
+                    (sprite.height / 2.0) as i64,
+                );
+            }
 
             return Some(egui::ImageData::Color(
                 egui::ColorImage::from_rgba_unmultiplied(
