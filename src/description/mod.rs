@@ -200,6 +200,17 @@ impl UiDescription {
                         }
                     }
                 }
+
+                if self.description.footer_links.len() > 0 {
+                    ui.horizontal_top(|ui| {
+                        for footer_link in &self.description.footer_links {
+                            match self.draw_part(ui, footer_link, state) {
+                                Some(event_) => event = Some(event_),
+                                None => {}
+                            }
+                        }
+                    });
+                }
             });
 
         event
