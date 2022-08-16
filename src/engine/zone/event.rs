@@ -4,6 +4,9 @@ use crate::{action, animation, engine::zone::resume::CharacterResume, entity, ev
 
 impl super::ZoneEngine {
     pub fn event(&mut self, event: crate::event::ZoneEvent) {
+        // This a hack because click used for build but not good reliable things
+        self.pending_request_clicks = None;
+
         match event.event_type {
             event::ZoneEventType::ThereIsAround {
                 stuff_count: _,
@@ -64,6 +67,10 @@ impl super::ZoneEngine {
                 }
 
                 self.state.builds.insert((build.row_i, build.col_i), build);
+                self.user_logs.push(super::log::UserLog::new(
+                    "Un bâtiment a été construit".to_string(),
+                    super::log::UserLogLevel::Info,
+                ));
             }
             event::ZoneEventType::CharacterEnter {
                 zone_row_i,
@@ -78,6 +85,10 @@ impl super::ZoneEngine {
                         zone_col_i,
                     ),
                 );
+                self.user_logs.push(super::log::UserLog::new(
+                    "Un personnage vient d'arriver".to_string(),
+                    super::log::UserLogLevel::Info,
+                ));
             }
             event::ZoneEventType::CharacterExit { character_id } => {
                 self.state.characters.remove(&character_id);
@@ -158,6 +169,14 @@ impl super::ZoneEngine {
                         error!("{}", error);
                     }
                 }
+            }
+            event::ZoneEventType::TopBarMessage { message, type_ } => {
+                let message_level = match type_ {
+                    event::TopBarMessageType::NORMAL => super::log::UserLogLevel::Info,
+                    event::TopBarMessageType::ERROR => super::log::UserLogLevel::Error,
+                };
+                self.user_logs
+                    .push(super::log::UserLog::new(message, message_level));
             }
             _ => {}
         }

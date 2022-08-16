@@ -2,8 +2,11 @@ use macroquad::prelude::*;
 use quad_net::web_socket::WebSocket;
 
 use crate::{
-    action as base_action, animation, client, config, description, entity, event as base_event,
-    graphics, message, ui::utils::is_mobile, util as base_util,
+    action as base_action, animation, client, config, description,
+    entity::{self, description::RequestClicks},
+    event as base_event, graphics, message,
+    ui::utils::is_mobile,
+    util as base_util,
 };
 
 use self::{gui::blink::BlinkingIcon, resume::CharacterResume};
@@ -13,6 +16,7 @@ use super::Engine;
 pub mod action;
 pub mod animations;
 pub mod blink;
+pub mod click;
 pub mod event;
 pub mod gui;
 pub mod inventory;
@@ -74,6 +78,8 @@ pub struct ZoneEngine {
     pub highlight_tiles: Vec<(usize, usize)>,
     pub resume: Option<CharacterResume>,
     pub blinking_icons: Vec<BlinkingIcon>,
+    pub request_clicks: Option<RequestClicks>,
+    pub pending_request_clicks: Option<(RequestClicks, i32, i32)>,
 }
 
 impl ZoneEngine {
@@ -129,6 +135,8 @@ impl ZoneEngine {
             highlight_tiles: vec![],
             resume: None,
             blinking_icons: vec![],
+            request_clicks: None,
+            pending_request_clicks: None,
         })
     }
 
@@ -425,14 +433,22 @@ impl ZoneEngine {
                     Ok(description_string) => {
                         match entity::description::Description::from_string(&description_string) {
                             Ok(description) => {
-                                self.current_description = Some(description::UiDescription::new(
-                                    description,
-                                    // FIXME : how it cost ?
-                                    self.graphics.clone(),
-                                    self.current_description.clone(),
-                                ));
-                                self.current_description_state =
-                                    Some(description::UiDescriptionState::default());
+                                // If it is a clicks request, setup only it
+                                if let Some(request_clicks) = description.request_clicks {
+                                    info!("Request clicks : {:?}", request_clicks);
+                                    self.request_clicks = Some(request_clicks);
+                                    self.current_description = None;
+                                    self.current_description_state = None;
+                                } else {
+                                    self.current_description =
+                                        Some(description::UiDescription::new(
+                                            description,
+                                            self.graphics.clone(),
+                                            self.current_description.clone(),
+                                        ));
+                                    self.current_description_state =
+                                        Some(description::UiDescriptionState::default());
+                                }
                             }
                             Err(error) => {
                                 error!("Error while decoding description : {}", error);
@@ -454,6 +470,7 @@ impl ZoneEngine {
             || self.disable_all_user_input
             || self.current_description.is_some()
             || self.inventory.is_some()
+            || self.request_clicks.is_some()
         {
             return;
         }
@@ -655,6 +672,7 @@ impl Engine for ZoneEngine {
         self.animations();
         self.draw_zone_ux();
         let action_clicked = self.draw_current_action();
+        self.draw_request_clicks();
 
         // Ui
         set_default_camera();

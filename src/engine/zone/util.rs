@@ -1,4 +1,4 @@
-use crate::event;
+use crate::{entity::description::RequestClicks, event};
 
 pub fn require_around_event(state: &super::state::ZoneState) -> String {
     serde_json::to_string(&event::ZoneEvent {
@@ -19,6 +19,19 @@ pub fn player_move_event(state: &super::state::ZoneState) -> String {
             to_row_i: state.player.zone_row_i,
             to_col_i: state.player.zone_col_i,
             character_id: state.player.id.clone(),
+        },
+    })
+    .unwrap()
+}
+
+pub fn click_action_event(request_clicks: &RequestClicks, row_i: i16, col_i: i16) -> String {
+    serde_json::to_string(&event::ZoneEvent {
+        event_type_name: String::from(event::CLICK_ACTION_EVENT),
+        event_type: event::ZoneEventType::ClickActionEvent {
+            action_type: request_clicks.action_type.clone(),
+            action_description_id: request_clicks.action_description_id.clone(),
+            row_i: row_i,
+            col_i: col_i,
         },
     })
     .unwrap()

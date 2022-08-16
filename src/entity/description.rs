@@ -1,5 +1,13 @@
 use serde_derive::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RequestClicks {
+    pub action_type: String,
+    pub action_description_id: String,
+    pub cursor_classes: Vec<String>,
+    pub many: bool,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Part {
     pub text: Option<String>,
@@ -49,7 +57,7 @@ pub struct Description {
     pub redirect: Option<String>,
     pub force_back_url: Option<String>,
     pub can_be_back_url: bool,
-    // pub request_clicks: Option<RequestClicks>,
+    pub request_clicks: Option<RequestClicks>,
     pub footer_with_character_id: Option<String>,
     pub footer_actions: bool,
     pub footer_inventory: bool,
