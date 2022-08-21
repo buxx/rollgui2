@@ -12,4 +12,5 @@ pub struct QuickAction {
     pub all_tiles_at_once: bool,
     pub direct_action: bool,
     pub quick_action_key: Option<char>,
+    pub force_open_description: bool,
 }

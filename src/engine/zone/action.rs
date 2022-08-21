@@ -59,20 +59,28 @@ impl ZoneEngine {
             if hover || pressed_by_key {
                 self.helper_text = Some(quick_action.name.clone());
                 if base_util::mouse_clicked() || pressed_by_key {
-                    if !quick_action.direct_action {
-                        self.current_action =
-                            Some(base_action::Action::from_quick_action(&quick_action));
-                        self.selected_quick_action = Some(i);
-                        self.pending_exploitable_tiles = vec![];
-                        quick_action_just_clicked = true;
+                    if quick_action.force_open_description {
+                        self.description_request = Some(self.client.get_description_request(
+                            quick_action.base_url.clone(),
+                            None,
+                            None,
+                        ));
                     } else {
-                        self.quick_action_requests
-                            .push(self.client.get_quick_action_request(
-                                &quick_action.uuid,
-                                &quick_action.base_url,
-                                None,
-                                None,
-                            ));
+                        if !quick_action.direct_action {
+                            self.current_action =
+                                Some(base_action::Action::from_quick_action(&quick_action));
+                            self.selected_quick_action = Some(i);
+                            self.pending_exploitable_tiles = vec![];
+                            quick_action_just_clicked = true;
+                        } else {
+                            self.quick_action_requests
+                                .push(self.client.get_quick_action_request(
+                                    &quick_action.uuid,
+                                    &quick_action.base_url,
+                                    None,
+                                    None,
+                                ));
+                        }
                     }
                 }
                 self.disable_all_user_input = true;
