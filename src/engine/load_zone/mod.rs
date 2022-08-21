@@ -2,10 +2,7 @@ use macroquad::prelude::*;
 use quad_net::http_request::Request;
 use serde_json::Value;
 
-use crate::{
-    client, engine::dead::CheckCharacterIsDeadEngine, entity, hardcoded, message,
-    types::AvatarUuid, zone,
-};
+use crate::{client, engine::dead::CheckCharacterIsDeadEngine, entity, hardcoded, message, zone};
 
 use super::Engine;
 
