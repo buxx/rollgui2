@@ -1,3 +1,4 @@
+use engine::world::WorldEngine;
 use macroquad::prelude::*;
 use structopt::StructOpt;
 use ui::utils::egui_scale;
@@ -63,10 +64,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for message in messages {
             match message {
                 message::MainMessage::SetLoadZoneEngine(login, password, character_id) => {
-                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::new(
+                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::from_credentials(
                         graphics.clone(),
                         &login,
                         &password,
+                        &character_id,
+                    )?);
+                }
+                message::MainMessage::SetLoadZoneEngineWithClient(client, character_id) => {
+                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::new(
+                        graphics.clone(),
+                        client,
                         &character_id,
                     )?);
                 }
@@ -116,7 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     ));
                 }
                 message::MainMessage::CharacterCreated(login, password, character_id) => {
-                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::new(
+                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::from_credentials(
                         graphics.clone(),
                         &login,
                         &password,
@@ -156,6 +164,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     graphics.load_illustration(&illustration_name).await;
                     current_scene.replace_graphics(graphics.clone());
                     current_scene.signal_illustration_loaded(&illustration_name);
+                }
+                message::MainMessage::SetWorldEngine(client, player) => {
+                    current_scene = Box::new(WorldEngine::new(graphics.clone(), client, player))
                 }
             }
         }

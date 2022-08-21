@@ -1,14 +1,17 @@
 use crate::{
-    client, description,
+    client::{self, Client},
+    description,
     engine::{self, zone::state::ZoneState},
-    entity,
+    entity::{self, character::Character},
 };
 
 pub enum MainMessage {
     Quit,
     SetRootEngine,
     SetLoadZoneEngine(String, String, String),
+    SetLoadZoneEngineWithClient(Client, String),
     SetZoneEngine(client::Client, ZoneState),
+    SetWorldEngine(client::Client, Character),
     SetLoadDescriptionEngine(
         String,
         Option<serde_json::Map<String, serde_json::Value>>,

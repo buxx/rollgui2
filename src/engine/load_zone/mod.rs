@@ -21,8 +21,6 @@ pub struct LoadZoneEngine {
     zone: Option<zone::map::ZoneMap>,
     get_characters_request: Option<Request>,
     characters: Option<Vec<entity::character::Character>>,
-    get_avatars_zone_thumbs_requests: Vec<(AvatarUuid, Request)>,
-    avatars_zone_thumbs: Vec<(AvatarUuid, Vec<u8>)>,
     get_resources_request: Option<Request>,
     resources: Option<Vec<entity::resource::Resource>>,
     get_stuffs_request: Option<Request>,
@@ -32,13 +30,21 @@ pub struct LoadZoneEngine {
 }
 
 impl LoadZoneEngine {
-    pub fn new(
+    pub fn from_credentials(
         graphics: crate::graphics::Graphics,
         login: &str,
         password: &str,
         character_id: &str,
     ) -> Result<Self, String> {
         let client = client::Client::new(login.to_string(), password.to_string());
+        Self::new(graphics, client, character_id)
+    }
+
+    pub fn new(
+        graphics: crate::graphics::Graphics,
+        client: client::Client,
+        character_id: &str,
+    ) -> Result<Self, String> {
         Ok(Self {
             graphics,
             client,
@@ -51,8 +57,6 @@ impl LoadZoneEngine {
             zone: None,
             get_characters_request: None,
             characters: None,
-            get_avatars_zone_thumbs_requests: vec![],
-            avatars_zone_thumbs: vec![],
             get_resources_request: None,
             resources: None,
             get_stuffs_request: None,
@@ -140,31 +144,6 @@ impl LoadZoneEngine {
 
         vec![]
     }
-
-    fn make_avatars_zone_thumbs_requests(&mut self) -> Vec<message::MainMessage> {
-        if let Some(characters) = &self.characters {
-            for character in characters {
-                // Grab avatar from local storage if it exists or make a request to get it
-                let avatar_uuid = character.public_avatar_uuid();
-                let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                if let Some(avatar_as_b64) =
-                    storage.get(&format!("avatar_zone_thumb__{}", avatar_uuid.0))
-                {
-                    // TODO : manage unwrap
-                    let avatar_bytes = base64::decode(&avatar_as_b64).unwrap();
-                    self.avatars_zone_thumbs
-                        .push((avatar_uuid.clone(), avatar_bytes));
-                } else {
-                    let request = self.client.get_avatar_zone_thumb_request(&avatar_uuid);
-                    self.get_avatars_zone_thumbs_requests
-                        .push((avatar_uuid.clone(), request));
-                };
-            }
-        };
-
-        vec![]
-    }
-
     fn make_resources_request(&mut self) -> Vec<message::MainMessage> {
         if self.get_resources_request.is_none() {
             if let Some(player) = &self.player {
@@ -308,34 +287,6 @@ impl LoadZoneEngine {
         vec![]
     }
 
-    fn retrieve_avatars_zone_thumbs(&mut self) -> Vec<message::MainMessage> {
-        for (avatar_uuid, get_avatar_zone_thumb_request) in
-            &mut self.get_avatars_zone_thumbs_requests
-        {
-            if let Some(data) = get_avatar_zone_thumb_request.try_recv() {
-                info!("Avatar '{}' zone thumbs received", avatar_uuid);
-                match data {
-                    Ok(avatar) => {
-                        let avatar_ = avatar.as_bytes();
-                        self.avatars_zone_thumbs
-                            .push((avatar_uuid.clone(), avatar_.to_vec()));
-                        // Put this image in cache too
-                        let storage = &mut quad_storage::STORAGE.lock().unwrap();
-                        storage.set(
-                            &format!("avatar_zone_thumb__{}", avatar_uuid),
-                            &base64::encode(avatar_),
-                        );
-                    }
-                    Err(error) => {
-                        return vec![message::MainMessage::SetErrorEngine(error.to_string())];
-                    }
-                }
-            }
-        }
-
-        vec![]
-    }
-
     fn retrieve_resources(&mut self) -> Vec<message::MainMessage> {
         if self.resources.is_none() {
             if let Some(get_resources_request) = self.get_resources_request.as_mut() {
@@ -434,7 +385,6 @@ impl Engine for LoadZoneEngine {
 
         messages.extend(self.make_zone_request());
         messages.extend(self.make_characters_request());
-        messages.extend(self.make_avatars_zone_thumbs_requests());
         messages.extend(self.make_resources_request());
         messages.extend(self.make_stuffs_request());
         messages.extend(self.make_builds_request());
@@ -442,7 +392,6 @@ impl Engine for LoadZoneEngine {
         messages.extend(self.retrieve_tiles());
         messages.extend(self.retrieve_zone());
         messages.extend(self.retrieve_characters());
-        messages.extend(self.retrieve_avatars_zone_thumbs());
         messages.extend(self.retrieve_resources());
         messages.extend(self.retrieve_stuffs());
         messages.extend(self.retrieve_builds());

@@ -104,6 +104,7 @@ impl ZoneEngine {
                     self.mouse_zone_position,
                     tile_is_pending,
                 );
+
                 let pressed_by_key = if let Some(associated_key_) = &current_action.associated_key {
                     is_key_pressed(*associated_key_)
                 } else {

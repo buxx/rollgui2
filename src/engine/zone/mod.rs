@@ -37,12 +37,26 @@ const QUICK_ACTION_MARGIN: f32 = 10.;
 pub const DISPLAY_USER_LOG_COUNT: usize = 5;
 const HELPER_TEXT_FONT_SIZE: f32 = 23.;
 
+// This is a hack in regards of https://github.com/not-fl3/quad-net/issues/5
+// Manage an unique websocket object for application lifetime
+// TODO : Manage close and reopen when player will be able to disconnect
+// (but no idea to how to close ws with wasm: https://github.com/not-fl3/quad-net/pull/4)
+static mut WS: Option<WebSocket> = None;
+
+fn web_socket(state: &state::ZoneState) -> &'static mut WebSocket {
+    unsafe {
+        if WS.is_none() {
+            WS = Some(socket::get_socket(&state).unwrap());
+        }
+        WS.as_mut().unwrap()
+    }
+}
+
 pub struct ZoneEngine {
     pub client: client::Client,
     pub graphics: graphics::Graphics,
     pub state: state::ZoneState,
     pub pending_events: Vec<UserEvent>,
-    pub socket: WebSocket,
     pub socket_is_new: bool,
     pub tick_last: f64,
     pub tick_i: i16,
@@ -88,7 +102,6 @@ impl ZoneEngine {
         graphics: graphics::Graphics,
         state: state::ZoneState,
     ) -> Result<Self, String> {
-        let socket = socket::get_socket(&state)?;
         let zoom_mode = if is_mobile() {
             ZoomMode::Double
         } else {
@@ -99,7 +112,6 @@ impl ZoneEngine {
             graphics,
             state,
             pending_events: vec![],
-            socket,
             socket_is_new: true,
             tick_last: get_time(),
             tick_i: 0,
@@ -239,7 +251,7 @@ impl ZoneEngine {
             let coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
             if coordinates != self.last_require_around_coordinate {
                 let event = util::require_around_event(&self.state);
-                self.socket.send_text(&event);
+                web_socket(&self.state).send_text(&event);
                 self.last_require_around_coordinate = coordinates;
             }
         }
@@ -273,7 +285,7 @@ impl ZoneEngine {
                 self.state.player.zone_row_i = next_player_row_i;
                 self.state.player.zone_col_i = next_player_col_i;
                 let player_move_event = util::player_move_event(&self.state);
-                self.socket.send_text(&player_move_event);
+                web_socket(&self.state).send_text(&player_move_event);
             }
         }
 
@@ -296,7 +308,7 @@ impl ZoneEngine {
     }
 
     fn recv_events(&mut self) -> Vec<message::MainMessage> {
-        while let Some(data) = self.socket.try_recv() {
+        while let Some(data) = web_socket(&self.state).try_recv() {
             match base_event::ZoneEvent::from_u8(data) {
                 Ok(event) => self.event(event),
                 Err(error) => return vec![message::MainMessage::SetErrorEngine(error)],
@@ -408,7 +420,7 @@ impl ZoneEngine {
                         };
                         // Quick action probably changes now
                         let event = util::require_around_event(&self.state);
-                        self.socket.send_text(&event);
+                        web_socket(&self.state).send_text(&event);
                     }
                     Err(error) => {
                         error!("Quick action response ERROR : {}", error);
@@ -618,10 +630,10 @@ impl ZoneEngine {
     fn manage_fresh_socket(&mut self) -> bool {
         if self.socket_is_new {
             // Socket just connected
-            if self.socket.connected() {
+            if web_socket(&self.state).connected() {
                 self.socket_is_new = false;
                 let event = util::require_around_event(&self.state);
-                self.socket.send_text(&event);
+                web_socket(&self.state).send_text(&event);
                 let new_coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
                 self.last_require_around_coordinate = new_coordinates;
                 return false;
@@ -677,7 +689,7 @@ impl Engine for ZoneEngine {
         // Ui
         set_default_camera();
         self.disable_all_user_input = false;
-        self.draw_left_panel();
+        messages.extend(self.draw_left_panel());
         self.draw_resume_items();
         self.draw_user_logs();
         self.draw_quick_actions(action_clicked);

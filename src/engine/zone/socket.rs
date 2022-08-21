@@ -7,13 +7,6 @@ pub fn get_socket(state: &super::state::ZoneState) -> Result<WebSocket, String> 
     let ws_url = get_url(state);
     info!("Connect web socket at {}", ws_url);
 
-    #[cfg(not(target_arch = "wasm32"))]
-    match WebSocket::connect(&ws_url) {
-        Ok(socket_) => Ok(socket_),
-        Err(error) => Err(format!("Erreur de connexion web socket : {:?}", error)),
-    }
-
-    #[cfg(target_arch = "wasm32")]
     match WebSocket::connect(&ws_url) {
         Ok(socket_) => Ok(socket_),
         Err(error) => Err(format!("Erreur de connexion web socket : {:?}", error)),

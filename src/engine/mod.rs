@@ -6,6 +6,7 @@ pub mod error;
 pub mod load_description;
 pub mod load_zone;
 pub mod root;
+pub mod world;
 pub mod zone;
 
 pub trait Engine {

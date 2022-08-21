@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::util::mouse_clicked;
+use crate::{engine::zone::web_socket, util::mouse_clicked};
 
 use super::{util::click_action_event, ZoneEngine, LEFT_PANEL_WIDTH};
 
@@ -79,7 +79,7 @@ impl ZoneEngine {
                 &request_clicks.action_type,
                 request_clicks.action_description_id
             );
-            self.socket.send_text(&click_action_event(
+            web_socket(&self.state).send_text(&click_action_event(
                 &request_clicks,
                 tile_hovered_row_i as i16,
                 tile_hovered_col_i as i16,

@@ -331,7 +331,17 @@ impl Client {
     pub fn get_avatar_zone_thumb_request(&self, avatar_uuid: &AvatarUuid) -> Request {
         let media_file_name = format!("character_avatar__zone_thumb__{}.png", avatar_uuid);
         let url = format!("{}/media/{}", SERVER_ADDRESS, media_file_name);
-        info!("Retrieve avatar media at {}", url);
+        info!("Retrieve avatar zone thumb media at {}", url);
+
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.basic_auth_value())
+            .method(Method::Get)
+            .send()
+    }
+
+    pub fn get_world_as_character_request(&self, character_id: &str) -> Request {
+        let url = format!("{}/world/as-character/{}", SERVER_ADDRESS, character_id);
+        info!("Retrieve world as character at {}", url);
 
         RequestBuilder::new(&url)
             .header("Authorization", &self.basic_auth_value())

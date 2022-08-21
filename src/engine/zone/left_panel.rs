@@ -1,7 +1,7 @@
-use super::{gui, log, ZoneEngine};
+use super::{gui, log, web_socket, ZoneEngine};
 use macroquad::prelude::*;
 
-use crate::util as base_util;
+use crate::{message::MainMessage, util as base_util};
 
 const AVATAR_DRAW_X: f32 = 40.;
 const AVATAR_DRAW_Y: f32 = 30.;
@@ -9,7 +9,7 @@ const AVATAR_DRAW_WIDTH: f32 = 92.;
 const AVATAR_DRAW_HEIGHT: f32 = 102.;
 
 impl ZoneEngine {
-    pub fn draw_left_panel(&mut self) {
+    pub fn draw_left_panel(&mut self) -> Vec<MainMessage> {
         let highlight_button = self.get_highlighted_left_panel_button();
 
         gui::panel::draw_panel_background(&self.graphics);
@@ -30,6 +30,15 @@ impl ZoneEngine {
                     }
                     gui::panel::ButtonAction::OpenInventory => {
                         self.make_open_inventory_request();
+                    }
+                    gui::panel::ButtonAction::OpenWorld => {
+                        // FIXME BS NOW : into Engine trait and call from main
+                        // web_socket(&self.state).close().unwrap();
+
+                        return vec![MainMessage::SetWorldEngine(
+                            self.client.clone(),
+                            self.state.player.clone(),
+                        )];
                     }
                 }
                 self.current_left_panel_button = Some(button.clone());
@@ -53,6 +62,7 @@ impl ZoneEngine {
         }
 
         self.draw_player_avatar();
+        vec![]
     }
 
     pub fn draw_resume_items(&mut self) {

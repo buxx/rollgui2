@@ -50,6 +50,7 @@ pub enum Button {
 pub enum ButtonAction {
     OpenDescription(String),
     OpenInventory,
+    OpenWorld,
 }
 
 impl Button {
@@ -59,10 +60,7 @@ impl Button {
                 "/_describe/character/{}/main_actions",
                 state.player.id
             )),
-            Button::World => ButtonAction::OpenDescription(format!(
-                "/_describe/character/{}/main_actions",
-                state.player.id
-            )),
+            Button::World => ButtonAction::OpenWorld,
             Button::Inventory => ButtonAction::OpenInventory,
             Button::Card => ButtonAction::OpenDescription(format!(
                 "/_describe/character/{}/card",
