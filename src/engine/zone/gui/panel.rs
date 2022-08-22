@@ -37,6 +37,8 @@ const CARD_BUTTON_X: f32 = 0.;
 const CARD_BUTTON_Y: f32 = 1248.;
 const BUILD_BUTTON_X: f32 = 0.;
 const BUILD_BUTTON_Y: f32 = 1344.;
+const AFFINITY_BUTTON_X: f32 = 0.;
+const AFFINITY_BUTTON_Y: f32 = 1440.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Button {
@@ -45,6 +47,7 @@ pub enum Button {
     World,
     Inventory,
     Build,
+    Affinity,
 }
 
 pub enum ButtonAction {
@@ -70,6 +73,9 @@ impl Button {
                 "/_describe/character/{}/build_actions",
                 state.player.id
             )),
+            Button::Affinity => {
+                ButtonAction::OpenDescription(format!("/affinity/{}", state.player.id))
+            }
         }
     }
 }
@@ -160,6 +166,15 @@ pub fn draw_buttons(
         (
             Button::Build,
             Rect::new(BUILD_BUTTON_X, BUILD_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
+        ),
+        (
+            Button::Affinity,
+            Rect::new(
+                AFFINITY_BUTTON_X,
+                AFFINITY_BUTTON_Y,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+            ),
         ),
     ];
     let mut hover_button = None;
