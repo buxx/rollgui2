@@ -177,6 +177,7 @@ impl UiDescription {
                 }
 
                 for part in &self.description.items {
+                    // Group
                     if let Some(link_group_name) = &part.link_group_name {
                         if !state.already_displayed_groups.contains(link_group_name) {
                             ui.add(egui::Label::new(
@@ -194,6 +195,7 @@ impl UiDescription {
                             });
                             state.already_displayed_groups.push(link_group_name.clone());
                         }
+                    // Non-Group
                     } else {
                         if let Some(event_) = self.draw_part(ui, part, state) {
                             event = Some(event_)
@@ -224,55 +226,91 @@ impl UiDescription {
     ) -> Option<UiDescriptionEvent> {
         let mut event = None;
 
-        if part.is_link() {
-            match self.draw_button(ui, part, state) {
-                Some(event_) => event = Some(event_),
-                None => {}
-            }
-        } else if part.is_text() {
-            if let (Some(label), Some(text)) = (&part.label, &part.text) {
-                ui.add(egui::Label::new(format!("{} : {}", label, text)));
-            } else if let Some(label) = &part.label {
-                ui.add(egui::Label::new(label));
-            } else if let Some(text) = &part.text {
-                ui.add(egui::Label::new(text).wrap(true));
-            }
-        } else if part.is_input() {
-            match self.draw_input(ui, part, state) {
-                Some(event_) => event = Some(event_),
-                None => {}
-            }
-        } else if part.is_checkbox() {
-            match self.draw_checkbox(ui, part, state) {
-                Some(event_) => event = Some(event_),
-                None => {}
-            }
-        } else if part.is_form {
-            egui::Grid::new("root_grid")
-                .num_columns(2)
-                // .spacing([40.0, 4.0])
+        // Column
+        if part.columns != 0 {
+            egui::Grid::new("a_grid")
+                .num_columns(part.columns as usize)
                 .striped(true)
                 .min_col_width(window_size().0 / 2.0)
                 .show(ui, |ui| {
-                    for form_part in &part.items {
-                        match self.draw_part(ui, form_part, state) {
-                            Some(event_) => event = Some(event_),
-                            None => {}
+                    // determine how rows columns count
+                    let mut max_row_count = 0;
+                    for part_ in &part.items {
+                        if part_.is_column {
+                            if part_.items.len() > max_row_count {
+                                max_row_count = part_.items.len();
+                            }
+                        }
+                    }
+
+                    // Draw row per row
+                    for row_i in 0..max_row_count {
+                        for part_ in &part.items {
+                            if part_.is_column {
+                                if let Some(part__) = part_.items.get(row_i) {
+                                    if let Some(event_) = self.draw_part(ui, part__, state) {
+                                        event = Some(event_)
+                                    }
+                                }
+                            }
                         }
                         ui.end_row();
                     }
-                    if ui.button("Valider").clicked() {
-                        if let Some(url) = &part.form_action {
-                            if part.form_values_in_query {
-                                event = Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
-                            } else {
-                                event = Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
-                            }
-                        } else {
-                            error!("Description form has no form action");
-                        }
-                    };
                 });
+
+        // Not-Column
+        } else {
+            if part.is_link() {
+                match self.draw_button(ui, part, state) {
+                    Some(event_) => event = Some(event_),
+                    None => {}
+                }
+            } else if part.is_text() {
+                if let (Some(label), Some(text)) = (&part.label, &part.text) {
+                    ui.add(egui::Label::new(format!("{} : {}", label, text)));
+                } else if let Some(label) = &part.label {
+                    ui.add(egui::Label::new(label));
+                } else if let Some(text) = &part.text {
+                    ui.add(egui::Label::new(text).wrap(true));
+                }
+            } else if part.is_input() {
+                match self.draw_input(ui, part, state) {
+                    Some(event_) => event = Some(event_),
+                    None => {}
+                }
+            } else if part.is_checkbox() {
+                match self.draw_checkbox(ui, part, state) {
+                    Some(event_) => event = Some(event_),
+                    None => {}
+                }
+            } else if part.is_form {
+                egui::Grid::new("root_grid")
+                    .num_columns(2)
+                    .striped(true)
+                    .min_col_width(window_size().0 / 2.0)
+                    .show(ui, |ui| {
+                        for form_part in &part.items {
+                            match self.draw_part(ui, form_part, state) {
+                                Some(event_) => event = Some(event_),
+                                None => {}
+                            }
+                            ui.end_row();
+                        }
+                        if ui.button("Valider").clicked() {
+                            if let Some(url) = &part.form_action {
+                                if part.form_values_in_query {
+                                    event =
+                                        Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
+                                } else {
+                                    event =
+                                        Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
+                                }
+                            } else {
+                                error!("Description form has no form action");
+                            }
+                        };
+                    });
+            }
         }
 
         event
