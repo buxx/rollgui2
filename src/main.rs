@@ -45,12 +45,18 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt = Opt::from_args();
-    let mut current_scene: Box<dyn engine::Engine> = Box::new(engine::root::RootScene::new(&opt));
     // FIXME : manage errors
     let tile_set = load_texture("static/graphics.png").await.unwrap();
     let tile_set_bytes = load_file("static/graphics.png").await.unwrap();
     let tiles_mapping = tileset::loader::from_list(hardcoded::get_tiles_list(), 32., 32.);
     let mut graphics = graphics::Graphics::new(tile_set, tile_set_bytes, tiles_mapping, 32., 32.);
+
+    let root_illustration_name = "root.png";
+    info!("Load root illustration {}", root_illustration_name);
+    graphics.load_illustration(&root_illustration_name).await;
+
+    let mut current_scene: Box<dyn engine::Engine> =
+        Box::new(engine::root::RootScene::new(&opt, graphics.clone()));
 
     // Set egui scale
     egui_macroquad::egui_mq_cfg(|equi_mq| {
@@ -121,6 +127,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     current_scene = Box::new(engine::root::RootScene::with_home_message(
                         "Compté créé, identifiez-vous".to_string(),
                         Some(egui::Color32::GREEN),
+                        graphics.clone(),
                     ));
                 }
                 message::MainMessage::CharacterCreated(login, password, character_id) => {
@@ -132,7 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )?);
                 }
                 message::MainMessage::SetRootEngine => {
-                    current_scene = Box::new(engine::root::RootScene::new(&opt));
+                    current_scene = Box::new(engine::root::RootScene::new(&opt, graphics.clone()));
                 }
                 message::MainMessage::SetErrorEngine(error_message) => {
                     current_scene = Box::new(engine::error::ErrorEngine::new(error_message));

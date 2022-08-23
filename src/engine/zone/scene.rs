@@ -17,7 +17,6 @@ pub fn scene(
     let tiles = &state.map.tiles;
     let player_display = &state.player_display;
 
-    // TODO : draw only visible tiles
     // Draw zone tiles
     for (row_i, row) in tiles.iter().enumerate() {
         for (col_i, tile_id) in row.iter().enumerate() {
@@ -46,7 +45,6 @@ pub fn scene(
         }
     }
 
-    // TODO : draw only visible tiles
     // Draw builds tiles
     for (_, build) in &state.builds {
         let dest_x = build.col_i as f32 * graphics.tile_width;
@@ -85,7 +83,6 @@ pub fn scene(
         }
     }
 
-    // TODO : draw only visible tiles
     // Draw resource tiles
     for resources in state.resources.values() {
         for resource in resources {
@@ -110,7 +107,6 @@ pub fn scene(
         }
     }
 
-    // TODO : draw only visible tiles
     // Draw stuff tiles
     for (_, stuff) in &state.stuffs {
         if !in_area(stuff.zone_row_i, stuff.zone_col_i, &draw_area) {
@@ -142,7 +138,9 @@ pub fn scene(
     }
 
     for character in state.characters.values() {
-        if !in_area(character.zone_row_i, character.zone_col_i, &draw_area) {
+        if character.id == state.player.id
+            || !in_area(character.zone_row_i, character.zone_col_i, &draw_area)
+        {
             continue;
         }
 

@@ -8,6 +8,7 @@ pub struct RootState {
     pub loading: bool,
     pub home_message: Option<(String, egui::Color32)>,
     pub validate_immediately: bool,
+    pub root_illustration: Option<egui::TextureHandle>,
 }
 
 impl RootState {
@@ -20,6 +21,7 @@ impl RootState {
             loading: false,
             home_message: None,
             validate_immediately,
+            root_illustration: None,
         }
     }
 }

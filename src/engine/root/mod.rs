@@ -1,6 +1,7 @@
 use crate::{
     client::{self},
     engine::root::util::auth_failed,
+    graphics::Graphics,
     message,
     ui::utils::is_mobile,
     Opt,
@@ -16,14 +17,16 @@ pub mod ui;
 pub mod util;
 
 pub struct RootScene {
+    graphics: Graphics,
     state: state::RootState,
     do_login_request: Option<Request>,
     text_input_request: Option<base_ui::text_input::TextInputRequest>,
 }
 
 impl RootScene {
-    pub fn new(opt: &Opt) -> Self {
+    pub fn new(opt: &Opt, graphics: Graphics) -> Self {
         Self {
+            graphics,
             state: state::RootState::new(
                 &opt.login.as_ref().unwrap_or(&"".to_string()),
                 &opt.password.as_ref().unwrap_or(&"".to_string()),
@@ -34,11 +37,16 @@ impl RootScene {
         }
     }
 
-    pub fn with_home_message(message: String, color: Option<egui::Color32>) -> Self {
+    pub fn with_home_message(
+        message: String,
+        color: Option<egui::Color32>,
+        graphics: Graphics,
+    ) -> Self {
         let mut state = state::RootState::new("", "", false);
         state.home_message = Some((message, color.unwrap_or(egui::Color32::WHITE)));
 
         Self {
+            graphics,
             state,
             do_login_request: None,
             text_input_request: None,
@@ -121,7 +129,7 @@ impl Engine for RootScene {
 
         events.extend(self.manage_do_login());
         events.extend(self.manage_text_inputs());
-        events.extend(ui::ui(&mut self.state, false));
+        events.extend(ui::ui(&mut self.state, false, &self.graphics));
 
         for event in events {
             match event {
@@ -143,6 +151,16 @@ impl Engine for RootScene {
                         None,
                         None,
                         Some(client::Client::new(login.clone(), password.clone())),
+                    ));
+                }
+                RootEvent::GoToPasswordLost => {
+                    messages.push(message::MainMessage::SetLoadDescriptionEngine(
+                        "/account/password_lost".to_string(),
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
                     ));
                 }
                 RootEvent::DoLogin => {
@@ -226,6 +244,7 @@ impl RootTextInput {
 
 pub enum RootEvent {
     QuitGame,
+    GoToPasswordLost,
     GoToCreateCharacter(String, String),
     GoToCreateAccount,
     GoToZone(String, String, String),

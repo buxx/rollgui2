@@ -39,6 +39,8 @@ const BUILD_BUTTON_X: f32 = 0.;
 const BUILD_BUTTON_Y: f32 = 1344.;
 const AFFINITY_BUTTON_X: f32 = 0.;
 const AFFINITY_BUTTON_Y: f32 = 1440.;
+const ZONE_BUTTON_X: f32 = 0.;
+const ZONE_BUTTON_Y: f32 = 1536.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Button {
@@ -48,6 +50,7 @@ pub enum Button {
     Inventory,
     Build,
     Affinity,
+    Zone,
 }
 
 pub enum ButtonAction {
@@ -76,6 +79,10 @@ impl Button {
             Button::Affinity => {
                 ButtonAction::OpenDescription(format!("/affinity/{}", state.player.id))
             }
+            Button::Zone => ButtonAction::OpenDescription(format!(
+                "/zones/{}/{}/describe/{}",
+                state.player.world_row_i, state.player.world_col_i, state.player.id
+            )),
         }
     }
 }
@@ -175,6 +182,10 @@ pub fn draw_buttons(
                 BUTTON_WIDTH,
                 BUTTON_HEIGHT,
             ),
+        ),
+        (
+            Button::Zone,
+            Rect::new(ZONE_BUTTON_X, ZONE_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
         ),
     ];
     let mut hover_button = None;
