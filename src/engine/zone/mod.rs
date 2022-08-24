@@ -4,7 +4,8 @@ use quad_net::web_socket::WebSocket;
 use crate::{
     action as base_action, animation, client, config, description,
     entity::{self, description::RequestClicks},
-    event as base_event, graphics, message,
+    event as base_event, graphics,
+    message::{self, MainMessage},
     ui::utils::is_mobile,
     util as base_util,
 };
@@ -438,7 +439,7 @@ impl ZoneEngine {
         }
     }
 
-    fn proceed_description_requests(&mut self) {
+    fn proceed_description_requests(&mut self) -> Vec<message::MainMessage> {
         if let Some(request) = self.description_request.as_mut() {
             if let Some(data) = request.try_recv() {
                 match data {
@@ -452,14 +453,22 @@ impl ZoneEngine {
                                     self.current_description = None;
                                     self.current_description_state = None;
                                 } else {
-                                    self.current_description =
-                                        Some(description::UiDescription::new(
-                                            description,
-                                            self.graphics.clone(),
-                                            self.current_description.clone(),
-                                        ));
-                                    self.current_description_state =
-                                        Some(description::UiDescriptionState::default());
+                                    // If this is a zone reload request
+                                    if description.reload_zone {
+                                        return vec![MainMessage::SetLoadZoneEngineWithClient(
+                                            self.client.clone(),
+                                            self.state.player.id.clone(),
+                                        )];
+                                    } else {
+                                        self.current_description =
+                                            Some(description::UiDescription::new(
+                                                description,
+                                                self.graphics.clone(),
+                                                self.current_description.clone(),
+                                            ));
+                                        self.current_description_state =
+                                            Some(description::UiDescriptionState::default());
+                                    }
                                 }
                             }
                             Err(error) => {
@@ -475,6 +484,8 @@ impl ZoneEngine {
                 self.description_request = None;
             }
         }
+
+        vec![]
     }
 
     fn user_inputs(&mut self) {
@@ -674,7 +685,7 @@ impl Engine for ZoneEngine {
         self.user_inputs();
         self.update();
         self.proceed_quick_action_requests();
-        self.proceed_description_requests();
+        messages.extend(self.proceed_description_requests());
         self.proceed_inventory_requests();
         messages.extend(self.recv_events());
         let draw_area = self.camera();

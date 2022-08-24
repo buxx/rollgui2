@@ -75,6 +75,7 @@ pub struct Description {
     pub is_quick_error: bool,
     pub deposit_success: Option<((i32, i32), Vec<String>)>,
     pub is_grid: bool,
+    pub reload_zone: bool,
 }
 
 impl Description {
