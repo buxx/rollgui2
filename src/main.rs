@@ -32,7 +32,7 @@ pub struct Opt {
     password: Option<String>,
 }
 
-const SERVER_ADDRESS: &'static str = "http://127.0.0.1:5000";
+const SERVER_ADDRESS: &'static str = env!("SERVER_ADDRESS");
 fn window_conf() -> Conf {
     Conf {
         window_title: "Rolling".to_owned(),
