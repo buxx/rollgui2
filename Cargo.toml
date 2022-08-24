@@ -16,7 +16,7 @@ structopt = "0.3.21"
 serde = {version="1.0.104", features = ["derive"]}
 serde_derive = "1.0.104"
 serde_json = "1.0.44"
-quad-net = { git = "https://github.com/not-fl3/quad-net", rev = "207da3a4b439ec45d878bde3995af8285940ae20" }
+quad-net = { git = "https://github.com/buxx/quad-net.git", rev = "d8e582c5001f977ec42e5f8dd21c1c0bbc9463e7" }
 base64 = "0.13.0"
 ureq = "2.4.0"
 url = "2.1.1"
