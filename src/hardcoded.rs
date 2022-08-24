@@ -93,6 +93,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("RAW_BRICK_WALL", 4, 7, 1),
         ("FIRED_BRICK_WALL", 4, 8, 1),
         ("TOTEM", 4, 9, 1),
+        ("COMPASS", 4, 10, 1),
         ("SOIL_KILN__OFF", 10, 0, 1),
         ("SOIL_KILN", 10, 1, 6),
         ("RAW_BRICK_KILN__OFF", 11, 0, 1),
