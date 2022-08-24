@@ -1,8 +1,10 @@
+use default_env::default_env;
 use engine::world::WorldEngine;
 use macroquad::prelude::*;
 use structopt::StructOpt;
-use ui::utils::egui_scale;
 use util::texture_from_cache_or_from_file;
+
+use crate::ui::utils::egui_scale;
 
 pub mod action;
 pub mod animation;
@@ -32,7 +34,7 @@ pub struct Opt {
     password: Option<String>,
 }
 
-const SERVER_ADDRESS: &'static str = env!("SERVER_ADDRESS");
+const SERVER_ADDRESS: &'static str = default_env!("SERVER_ADDRESS", "http://127.0.0.1:5000");
 fn window_conf() -> Conf {
     Conf {
         window_title: "Rolling".to_owned(),
@@ -60,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Set egui scale
     egui_macroquad::egui_mq_cfg(|equi_mq| {
-        equi_mq.egui_input().pixels_per_point = Some(egui_scale())
+        equi_mq.egui_ctx().set_pixels_per_point(egui_scale());
     });
 
     loop {
