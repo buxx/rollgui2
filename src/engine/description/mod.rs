@@ -43,8 +43,7 @@ impl super::Engine for DescriptionEngine {
         if let Some(new_character_id) = &self.ui_description.description.new_character_id {
             let client = self.client.as_ref().expect("Client must be defined here");
             return vec![message::MainMessage::CharacterCreated(
-                client.login.clone(),
-                client.password.clone(),
+                client.clone(),
                 new_character_id.to_string(),
             )];
         }

@@ -1,11 +1,19 @@
 #[cfg(target_arch = "wasm32")]
 extern "C" {
     fn _is_mobile() -> bool;
+    fn _reload_page() -> bool;
 }
 
 #[cfg(target_arch = "wasm32")]
 fn __is_mobile() -> bool {
     return unsafe { _is_mobile() };
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn reload_page() {
+    return unsafe {
+        _reload_page();
+    };
 }
 
 #[cfg(not(target_arch = "wasm32"))]

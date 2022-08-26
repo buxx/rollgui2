@@ -1,10 +1,10 @@
 use crate::{
-    client::{self},
+    client::{self, Client},
     engine::root::util::auth_failed,
     graphics::Graphics,
     message,
     ui::utils::is_mobile,
-    Opt,
+    util::{get_auth_token, get_remember_me, set_auth_token, set_remember_me},
 };
 use macroquad::prelude::*;
 use quad_net::http_request::Request;
@@ -19,20 +19,20 @@ pub mod util;
 pub struct RootScene {
     graphics: Graphics,
     state: state::RootState,
-    do_login_request: Option<Request>,
+    do_get_auth_token_request: Option<Request>,
+    do_login_with_credentials_request: Option<Request>,
+    do_login_with_auth_token_request: Option<Request>,
     text_input_request: Option<base_ui::text_input::TextInputRequest>,
 }
 
 impl RootScene {
-    pub fn new(opt: &Opt, graphics: Graphics) -> Self {
+    pub fn new(graphics: Graphics) -> Self {
         Self {
             graphics,
-            state: state::RootState::new(
-                &opt.login.as_ref().unwrap_or(&"".to_string()),
-                &opt.password.as_ref().unwrap_or(&"".to_string()),
-                opt.login.is_some() && opt.password.is_some(),
-            ),
-            do_login_request: None,
+            state: state::RootState::new(),
+            do_get_auth_token_request: None,
+            do_login_with_credentials_request: None,
+            do_login_with_auth_token_request: None,
             text_input_request: None,
         }
     }
@@ -42,13 +42,15 @@ impl RootScene {
         color: Option<egui::Color32>,
         graphics: Graphics,
     ) -> Self {
-        let mut state = state::RootState::new("", "", false);
+        let mut state = state::RootState::new();
         state.home_message = Some((message, color.unwrap_or(egui::Color32::WHITE)));
 
         Self {
             graphics,
             state,
-            do_login_request: None,
+            do_login_with_credentials_request: None,
+            do_get_auth_token_request: None,
+            do_login_with_auth_token_request: None,
             text_input_request: None,
         }
     }
@@ -56,7 +58,30 @@ impl RootScene {
     fn manage_do_login(&mut self) -> Vec<RootEvent> {
         let mut events = vec![];
 
-        if let Some(do_login_request) = self.do_login_request.as_mut() {
+        if let Some(do_auth_token_request) = self.do_get_auth_token_request.as_mut() {
+            if let Some(data) = do_auth_token_request.try_recv() {
+                match auth_failed(&data) {
+                    Ok(auth_failed_) => {
+                        if auth_failed_ {
+                            self.state.error_message = Some("Authentification échoué".to_string());
+                        } else {
+                            let auth_token = &data.unwrap_or("".to_string());
+                            set_auth_token(Some(auth_token));
+                            self.do_login_with_credentials_request = Some(
+                                client::Client::with_auth_token(auth_token.clone())
+                                    .get_current_character_id_request(),
+                            );
+                        }
+                    }
+                    Err(error) => {
+                        self.state.error_message = Some(format!("Erreur : {}", error));
+                    }
+                }
+                self.do_get_auth_token_request = None;
+            }
+        }
+
+        if let Some(do_login_request) = self.do_login_with_credentials_request.as_mut() {
             if let Some(data) = do_login_request.try_recv() {
                 match auth_failed(&data) {
                     Ok(auth_failed_) => {
@@ -66,13 +91,17 @@ impl RootScene {
                             let character_id = &data.unwrap_or("".to_string());
                             if character_id == "" {
                                 events.push(RootEvent::GoToCreateCharacter(
-                                    self.state.login.clone(),
-                                    self.state.password.clone(),
+                                    client::Client::with_credentials(
+                                        self.state.login.clone(),
+                                        self.state.password.clone(),
+                                    ),
                                 ));
                             } else {
                                 events.push(RootEvent::GoToZone(
-                                    self.state.login.clone(),
-                                    self.state.password.clone(),
+                                    client::Client::with_credentials(
+                                        self.state.login.clone(),
+                                        self.state.password.clone(),
+                                    ),
                                     character_id.clone(),
                                 ));
                             }
@@ -84,7 +113,40 @@ impl RootScene {
                 }
 
                 self.state.loading = false;
-                self.do_login_request = None;
+                self.do_login_with_credentials_request = None;
+            }
+        }
+
+        if let Some(do_login_request) = self.do_login_with_auth_token_request.as_mut() {
+            if let Some(data) = do_login_request.try_recv() {
+                match auth_failed(&data) {
+                    Ok(auth_failed_) => {
+                        if auth_failed_ {
+                            set_auth_token(None);
+                            self.state.error_message = Some("Authentification échoué".to_string());
+                        } else {
+                            let character_id = &data.unwrap_or("".to_string());
+                            let auth_token = get_auth_token()
+                                .expect("Auth token must be defined after login with it");
+                            if character_id == "" {
+                                events.push(RootEvent::GoToCreateCharacter(
+                                    client::Client::with_auth_token(auth_token.clone()),
+                                ));
+                            } else {
+                                events.push(RootEvent::GoToZone(
+                                    client::Client::with_auth_token(auth_token.clone()),
+                                    character_id.clone(),
+                                ));
+                            }
+                        }
+                    }
+                    Err(error) => {
+                        self.state.error_message = Some(format!("Erreur : {}", error));
+                    }
+                }
+
+                self.state.loading = false;
+                self.do_login_with_auth_token_request = None;
             }
         }
 
@@ -122,35 +184,43 @@ impl Engine for RootScene {
 
         // Accept Enter key for login form
         if is_key_released(KeyCode::Enter) | is_key_released(KeyCode::KpEnter)
-            && self.do_login_request.is_none()
+            && self.do_login_with_credentials_request.is_none()
         {
-            events.push(RootEvent::DoLogin);
+            events.push(RootEvent::DoLoginWithCredentials);
+        }
+
+        // Do login with auth if set
+        if self.state.first_frame
+            && get_remember_me()
+            && get_auth_token().is_some()
+            && self.do_login_with_auth_token_request.is_none()
+        {
+            events.push(RootEvent::DoLoginWithAuthToken);
         }
 
         events.extend(self.manage_do_login());
         events.extend(self.manage_text_inputs());
-        events.extend(ui::ui(&mut self.state, false, &self.graphics));
+        events.extend(ui::ui(&mut self.state, &self.graphics));
 
         for event in events {
             match event {
                 RootEvent::QuitGame => {
                     messages.push(message::MainMessage::Quit);
                 }
-                RootEvent::GoToZone(login, password, character_id) => {
+                RootEvent::GoToZone(client, character_id) => {
                     messages.push(message::MainMessage::SetLoadZoneEngine(
-                        login,
-                        password,
+                        client,
                         character_id,
                     ));
                 }
-                RootEvent::GoToCreateCharacter(login, password) => {
+                RootEvent::GoToCreateCharacter(client) => {
                     messages.push(message::MainMessage::SetLoadDescriptionEngine(
                         "/_describe/character/create".to_string(),
                         None,
                         None,
                         None,
                         None,
-                        Some(client::Client::new(login.clone(), password.clone())),
+                        Some(client),
                     ));
                 }
                 RootEvent::GoToPasswordLost => {
@@ -163,13 +233,40 @@ impl Engine for RootScene {
                         None,
                     ));
                 }
-                RootEvent::DoLogin => {
-                    let request = client::Client::get_current_character_id_request(
-                        &self.state.login,
-                        &self.state.password,
-                    );
-                    self.do_login_request = Some(request);
+                RootEvent::DoLoginWithCredentials => {
+                    // Remember me or not, delete knew auth token : A new auth token
+                    // will be set if needed
+                    set_auth_token(None);
+
+                    if self.state.remember_me {
+                        // Claim a new auth token, login will be made after it
+                        self.do_get_auth_token_request =
+                            Some(client::Client::get_auth_token_request(
+                                &self.state.login,
+                                &self.state.password,
+                            ));
+                    } else {
+                        // Directly login with credentials
+                        self.do_login_with_credentials_request = Some(
+                            client::Client::with_credentials(
+                                self.state.login.clone(),
+                                self.state.password.clone(),
+                            )
+                            .get_current_character_id_request(),
+                        );
+                    }
+                    set_remember_me(self.state.remember_me);
                     self.state.loading = true;
+                }
+                RootEvent::DoLoginWithAuthToken => {
+                    if let Some(auth_token) = get_auth_token() {
+                        self.do_login_with_auth_token_request = Some(
+                            Client::with_auth_token(auth_token).get_current_character_id_request(),
+                        );
+                        self.state.loading = true;
+                    } else {
+                        error!("Can't login with auth token without stored auth token");
+                    }
                 }
                 RootEvent::GoToCreateAccount => {
                     messages.push(message::MainMessage::SetLoadDescriptionEngine(
@@ -245,10 +342,11 @@ impl RootTextInput {
 pub enum RootEvent {
     QuitGame,
     GoToPasswordLost,
-    GoToCreateCharacter(String, String),
+    GoToCreateCharacter(Client),
     GoToCreateAccount,
-    GoToZone(String, String, String),
-    DoLogin,
+    GoToZone(Client, String),
+    DoLoginWithCredentials,
+    DoLoginWithAuthToken,
     TextEditFocused(RootTextInput),
     RemoveTextInputRequest,
     UpdateLoginValue(String),

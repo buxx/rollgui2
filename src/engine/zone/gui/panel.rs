@@ -41,6 +41,12 @@ const AFFINITY_BUTTON_X: f32 = 0.;
 const AFFINITY_BUTTON_Y: f32 = 1440.;
 const ZONE_BUTTON_X: f32 = 0.;
 const ZONE_BUTTON_Y: f32 = 1536.;
+const EXIT_BUTTON_X: f32 = 0.;
+const EXIT_BUTTON_Y: f32 = 1632.;
+const BOOK_BUTTON_X: f32 = 0.;
+const BOOK_BUTTON_Y: f32 = 1728.;
+const BUSINESS_BUTTON_X: f32 = 0.;
+const BUSINESS_BUTTON_Y: f32 = 1824.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Button {
@@ -51,12 +57,16 @@ pub enum Button {
     Build,
     Affinity,
     Zone,
+    Exit,
+    Book,
+    Business,
 }
 
 pub enum ButtonAction {
     OpenDescription(String),
     OpenInventory,
     OpenWorld,
+    Exit,
 }
 
 impl Button {
@@ -83,6 +93,14 @@ impl Button {
                 "/zones/{}/{}/describe/{}",
                 state.player.world_row_i, state.player.world_col_i, state.player.id
             )),
+            Button::Book => ButtonAction::OpenDescription(format!(
+                "/_describe/character/{}/events",
+                state.player.id
+            )),
+            Button::Business => {
+                ButtonAction::OpenDescription(format!("/business/{}", state.player.id))
+            }
+            Button::Exit => ButtonAction::Exit,
         }
     }
 }
@@ -186,6 +204,23 @@ pub fn draw_buttons(
         (
             Button::Zone,
             Rect::new(ZONE_BUTTON_X, ZONE_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
+        ),
+        (
+            Button::Book,
+            Rect::new(BOOK_BUTTON_X, BOOK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
+        ),
+        (
+            Button::Business,
+            Rect::new(
+                BUSINESS_BUTTON_X,
+                BUSINESS_BUTTON_Y,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+            ),
+        ),
+        (
+            Button::Exit,
+            Rect::new(EXIT_BUTTON_X, EXIT_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
         ),
     ];
     let mut hover_button = None;

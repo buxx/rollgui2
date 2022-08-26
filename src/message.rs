@@ -8,7 +8,7 @@ use crate::{
 pub enum MainMessage {
     Quit,
     SetRootEngine,
-    SetLoadZoneEngine(String, String, String),
+    SetLoadZoneEngine(Client, String),
     SetLoadZoneEngineWithClient(Client, String),
     SetZoneEngine(client::Client, ZoneState),
     SetWorldEngine(client::Client, Character),
@@ -28,7 +28,8 @@ pub enum MainMessage {
     ),
     SetErrorEngine(String),
     AccountCreated,
-    CharacterCreated(String, String, String), // login, password, character_id
+    CharacterCreated(Client, String), // login, password, character_id
     SetEngine(Box<dyn engine::Engine>),
     LoadIllustration(String),
+    Exit,
 }

@@ -69,3 +69,70 @@ pub async fn bytes_from_cache_or_file(
         }
     }
 }
+
+pub fn get_remember_me() -> bool {
+    let storage = &mut quad_storage::STORAGE.lock();
+    let storage = match storage {
+        Ok(storage_) => storage_,
+        Err(error) => {
+            error!("Storage error : '{}'", error);
+            return false;
+        }
+    };
+
+    if let Some(value) = storage.get("__REMEMBER_ME__") {
+        if value == "YES" {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+pub fn set_remember_me(value: bool) {
+    let storage = &mut quad_storage::STORAGE.lock();
+    let storage = match storage {
+        Ok(storage_) => storage_,
+        Err(error) => {
+            error!("Storage error : '{}'", error);
+            return ();
+        }
+    };
+
+    let value_ = if value { "YES" } else { "NO" };
+    storage.set("__REMEMBER_ME__", value_);
+}
+
+pub fn get_auth_token() -> Option<String> {
+    let storage = &mut quad_storage::STORAGE.lock();
+    let storage = match storage {
+        Ok(storage_) => storage_,
+        Err(error) => {
+            error!("Storage error : '{}'", error);
+            return None;
+        }
+    };
+
+    if let Some(value) = storage.get("__AUTH_TOKEN__") {
+        return Some(value);
+    }
+
+    return None;
+}
+
+pub fn set_auth_token(auth_token: Option<&str>) {
+    let storage = &mut quad_storage::STORAGE.lock();
+    let storage = match storage {
+        Ok(storage_) => storage_,
+        Err(error) => {
+            error!("Storage error : '{}'", error);
+            return ();
+        }
+    };
+
+    if let Some(auth_token_) = auth_token {
+        storage.set("__AUTH_TOKEN__", auth_token_);
+    } else {
+        storage.remove("__AUTH_TOKEN__")
+    }
+}

@@ -5,13 +5,23 @@ use crate::{entity, types::AvatarUuid, SERVER_ADDRESS};
 
 #[derive(Clone)]
 pub struct Client {
-    pub login: String,
-    pub password: String,
+    pub credentials: Option<(String, String)>,
+    pub auth_token: Option<String>,
 }
 
 impl Client {
-    pub fn new(login: String, password: String) -> Self {
-        Self { login, password }
+    pub fn with_credentials(login: String, password: String) -> Self {
+        Self {
+            credentials: Some((login, password)),
+            auth_token: None,
+        }
+    }
+
+    pub fn with_auth_token(auth_token: String) -> Self {
+        Self {
+            credentials: None,
+            auth_token: Some(auth_token),
+        }
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -73,23 +83,49 @@ impl Client {
         }
     }
 
-    pub fn get_current_character_id_request(login: &str, password: &str) -> Request {
+    // pub fn get_current_character_id_request(login: &str, password: &str) -> Request {
+    //     let basic_auth_value = format!(
+    //         "Basic {}",
+    //         base64::encode(format!("{}:{}", login, password))
+    //     );
+    //     let url = format!("{}/account/current_character_id", SERVER_ADDRESS);
+    //     info!("Check current character id on '{}'", &url);
+    //     RequestBuilder::new(&url)
+    //         .header("Authorization", &basic_auth_value)
+    //         .send()
+    // }
+
+    pub fn get_current_character_id_request(&self) -> Request {
+        let url = format!("{}/account/current_character_id", SERVER_ADDRESS);
+        info!("Check current character id on '{}'", &url);
+        RequestBuilder::new(&url)
+            .header("Authorization", &self.authentification_value())
+            .send()
+    }
+
+    pub fn get_auth_token_request(login: &str, password: &str) -> Request {
         let basic_auth_value = format!(
             "Basic {}",
             base64::encode(format!("{}:{}", login, password))
         );
-        let url = format!("{}/account/current_character_id", SERVER_ADDRESS);
-        info!("Check current character id on '{}'", &url);
+        let url = format!("{}/account/auth-token", SERVER_ADDRESS);
+        info!("Get auth token on '{}'", &url);
         RequestBuilder::new(&url)
             .header("Authorization", &basic_auth_value)
             .send()
     }
 
-    fn basic_auth_value(&self) -> String {
-        format!(
-            "Basic {}",
-            base64::encode(format!("{}:{}", &self.login, &self.password))
-        )
+    fn authentification_value(&self) -> String {
+        if let Some((login, password)) = &self.credentials {
+            return format!(
+                "Basic {}",
+                base64::encode(format!("{}:{}", login, password))
+            );
+        } else if let Some(auth_token) = &self.auth_token {
+            return format!("Token {}", auth_token);
+        }
+
+        panic!("Auth token or credentials is required")
     }
     fn url_with_query(url: String, query: serde_json::Map<String, serde_json::Value>) -> String {
         let mut params: Vec<(String, String)> = Vec::new();
@@ -118,7 +154,7 @@ impl Client {
         info!("Retrieve tiles from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -127,7 +163,7 @@ impl Client {
         info!("Retrieve character from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -136,7 +172,7 @@ impl Client {
         info!("Retrieve character from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -145,7 +181,7 @@ impl Client {
         info!("Retrieve zone from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -157,7 +193,7 @@ impl Client {
         info!("Retrieve characters from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -169,7 +205,7 @@ impl Client {
         info!("Retrieve resources from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -181,7 +217,7 @@ impl Client {
         info!("Retrieve stuffs from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -193,7 +229,7 @@ impl Client {
         info!("Retrieve builds from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -219,7 +255,7 @@ impl Client {
         info!("Post quick action with {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .method(Method::Post)
             .send()
     }
@@ -270,7 +306,7 @@ impl Client {
 
         let mut request = RequestBuilder::new(&url)
             .method(Method::Post)
-            .header("Authorization", &self.basic_auth_value());
+            .header("Authorization", &self.authentification_value());
 
         if let Some(_data_) = &data {
             request = request
@@ -286,7 +322,7 @@ impl Client {
         info!("Retrieve inventory from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .send()
     }
 
@@ -298,7 +334,7 @@ impl Client {
         info!("Retrieve look at stuff from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .method(Method::Post)
             .send()
     }
@@ -311,7 +347,7 @@ impl Client {
         info!("Retrieve look at resource from {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .method(Method::Post)
             .send()
     }
@@ -323,7 +359,7 @@ impl Client {
         info!("Retrieve avatar media at {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .method(Method::Get)
             .send()
     }
@@ -334,7 +370,7 @@ impl Client {
         info!("Retrieve avatar zone thumb media at {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .method(Method::Get)
             .send()
     }
@@ -344,7 +380,7 @@ impl Client {
         info!("Retrieve world as character at {}", url);
 
         RequestBuilder::new(&url)
-            .header("Authorization", &self.basic_auth_value())
+            .header("Authorization", &self.authentification_value())
             .method(Method::Get)
             .send()
     }

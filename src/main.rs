@@ -1,10 +1,15 @@
 use default_env::default_env;
 use engine::world::WorldEngine;
 use macroquad::prelude::*;
-use structopt::StructOpt;
 use util::texture_from_cache_or_from_file;
 
-use crate::ui::utils::egui_scale;
+use crate::{
+    ui::utils::egui_scale,
+    util::{set_auth_token, set_remember_me},
+};
+
+#[cfg(target_arch = "wasm32")]
+use crate::ui::utils::reload_page;
 
 pub mod action;
 pub mod animation;
@@ -24,16 +29,6 @@ pub mod ui;
 pub mod util;
 pub mod zone;
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "basic")]
-pub struct Opt {
-    #[structopt(short, long)]
-    login: Option<String>,
-
-    #[structopt(short, long)]
-    password: Option<String>,
-}
-
 const SERVER_ADDRESS: &'static str = default_env!("SERVER_ADDRESS", "http://127.0.0.1:5000");
 fn window_conf() -> Conf {
     Conf {
@@ -46,7 +41,6 @@ fn window_conf() -> Conf {
 }
 #[macroquad::main(window_conf)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let opt = Opt::from_args();
     // FIXME : manage errors
     let tile_set = load_texture("static/graphics.png").await.unwrap();
     let tile_set_bytes = load_file("static/graphics.png").await.unwrap();
@@ -58,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     graphics.load_illustration(&root_illustration_name).await;
 
     let mut current_scene: Box<dyn engine::Engine> =
-        Box::new(engine::root::RootScene::new(&opt, graphics.clone()));
+        Box::new(engine::root::RootScene::new(graphics.clone()));
 
     // Set egui scale
     egui_macroquad::egui_mq_cfg(|equi_mq| {
@@ -71,11 +65,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for message in messages {
             match message {
-                message::MainMessage::SetLoadZoneEngine(login, password, character_id) => {
-                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::from_credentials(
+                message::MainMessage::SetLoadZoneEngine(client, character_id) => {
+                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::new(
                         graphics.clone(),
-                        &login,
-                        &password,
+                        client,
                         &character_id,
                     )?);
                 }
@@ -132,16 +125,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         graphics.clone(),
                     ));
                 }
-                message::MainMessage::CharacterCreated(login, password, character_id) => {
-                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::from_credentials(
+                message::MainMessage::CharacterCreated(client, character_id) => {
+                    current_scene = Box::new(engine::load_zone::LoadZoneEngine::new(
                         graphics.clone(),
-                        &login,
-                        &password,
+                        client,
                         &character_id,
                     )?);
                 }
                 message::MainMessage::SetRootEngine => {
-                    current_scene = Box::new(engine::root::RootScene::new(&opt, graphics.clone()));
+                    current_scene = Box::new(engine::root::RootScene::new(graphics.clone()));
                 }
                 message::MainMessage::SetErrorEngine(error_message) => {
                     current_scene = Box::new(engine::error::ErrorEngine::new(error_message));
@@ -176,6 +168,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 message::MainMessage::SetWorldEngine(client, player) => {
                     current_scene = Box::new(WorldEngine::new(graphics.clone(), client, player))
+                }
+                message::MainMessage::Exit => {
+                    set_remember_me(false);
+                    set_auth_token(None);
+
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        reload_page();
+                    }
+
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        current_scene = Box::new(engine::root::RootScene::new(graphics.clone()));
+                    }
                 }
             }
         }

@@ -40,6 +40,7 @@ impl ZoneEngine {
                             self.state.player.clone(),
                         )];
                     }
+                    gui::panel::ButtonAction::Exit => return vec![MainMessage::Exit],
                 }
                 self.current_left_panel_button = Some(button.clone());
             }

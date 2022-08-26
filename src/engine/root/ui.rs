@@ -3,11 +3,7 @@ use macroquad::prelude::*;
 use crate::{engine::root::state, graphics::Graphics};
 use egui;
 
-pub fn ui(
-    state: &mut state::RootState,
-    avoid_validate_immediately: bool,
-    graphics: &Graphics,
-) -> Option<super::RootEvent> {
+pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::RootEvent> {
     let mut event = None;
 
     egui_macroquad::ui(|egui_ctx| {
@@ -80,12 +76,14 @@ pub fn ui(
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button("Se connecter").clicked()
-                        || (state.validate_immediately && !avoid_validate_immediately)
-                    {
-                        event = Some(super::RootEvent::DoLogin);
-                        state.validate_immediately = false;
+                    ui.checkbox(&mut state.remember_me, "Rester connecté");
+                });
+
+                ui.horizontal(|ui| {
+                    if ui.button("Se connecter").clicked() {
+                        event = Some(super::RootEvent::DoLoginWithCredentials);
                     }
+
                     if ui.button("Mot de passe perdu").clicked() {
                         event = Some(super::RootEvent::GoToPasswordLost);
                     }

@@ -27,15 +27,15 @@ pub struct LoadZoneEngine {
 }
 
 impl LoadZoneEngine {
-    pub fn from_credentials(
-        graphics: crate::graphics::Graphics,
-        login: &str,
-        password: &str,
-        character_id: &str,
-    ) -> Result<Self, String> {
-        let client = client::Client::new(login.to_string(), password.to_string());
-        Self::new(graphics, client, character_id)
-    }
+    // pub fn from_credentials(
+    //     graphics: crate::graphics::Graphics,
+    //     login: &str,
+    //     password: &str,
+    //     character_id: &str,
+    // ) -> Result<Self, String> {
+    //     let client = client::Client::with_credentials(login.to_string(), password.to_string());
+    //     Self::new(graphics, client, character_id)
+    // }
 
     pub fn new(
         graphics: crate::graphics::Graphics,
