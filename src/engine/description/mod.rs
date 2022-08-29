@@ -50,7 +50,7 @@ impl super::Engine for DescriptionEngine {
 
         let mut event = None;
 
-        egui_macroquad::ui(|egui_ctx| {
+        egui_macroquad::ui(|_mq_ctx, egui_ctx| {
             egui::CentralPanel::default().show(&egui_ctx, |ui| {
                 event = self
                     .ui_description

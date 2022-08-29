@@ -309,7 +309,6 @@ dependencies = [
 [[package]]
 name = "egui-macroquad"
 version = "0.11.0"
-source = "git+https://github.com/buxx/egui-macroquad.git?rev=dde66bdb811e135f0895400fef23fd9df41d4b04#dde66bdb811e135f0895400fef23fd9df41d4b04"
 dependencies = [
  "egui",
  "egui-miniquad",
@@ -319,8 +318,6 @@ dependencies = [
 [[package]]
 name = "egui-miniquad"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86942bedfc92c115af0c3cc3acebf8585a1666c2deb1c9eea5a63a3c77387b21"
 dependencies = [
  "bytemuck",
  "copypasta",

@@ -6,7 +6,7 @@ use egui;
 pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::RootEvent> {
     let mut event = None;
 
-    egui_macroquad::ui(|egui_ctx| {
+    egui_macroquad::ui(|_mq_ctx, egui_ctx| {
         if state.first_frame {
             let mut style = (*egui_ctx.style()).clone();
             // TODO : with new egui, do https://discord.com/channels/900275882684477440/900275883124858921/938081008568377354

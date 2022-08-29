@@ -17,7 +17,7 @@ impl super::ZoneEngine {
     pub fn ui(&mut self) -> Vec<message::MainMessage> {
         let mut messages = vec![];
 
-        egui_macroquad::ui(|egui_ctx| {
+        egui_macroquad::ui(|_mq_ctx, egui_ctx| {
             if let (Some(description), Some(description_state)) = (
                 self.current_description.as_mut(),
                 self.current_description_state.as_mut(),
