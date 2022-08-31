@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{engine::root::state, graphics::Graphics};
+use crate::{engine::root::state, graphics::Graphics, ui::utils::is_mobile};
 use egui;
 
 pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::RootEvent> {
@@ -52,7 +52,7 @@ pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::Ro
                     ui.label("Login: ");
                     let login_input = ui.text_edit_singleline(&mut state.login);
 
-                    if state.first_frame {
+                    if state.first_frame && !is_mobile() {
                         login_input.request_focus();
                     }
 

@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
-use crate::engine::zone::ui::window_size;
 use crate::entity;
 use crate::graphics;
 use crate::ui as base_ui;
@@ -134,8 +133,20 @@ impl UiDescription {
                 ui_message = Some(ui_message_);
             }
         } else {
-            if let Some(ui_message_) = self.draw_default(ui, state) {
-                ui_message = Some(ui_message_);
+            if is_mobile() {
+                ui.vertical(|ui| {
+                    if let Some(ui_message_) = self.draw_default(ui, state) {
+                        ui_message = Some(ui_message_);
+                    }
+                });
+            } else {
+                egui::ScrollArea::both()
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| {
+                        if let Some(ui_message_) = self.draw_default(ui, state) {
+                            ui_message = Some(ui_message_);
+                        }
+                    });
             }
         }
 
@@ -164,56 +175,52 @@ impl UiDescription {
         state.already_displayed_groups = vec![];
         let mut event = None;
 
-        egui::ScrollArea::vertical()
-            .auto_shrink([false, false])
-            .show(ui, |ui| {
-                if let Some(illustration_texture) = &self.illustration_texture {
-                    ui.horizontal_top(|ui| {
-                        let width = window_size().0.min(768.);
-                        let height = 300.0 / (768.0 / width);
-                        ui.image(illustration_texture, egui::Vec2::new(width, height));
-                    });
-                    ui.separator();
-                }
+        if let Some(illustration_texture) = &self.illustration_texture {
+            ui.horizontal_top(|ui| {
+                let width = screen_width().min(768.);
+                let height = 300.0 / (768.0 / width);
+                ui.image(illustration_texture, egui::Vec2::new(width, height));
+            });
+            ui.separator();
+        }
 
-                for part in &self.description.items {
-                    // Group
-                    if let Some(link_group_name) = &part.link_group_name {
-                        if !state.already_displayed_groups.contains(link_group_name) {
-                            ui.add(egui::Label::new(
-                                egui::RichText::new(link_group_name).heading(),
-                            ));
-                            ui.horizontal_wrapped(|ui| {
-                                if let Some(event_) = self.draw_buttons_group(
-                                    ui,
-                                    &self.description.items,
-                                    state,
-                                    link_group_name,
-                                ) {
-                                    event = Some(event_)
-                                }
-                            });
-                            state.already_displayed_groups.push(link_group_name.clone());
-                        }
-                    // Non-Group
-                    } else {
-                        if let Some(event_) = self.draw_part(ui, part, state) {
+        for part in &self.description.items {
+            // Group
+            if let Some(link_group_name) = &part.link_group_name {
+                if !state.already_displayed_groups.contains(link_group_name) {
+                    ui.add(egui::Label::new(
+                        egui::RichText::new(link_group_name).heading(),
+                    ));
+                    ui.horizontal_wrapped(|ui| {
+                        if let Some(event_) = self.draw_buttons_group(
+                            ui,
+                            &self.description.items,
+                            state,
+                            link_group_name,
+                        ) {
                             event = Some(event_)
                         }
+                    });
+                    state.already_displayed_groups.push(link_group_name.clone());
+                }
+            // Non-Group
+            } else {
+                if let Some(event_) = self.draw_part(ui, part, state) {
+                    event = Some(event_)
+                }
+            }
+        }
+
+        if self.description.footer_links.len() > 0 {
+            ui.horizontal_top(|ui| {
+                for footer_link in &self.description.footer_links {
+                    match self.draw_part(ui, footer_link, state) {
+                        Some(event_) => event = Some(event_),
+                        None => {}
                     }
                 }
-
-                if self.description.footer_links.len() > 0 {
-                    ui.horizontal_top(|ui| {
-                        for footer_link in &self.description.footer_links {
-                            match self.draw_part(ui, footer_link, state) {
-                                Some(event_) => event = Some(event_),
-                                None => {}
-                            }
-                        }
-                    });
-                }
             });
+        }
 
         event
     }
@@ -231,7 +238,7 @@ impl UiDescription {
             egui::Grid::new("a_grid")
                 .num_columns(part.columns as usize)
                 .striped(true)
-                .min_col_width(window_size().0 / 2.0)
+                .min_col_width(screen_width() / 2.0)
                 .show(ui, |ui| {
                     // determine how rows columns count
                     let mut max_row_count = 0;
@@ -287,7 +294,7 @@ impl UiDescription {
                 egui::Grid::new("root_grid")
                     .num_columns(2)
                     .striped(true)
-                    .min_col_width(window_size().0 / 2.0)
+                    .min_col_width(screen_width() / 2.0)
                     .show(ui, |ui| {
                         for form_part in &part.items {
                             match self.draw_part(ui, form_part, state) {
