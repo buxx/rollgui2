@@ -1,6 +1,10 @@
 use macroquad::prelude::*;
 
-use crate::{engine::root::state, graphics::Graphics, ui::utils::is_mobile};
+use crate::{
+    engine::root::state,
+    graphics::Graphics,
+    ui::utils::{egui_scale, is_mobile},
+};
 use egui;
 
 pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::RootEvent> {
@@ -22,7 +26,7 @@ pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::Ro
 
         if let Some(texture_handler) = &state.root_illustration {
             egui::CentralPanel::default().show(egui_ctx, |ui| {
-                let image_width = screen_width();
+                let image_width = screen_width() / egui_scale();
                 let image_height = 700.0 / (1000.0 / image_width);
                 ui.image(texture_handler, egui::Vec2::new(image_width, image_height))
             });
@@ -30,11 +34,7 @@ pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::Ro
 
         egui::Window::new("Se connecter / Créer un compte")
             .resizable(false)
-            .default_width(360.0)
-            .default_pos((
-                (screen_width() / 2.0) - (360.0 / 2.0),
-                (screen_height() / 2.0) - 200.0,
-            ))
+            .anchor(egui::Align2::CENTER_BOTTOM, egui::vec2(0., -50.))
             .show(egui_ctx, |ui| {
                 if state.loading {
                     ui.colored_label(egui::Color32::LIGHT_GRAY, "Chargement ...");
