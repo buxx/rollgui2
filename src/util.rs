@@ -1,5 +1,8 @@
 use macroquad::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
+use crate::VERSION;
+
 pub fn convert_to_local(pixel_pos: Vec2) -> Vec2 {
     Vec2::new(pixel_pos.x / screen_width(), pixel_pos.y / screen_height()) * 2.0
         - Vec2::new(1.0, 1.0)
@@ -134,5 +137,16 @@ pub fn set_auth_token(auth_token: Option<&str>) {
         storage.set("__AUTH_TOKEN__", auth_token_);
     } else {
         storage.remove("__AUTH_TOKEN__")
+    }
+}
+
+pub fn vname(file_name: &str) -> String {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        file_name.to_string()
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        format!("{}?v={}", file_name, VERSION)
     }
 }

@@ -30,6 +30,8 @@ pub mod util;
 pub mod zone;
 
 const SERVER_ADDRESS: &'static str = default_env!("SERVER_ADDRESS", "http://127.0.0.1:5000");
+const VERSION: &str = default_env!("CARGO_PKG_VERSION", "0.1.0");
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Rolling".to_owned(),
@@ -41,13 +43,15 @@ fn window_conf() -> Conf {
 }
 #[macroquad::main(window_conf)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    info!("Start rollgui2 ({})", VERSION);
     // FIXME : manage errors
-    let tile_set = load_texture("static/graphics.png").await.unwrap();
-    let tile_set_bytes = load_file("static/graphics.png").await.unwrap();
+    let graphics_name = vname("static/graphics.png");
+    let tile_set = load_texture(&graphics_name).await.unwrap();
+    let tile_set_bytes = load_file(&graphics_name).await.unwrap();
     let tiles_mapping = tileset::loader::from_list(hardcoded::get_tiles_list(), 32., 32.);
     let mut graphics = graphics::Graphics::new(tile_set, tile_set_bytes, tiles_mapping, 32., 32.);
 
-    let root_illustration_name = "root.png";
+    let root_illustration_name = vname("root.png");
     info!("Load root illustration {}", root_illustration_name);
     graphics.load_illustration(&root_illustration_name).await;
 

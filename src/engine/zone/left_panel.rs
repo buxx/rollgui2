@@ -1,7 +1,11 @@
-use super::{gui, log, ZoneEngine};
+use super::{gui, log, ZoneEngine, LEFT_PANEL_WIDTH};
 use macroquad::prelude::*;
 
-use crate::{message::MainMessage, util as base_util};
+use crate::{
+    message::MainMessage,
+    //  ui::utils::open_url,
+    util as base_util,
+};
 
 const AVATAR_DRAW_X: f32 = 40.;
 const AVATAR_DRAW_Y: f32 = 30.;

@@ -1,4 +1,4 @@
-use crate::{engine, graphics};
+use crate::{engine, graphics, SERVER_ADDRESS};
 use macroquad::prelude::*;
 
 const TOP_PANEL_X: f32 = 960.;

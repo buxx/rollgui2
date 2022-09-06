@@ -4,6 +4,7 @@ use crate::{
     engine::root::state,
     graphics::Graphics,
     ui::utils::{egui_scale, is_mobile},
+    util::vname,
 };
 use egui;
 
@@ -17,9 +18,9 @@ pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::Ro
             style.override_text_style = Some(egui::TextStyle::Heading);
             egui_ctx.set_style(style);
 
-            if let Some(image_data) = graphics.illustrations.get("root.png") {
+            if let Some(image_data) = graphics.illustrations.get(&vname("root.png")) {
                 let texture: egui::TextureHandle =
-                    egui_ctx.load_texture("root.png", image_data.clone());
+                    egui_ctx.load_texture(vname("root.png"), image_data.clone());
                 state.root_illustration = Some(texture);
             }
         }

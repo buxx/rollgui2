@@ -10,6 +10,7 @@ extern "C" {
 #[derive(Clone)]
 pub struct TextInputRequest {
     name: String,
+    #[allow(dead_code)]
     value: String,
 }
 
