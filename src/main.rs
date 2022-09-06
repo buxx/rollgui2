@@ -4,8 +4,8 @@ use macroquad::prelude::*;
 use util::texture_from_cache_or_from_file;
 
 use crate::{
-    ui::utils::egui_scale,
-    util::{set_auth_token, set_remember_me},
+    ui::utils::{egui_scale, loaded},
+    util::{set_auth_token, set_remember_me, vname},
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -58,6 +58,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     egui_macroquad::ui(|_mq_ctx, egui_ctx| {
         egui_ctx.set_pixels_per_point(egui_scale());
     });
+
+    loaded();
 
     loop {
         clear_background(BLACK);

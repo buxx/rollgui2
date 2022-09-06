@@ -11,14 +11,20 @@
         "Faim",
         "imageops",
         "inconnue",
+        "jsutils",
         "macroquad",
         "Mauvais",
+        "miniquad",
         "Moyen",
+        "rollgui",
+        "sapp",
         "Soif",
         "Suiveurs",
         "Suivis",
         "tileset",
         "unmultiplied",
-        "ureq"
+        "ureq",
+        "vname",
+        "webbrowser"
     ]
 }

@@ -24,6 +24,9 @@ ahash = "0.7.6"
 image = { version = "0.24.3", default-features = false, features = ["png"] }
 default-env = "0.1.1"
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+webbrowser = { version ="0.7.1", default-features = false }
+
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 sapp-jsutils = "0.1"
 

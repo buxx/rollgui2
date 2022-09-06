@@ -1,7 +1,12 @@
 #[cfg(target_arch = "wasm32")]
+use sapp_jsutils::JsObject;
+
+#[cfg(target_arch = "wasm32")]
 extern "C" {
     fn _is_mobile() -> bool;
     fn _reload_page() -> bool;
+    fn _open_url(url: JsObject) -> bool;
+    fn _loaded() -> bool;
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -39,5 +44,27 @@ pub fn egui_scale() -> f32 {
         1.7
     } else {
         1.4
+    }
+}
+
+pub fn open_url(url: &str) -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        return webbrowser::open(&url).is_ok();
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        unsafe { _open_url(JsObject::string(url)) }
+    }
+}
+
+pub fn loaded() -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        return true;
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        unsafe { _loaded() }
     }
 }

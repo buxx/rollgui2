@@ -6,6 +6,8 @@ register_plugin = function (importObject) {
     importObject.env.try_recv_text_input = try_recv_text_input;
     importObject.env._is_mobile = is_mobile;
     importObject.env._reload_page = reload_page;
+    importObject.env._open_url = open_url;
+    importObject.env._loaded = loaded;
 }
 
 miniquad_add_plugin({ register_plugin, on_init, version: "0.1.0", name: "rollgui2" });
@@ -44,4 +46,14 @@ function is_mobile() {
 
 function reload_page() {
     location.reload();
+}
+
+function open_url(url) {
+    window.open(consume_js_object(url), '_blank').focus();
+    return true
+}
+
+function loaded() {
+    document.getElementById('loader').remove();
+    true;
 }
