@@ -95,6 +95,8 @@ pub struct ZoneEngine {
     pub blinking_icons: Vec<BlinkingIcon>,
     pub request_clicks: Option<RequestClicks>,
     pub pending_request_clicks: Option<(RequestClicks, i32, i32)>,
+    pub click_begin_in_quick_action: Option<(f32, f32)>,
+    pub quick_action_x_offset: Option<f32>,
 }
 
 impl ZoneEngine {
@@ -150,6 +152,8 @@ impl ZoneEngine {
             blinking_icons: vec![],
             request_clicks: None,
             pending_request_clicks: None,
+            click_begin_in_quick_action: None,
+            quick_action_x_offset: None,
         })
     }
 
@@ -539,10 +543,7 @@ impl ZoneEngine {
         if is_mouse_button_down(MouseButton::Left) {
             if
             // Avoid player move by click if currently in action
-            self.current_action.is_none()
-            // Avoid player move if mouse hover left menu
-            && pixels_x > LEFT_PANEL_WIDTH
-            {
+            self.current_action.is_none() && self.click_begin_in_quick_action.is_none() {
                 let position_local = base_util::convert_to_local(Vec2::new(pixels_x, pixels_y));
                 self.user_inputs
                     .push(UserInput::MovePlayerBy(position_local * 4.5));

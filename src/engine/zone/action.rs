@@ -1,5 +1,9 @@
 use super::{gui, ZoneEngine, LEFT_PANEL_WIDTH, QUICK_ACTION_MARGIN};
-use crate::{action as base_action, ui::utils::is_mobile, util as base_util};
+use crate::{
+    action as base_action,
+    ui::utils::is_mobile,
+    util::{self as base_util, mouse_clicked, mouse_pressed},
+};
 use macroquad::prelude::*;
 
 pub fn button_size_factor() -> f32 {
@@ -12,7 +16,17 @@ pub fn button_size_factor() -> f32 {
 
 impl ZoneEngine {
     pub fn draw_quick_actions(&mut self, action_clicked: bool) {
-        let start_draw_x = LEFT_PANEL_WIDTH + QUICK_ACTION_MARGIN;
+        let mut start_draw_x =
+            LEFT_PANEL_WIDTH + QUICK_ACTION_MARGIN + self.quick_action_x_offset.unwrap_or(0.);
+
+        // If there is a dragging, update the start_draw_x
+        let mouse_pos = mouse_position();
+        if let Some(click_begin_in_quick_action) = self.click_begin_in_quick_action {
+            if click_begin_in_quick_action != mouse_pos {
+                start_draw_x = start_draw_x + (mouse_pos.0 - click_begin_in_quick_action.0)
+            }
+        }
+
         let start_draw_y = screen_height()
             - (gui::quick::BUTTON_HEIGHT * button_size_factor())
             - QUICK_ACTION_MARGIN;
@@ -58,7 +72,11 @@ impl ZoneEngine {
 
             if hover || pressed_by_key {
                 self.helper_text = Some(quick_action.name.clone());
-                if base_util::mouse_clicked() || pressed_by_key {
+                let direct_click = self.click_begin_in_quick_action.unwrap_or((0., 0.))
+                    == mouse_pos
+                    && mouse_clicked();
+                if direct_click || pressed_by_key {
+                    self.click_begin_in_quick_action = None;
                     if quick_action.force_open_description {
                         self.description_request = Some(self.client.get_description_request(
                             quick_action.base_url.clone(),
@@ -84,6 +102,24 @@ impl ZoneEngine {
                     }
                 }
                 self.disable_all_user_input = true;
+            }
+
+            // Click just begin hover a quick action
+            if hover && mouse_pressed() && self.click_begin_in_quick_action.is_none() {
+                debug!("Click begin hover a quick action");
+                self.click_begin_in_quick_action = Some(mouse_position());
+            }
+
+            // Dragging just finished
+            if let Some(click_begin_in_quick_action) = self.click_begin_in_quick_action {
+                // Dragging imply mouse position changed
+                if mouse_clicked() && click_begin_in_quick_action != mouse_pos {
+                    let offset = (mouse_pos.0 - click_begin_in_quick_action.0)
+                        + self.quick_action_x_offset.unwrap_or(0.);
+                    debug!("Quick action drag just ended (offset: {})", offset);
+                    self.quick_action_x_offset = Some(offset);
+                    self.click_begin_in_quick_action = None;
+                }
             }
         }
 

@@ -23,9 +23,15 @@ impl ZoneEngine {
             highlight_button,
         ) {
             self.disable_all_user_input = true;
+            let click_started_inside_left_panel = self
+                .last_begin_click_coordinates_this_frame
+                .unwrap_or(Vec2::new(0., 0.))
+                .x
+                <= LEFT_PANEL_WIDTH;
             if base_util::mouse_clicked()
                 && self.current_description.is_none()
                 && self.inventory.is_none()
+                && click_started_inside_left_panel
             {
                 match &button.action(&self.state) {
                     gui::panel::ButtonAction::OpenDescription(url) => {
