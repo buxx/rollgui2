@@ -47,6 +47,8 @@ const BOOK_BUTTON_X: f32 = 0.;
 const BOOK_BUTTON_Y: f32 = 1728.;
 const BUSINESS_BUTTON_X: f32 = 0.;
 const BUSINESS_BUTTON_Y: f32 = 1824.;
+const ACCOUNT_BUTTON_X: f32 = 0.;
+const ACCOUNT_BUTTON_Y: f32 = 1920.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Button {
@@ -60,9 +62,11 @@ pub enum Button {
     Exit,
     Book,
     Business,
+    Account,
 }
 
 pub enum ButtonAction {
+    OpenWebBrowser(String),
     OpenDescription(String),
     OpenInventory,
     OpenWorld,
@@ -99,6 +103,9 @@ impl Button {
             )),
             Button::Business => {
                 ButtonAction::OpenDescription(format!("/business/{}", state.player.id))
+            }
+            Button::Account => {
+                ButtonAction::OpenWebBrowser(format!("{}/account/manage", SERVER_ADDRESS))
             }
             Button::Exit => ButtonAction::Exit,
         }
@@ -221,6 +228,15 @@ pub fn draw_buttons(
         (
             Button::Exit,
             Rect::new(EXIT_BUTTON_X, EXIT_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
+        ),
+        (
+            Button::Account,
+            Rect::new(
+                ACCOUNT_BUTTON_X,
+                ACCOUNT_BUTTON_Y,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+            ),
         ),
     ];
     let mut hover_button = None;

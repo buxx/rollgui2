@@ -40,6 +40,10 @@ impl ZoneEngine {
                             self.state.player.clone(),
                         )];
                     }
+                    gui::panel::ButtonAction::OpenWebBrowser(url) => {
+                        println!("Open url {} with web browser", url);
+                        // open_url(url);
+                    }
                     gui::panel::ButtonAction::Exit => return vec![MainMessage::Exit],
                 }
                 self.current_left_panel_button = Some(button.clone());
