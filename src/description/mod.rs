@@ -138,6 +138,10 @@ impl UiDescription {
                     if let Some(ui_message_) = self.draw_default(ui, state) {
                         ui_message = Some(ui_message_);
                     }
+
+                    // Curiously, end page is sometime cropped
+                    ui.label(" ");
+                    ui.separator();
                 });
             } else {
                 egui::ScrollArea::both()
@@ -146,6 +150,10 @@ impl UiDescription {
                         if let Some(ui_message_) = self.draw_default(ui, state) {
                             ui_message = Some(ui_message_);
                         }
+
+                        // Curiously, end page is sometime cropped
+                        ui.label(" ");
+                        ui.separator();
                     });
             }
         }
