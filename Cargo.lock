@@ -309,6 +309,7 @@ dependencies = [
 [[package]]
 name = "egui-macroquad"
 version = "0.11.0"
+source = "git+https://github.com/buxx/egui-macroquad?rev=9d529c5bc8eb7864439327ad19b5b40c986310c5#9d529c5bc8eb7864439327ad19b5b40c986310c5"
 dependencies = [
  "egui",
  "egui-miniquad",
@@ -318,6 +319,7 @@ dependencies = [
 [[package]]
 name = "egui-miniquad"
 version = "0.11.0"
+source = "git+https://github.com/buxx/egui-miniquad.git?rev=75e9420370df6ecc23feacfb95dc72020e434be2#75e9420370df6ecc23feacfb95dc72020e434be2"
 dependencies = [
  "bytemuck",
  "copypasta",
