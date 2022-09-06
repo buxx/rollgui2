@@ -22,6 +22,14 @@ impl super::ZoneEngine {
                     .retain(|a| a.exploitable_tiles.len() != 0 || a.direct_action);
                 self.update_current_action_according_new_quick_actions();
             }
+            event::ZoneEventType::RemoveBuild {
+                zone_row_i,
+                zone_col_i,
+            } => {
+                self.state
+                    .builds
+                    .retain(|k, _| k != &(zone_row_i, zone_col_i));
+            }
             event::ZoneEventType::NewBuild {
                 build,
                 produced_resource_id,

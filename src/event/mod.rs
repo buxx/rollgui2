@@ -20,6 +20,7 @@ pub const THERE_IS_AROUND: &str = "THERE_IS_AROUND";
 pub const CLICK_ACTION_EVENT: &str = "CLICK_ACTION_EVENT";
 pub const NEW_RESUME_TEXT: &str = "NEW_RESUME_TEXT";
 pub const NEW_BUILD: &str = "NEW_BUILD";
+pub const REMOVE_BUILD: &str = "REMOVE_BUILD";
 pub const REQUEST_CHAT: &str = "REQUEST_CHAT";
 pub const NEW_CHAT_MESSAGE: &str = "NEW_CHAT_MESSAGE";
 pub const ANIMATED_CORPSE_MOVE: &str = "ANIMATED_CORPSE_MOVE";
@@ -84,6 +85,10 @@ pub enum ZoneEventType {
         produced_resource_id: Option<String>,
         produced_stuff_id: Option<String>,
         producer_character_id: Option<String>,
+    },
+    RemoveBuild {
+        zone_row_i: i32,
+        zone_col_i: i32,
     },
     RequestChat {
         character_id: String,
@@ -280,6 +285,13 @@ impl ZoneEvent {
                     },
                 })
             }
+            &REMOVE_BUILD => Ok(ZoneEvent {
+                event_type_name: String::from(REMOVE_BUILD),
+                event_type: ZoneEventType::RemoveBuild {
+                    zone_row_i: data["zone_row_i"].as_i64().unwrap() as i32,
+                    zone_col_i: data["zone_col_i"].as_i64().unwrap() as i32,
+                },
+            }),
             &ZONE_TILE_REPLACE => {
                 let new_tile_id = data["new_tile_id"].as_str().unwrap();
                 let zone_row_i = data["zone_row_i"].as_i64().unwrap() as i16;
