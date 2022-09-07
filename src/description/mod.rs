@@ -298,6 +298,11 @@ impl UiDescription {
                     Some(event_) => event = Some(event_),
                     None => {}
                 }
+            } else if part.is_choices() {
+                match self.draw_choices(ui, part, state) {
+                    Some(event_) => event = Some(event_),
+                    None => {}
+                }
             } else if part.is_form {
                 egui::Grid::new("root_grid")
                     .num_columns(2)

@@ -268,4 +268,50 @@ impl UiDescription {
 
         event
     }
+
+    pub fn draw_choices(
+        &self,
+        ui: &mut egui::Ui,
+        part: &entity::description::Part,
+        state: &mut super::UiDescriptionState,
+    ) -> Option<super::UiDescriptionEvent> {
+        let event = None;
+
+        if let Some(choices) = &part.choices {
+            let name = match &part.name {
+                Some(name) => name,
+                None => {
+                    return Some(super::UiDescriptionEvent::FatalError(format!(
+                        "Missing name for choice"
+                    )));
+                }
+            };
+            let default_value = match &part.value {
+                Some(default_value) => default_value,
+                None => "",
+            };
+            let value = state
+                .string_values
+                .entry(name.to_string())
+                .or_insert(default_value.to_string());
+
+            let mut new_value = None;
+            ui.horizontal(|ui| {
+                for choice in choices.iter() {
+                    if ui
+                        .add(egui::RadioButton::new(value == choice, choice))
+                        .clicked()
+                    {
+                        new_value = Some(choice.clone());
+                    }
+                }
+            });
+
+            if let Some(new_value) = new_value {
+                state.string_values.insert(name.clone(), new_value);
+            }
+        }
+
+        event
+    }
 }
