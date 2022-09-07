@@ -95,8 +95,13 @@ impl LoadZoneEngine {
                         self.player = Some(character);
                         debug!("{:?}", self.player);
                     }
-                    Err(error) => {
-                        return vec![message::MainMessage::SetErrorEngine(error.to_string())];
+                    Err(_) => {
+                        return vec![message::MainMessage::SetEngine(Box::new(
+                            CheckCharacterIsDeadEngine::new(
+                                self.character_id.clone(),
+                                self.client.clone(),
+                            ),
+                        ))];
                     }
                 }
             }
