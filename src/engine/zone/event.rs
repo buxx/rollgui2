@@ -15,7 +15,7 @@ impl super::ZoneEngine {
                 character_count: _,
                 quick_actions,
             } => {
-                // debug!("New quick actions ({:?})", quick_actions);
+                debug!("New quick actions ({:?})", quick_actions);
                 self.quick_actions = quick_actions;
                 self.quick_action_x_offset = None;
                 // Keep only rollgui2 quick actions (where there is exploitable tiles)
