@@ -241,6 +241,7 @@ impl UiDescription {
 
         event
     }
+
     pub fn draw_checkbox(
         &self,
         ui: &mut egui::Ui,

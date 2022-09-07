@@ -169,7 +169,7 @@ impl Client {
 
     pub fn get_character_is_dead_request(&self, character_id: &str) -> Request {
         let url = format!("{}/character/{}/dead", SERVER_ADDRESS, character_id);
-        info!("Retrieve character from {}", url);
+        info!("Check is character is dead from {}", url);
 
         RequestBuilder::new(&url)
             .header("Authorization", &self.authentification_value())
