@@ -17,6 +17,7 @@ pub struct Part {
     pub submit_label: Option<String>,
     pub items: Vec<Part>,
     pub type_: Option<String>,
+    pub expect_integer: bool,
     pub label: Option<String>,
     pub name: Option<String>,
     pub is_link: bool,

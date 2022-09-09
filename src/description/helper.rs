@@ -236,6 +236,12 @@ impl UiDescription {
                         ui.add(widget);
                     };
                 });
+
+                if !ui.ctx().is_using_pointer() {
+                    if part.expect_integer {
+                        *value = value.round()
+                    }
+                }
             }
         }
 
