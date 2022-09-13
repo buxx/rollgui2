@@ -32,6 +32,12 @@ pub mod zone;
 const SERVER_ADDRESS: &'static str = default_env!("SERVER_ADDRESS", "http://127.0.0.1:5000");
 const VERSION: &str = default_env!("CARGO_PKG_VERSION", "0.1.0");
 
+#[cfg(target_arch = "wasm32")]
+const BIN_LOCAL_STORAGE: bool = false; // Local storage is limited to 5Mb ...
+
+#[cfg(not(target_arch = "wasm32"))]
+const BIN_LOCAL_STORAGE: bool = true;
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Rolling".to_owned(),

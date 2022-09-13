@@ -1,5 +1,6 @@
 use macroquad::prelude::*;
 
+use crate::BIN_LOCAL_STORAGE;
 #[cfg(target_arch = "wasm32")]
 use crate::VERSION;
 
@@ -63,7 +64,7 @@ pub async fn bytes_from_cache_or_file(
         debug!("Load file : '{}'", file_path);
         match load_file(file_path).await {
             Ok(bytes) => {
-                if cache_if_not_in {
+                if BIN_LOCAL_STORAGE && cache_if_not_in {
                     storage.set(file_path, &base64::encode(bytes.clone()));
                 }
                 Ok(bytes)
