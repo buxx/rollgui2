@@ -141,10 +141,10 @@ impl Part {
             Some(default_value_) => {
                 let suffix = if default_value_.ends_with("l") {
                     Some("l".to_string())
-                } else if default_value_.ends_with("g") {
-                    Some("g".to_string())
                 } else if default_value_.ends_with("kg") {
                     Some("kg".to_string())
+                } else if default_value_.ends_with("g") {
+                    Some("g".to_string())
                 } else if default_value_.ends_with("m³") {
                     Some("m³".to_string())
                 } else {
