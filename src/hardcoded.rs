@@ -59,7 +59,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("FISH_FRESH", 5, 1, 1),
         ("RAW_MEAT", 5, 4, 1),
         ("COOKED_MEAT", 5, 5, 1),
-        ("SMOKED_MEAT", 5, 5, 1),
+        ("DRIED_MEAT", 5, 5, 1),
         ("ANIMAL_SKIN", 5, 8, 1),
         ("GRAMINEAE", 5, 13, 1),
         ("BREAD", 5, 14, 1),
