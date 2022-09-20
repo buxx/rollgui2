@@ -147,6 +147,8 @@ impl Part {
                     Some("g".to_string())
                 } else if default_value_.ends_with("m³") {
                     Some("m³".to_string())
+                } else if default_value_.ends_with("u") {
+                    Some("u".to_string())
                 } else {
                     None
                 };
