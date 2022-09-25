@@ -464,6 +464,11 @@ impl ZoneEngine {
                                             self.state.player.id.clone(),
                                         )];
                                     } else {
+                                        if description.reload_inventory {
+                                            if self.inventory_state.is_some() {
+                                                self.make_open_inventory_request();
+                                            }
+                                        }
                                         self.current_description =
                                             Some(description::UiDescription::new(
                                                 description,
