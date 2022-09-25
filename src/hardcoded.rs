@@ -20,7 +20,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("FRESH_WATER_TILE", 13, 0, 6),
         ("SHORT_GRASS", 1, 0, 1),
         ("HIGH_GRASS", 15, 0, 6),
-        ("ROCKY_GROUND", 0, 0, 1),
+        ("ROCKY_GROUND", 0, 5, 1),
         ("DIRT", 0, 10, 1),
         ("LEAF_TREE", 1, 7, 1),
         ("TROPICAL_TREE", 1, 8, 1),
