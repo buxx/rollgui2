@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
-use super::{UiDescription, UiDescriptionEvent};
-use crate::entity;
+use super::{tight_display, UiDescription, UiDescriptionEvent};
+use crate::{entity, ui::utils::egui_scale};
 
 pub const BIG_BUTTON_SIZE: [f32; 2] = [150.0, 150.0];
 pub const IMG_BUTTON_SIZE: [f32; 2] = [64., 64.];
@@ -218,7 +218,9 @@ impl UiDescription {
 
                 ui.label(part.label());
 
-                ui.horizontal(|ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().slider_width = ui.available_width() / egui_scale();
+
                     if let (Some(min_value), Some(max_value)) = (part.min_value, part.max_value) {
                         *value = value.min(max_value);
                         *value = value.max(min_value);

@@ -5,12 +5,17 @@ use macroquad::prelude::*;
 use crate::entity;
 use crate::graphics;
 use crate::ui as base_ui;
+use crate::ui::utils::egui_scale;
 use crate::ui::utils::is_mobile;
 
 pub mod grid;
 pub mod helper;
 
 pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
+
+fn tight_display() -> bool {
+    return screen_width() < 1280.0 || is_mobile();
+}
 
 #[derive(Clone)]
 pub struct UiDescriptionState {
@@ -304,36 +309,59 @@ impl UiDescription {
                     None => {}
                 }
             } else if part.is_form {
-                egui::Grid::new("root_grid")
-                    .num_columns(2)
-                    .striped(true)
-                    .min_col_width(screen_width() / 2.0)
-                    .show(ui, |ui| {
-                        for form_part in &part.items {
-                            match self.draw_part(ui, form_part, state) {
-                                Some(event_) => event = Some(event_),
-                                None => {}
-                            }
-                            ui.end_row();
-                        }
-                        if ui.button("Valider").clicked() {
-                            if let Some(url) = &part.form_action {
-                                if part.form_values_in_query {
-                                    event =
-                                        Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
-                                } else {
-                                    event =
-                                        Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
-                                }
-                            } else {
-                                error!("Description form has no form action");
-                            }
+                if tight_display() {
+                    ui.vertical(|ui| {
+                        match self.draw_form(ui, part, state) {
+                            Some(event_) => event = Some(event_),
+                            None => {}
                         };
                     });
+                } else {
+                    egui::Grid::new("root_grid")
+                        .num_columns(2)
+                        .striped(true)
+                        .min_col_width(screen_width() / 2.0 / egui_scale())
+                        .show(ui, |ui| {
+                            match self.draw_form(ui, part, state) {
+                                Some(event_) => event = Some(event_),
+                                None => {}
+                            };
+                        });
+                };
             }
         }
 
         event
+    }
+
+    fn draw_form(
+        &self,
+        ui: &mut egui::Ui,
+        part: &entity::description::Part,
+        state: &mut UiDescriptionState,
+    ) -> Option<UiDescriptionEvent> {
+        let mut event = None;
+
+        for form_part in &part.items {
+            match self.draw_part(ui, form_part, state) {
+                Some(event_) => event = Some(event_),
+                None => {}
+            }
+            ui.end_row();
+        }
+        if ui.button("Valider").clicked() {
+            if let Some(url) = &part.form_action {
+                if part.form_values_in_query {
+                    event = Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
+                } else {
+                    event = Some(UiDescriptionEvent::ValidateFormInBody(url.clone()));
+                }
+            } else {
+                error!("Description form has no form action");
+            }
+        };
+
+        return event;
     }
 }
 
