@@ -34,10 +34,12 @@ impl ZoneEngine {
         let request_clicks = self.request_clicks.as_ref().expect("Must exist here");
 
         // Ensure mouse not hover left panel
-        if mouse_position().0 <= LEFT_PANEL_WIDTH {
-            if mouse_clicked() {
-                self.request_clicks = None;
-            }
+        if (mouse_position().0 <= LEFT_PANEL_WIDTH && mouse_clicked())
+            || is_key_pressed(KeyCode::Escape)
+            || is_mouse_button_released(MouseButton::Right)
+        {
+            self.request_clicks = None;
+
             return;
         }
 
