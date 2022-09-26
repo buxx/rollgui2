@@ -1,4 +1,4 @@
-use crate::graphics;
+use crate::{engine::zone::inventory::INVENTORY_BOX_MARGIN, graphics};
 use macroquad::prelude::*;
 
 const BACK_X: f32 = 1100.;
@@ -24,6 +24,32 @@ const EQUIP_ICON_X: f32 = 320.;
 const EQUIP_ICON_Y: f32 = 192.;
 const EQUIP_ICON_WIDTH: f32 = 32.;
 const EQUIP_ICON_HEIGHT: f32 = 32.;
+
+const CLOSE_ICON_X: f32 = 608.;
+const CLOSE_ICON_Y: f32 = 64.;
+const CLOSE_ICON_WIDTH: f32 = 32.;
+const CLOSE_ICON_HEIGHT: f32 = 32.;
+
+pub fn draw_close(graphics: &graphics::Graphics) {
+    let dest_x = (screen_width() / 2.0) - CLOSE_ICON_WIDTH;
+    let dest_y = INVENTORY_BOX_MARGIN - (CLOSE_ICON_HEIGHT * 1.7);
+    draw_texture_ex(
+        graphics.tileset_texture,
+        dest_x,
+        dest_y,
+        WHITE,
+        DrawTextureParams {
+            source: Some(Rect::new(
+                CLOSE_ICON_X + 1.,
+                CLOSE_ICON_Y + 1.,
+                CLOSE_ICON_WIDTH,
+                CLOSE_ICON_HEIGHT,
+            )),
+            dest_size: Some(Vec2::new(CLOSE_ICON_WIDTH * 2.0, CLOSE_ICON_HEIGHT * 2.0)),
+            ..Default::default()
+        },
+    );
+}
 
 pub fn draw_back(
     graphics: &graphics::Graphics,

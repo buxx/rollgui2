@@ -5,7 +5,7 @@ use crate::{entity, util};
 
 use super::gui;
 
-const INVENTORY_BOX_MARGIN: f32 = 50.;
+pub const INVENTORY_BOX_MARGIN: f32 = 50.;
 
 fn was_scroll(last_begin_click_coordinates: Option<Vec2>) -> bool {
     if let Some(last_position) = last_begin_click_coordinates {
@@ -166,6 +166,8 @@ impl super::ZoneEngine {
                     box_width,
                     box_height,
                 );
+
+                gui::inventory::draw_close(&self.graphics);
 
                 if mouse_is_hover_box {
                     inventory_state.must_hover_before_hide = false;
