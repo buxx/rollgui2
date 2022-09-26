@@ -38,6 +38,7 @@ pub struct Part {
     pub min_value: Option<f32>,
     pub max_value: Option<f32>,
     pub cost: Option<f32>,
+    pub use_classes2_for_button: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

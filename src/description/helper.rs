@@ -44,7 +44,12 @@ impl UiDescription {
 
             // Prepare textures for tiles images
             for part in &self.description.items {
-                let tile_id = &self.graphics.find_tile_id_from_classes(&part.classes);
+                let classes = if part.use_classes2_for_button {
+                    &part.classes2
+                } else {
+                    &part.classes
+                };
+                let tile_id = &self.graphics.find_tile_id_from_classes(classes);
                 if tile_id != "UNKNOWN" {
                     if let Some(image_data) = self.graphics.tiles_data.get(tile_id) {
                         let texture: egui::TextureHandle =
@@ -77,7 +82,12 @@ impl UiDescription {
         let mut event = None;
 
         let label = part.label();
-        let tile_id = self.graphics.find_tile_id_from_classes(&part.classes);
+        let classes = if part.use_classes2_for_button {
+            &part.classes2
+        } else {
+            &part.classes
+        };
+        let tile_id = self.graphics.find_tile_id_from_classes(classes);
 
         let clicked = if self.draw_big_button {
             ui.add_sized(BIG_BUTTON_SIZE, egui::Button::new(&label))
