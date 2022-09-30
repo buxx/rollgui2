@@ -111,6 +111,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("CLOTH", 5, 22, 1),
         ("GROUND", 0, 10, 1),
         ("PLOUGHED_LAND", 0, 11, 1),
+        ("CLAY_DEPOSIT", 0, 12, 1),
         ("SEEDS", 1, 10, 1),
         ("CEREAL", 5, 13, 1),
         ("GROW_PROGRESS_0", 8, 0, 1),
