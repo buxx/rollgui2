@@ -194,7 +194,11 @@ impl UiDescription {
                     .entry(name.to_string())
                     .or_insert(default_value.to_string());
                 ui.label(part.label());
-                if ui.add(egui::TextEdit::singleline(value)).gained_focus() {
+                let is_password = part.classes.contains(&"password".to_string());
+                if ui
+                    .add(egui::TextEdit::singleline(value).password(is_password))
+                    .gained_focus()
+                {
                     event = Some(super::UiDescriptionEvent::TextEditFocused(
                         part.label().to_string(),
                         name.to_string(),
