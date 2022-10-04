@@ -11,6 +11,13 @@ pub fn require_around_event(state: &super::state::ZoneState) -> String {
     })
     .unwrap()
 }
+pub fn require_resume_text_event() -> String {
+    serde_json::to_string(&event::ZoneEvent {
+        event_type_name: String::from(event::CLIENT_REQUIRE_NEW_RESUME_TEXT),
+        event_type: event::ZoneEventType::ClientRequireResumeText,
+    })
+    .unwrap()
+}
 
 pub fn player_move_event(state: &super::state::ZoneState) -> String {
     serde_json::to_string(&event::ZoneEvent {

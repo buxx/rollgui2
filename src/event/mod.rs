@@ -18,6 +18,7 @@ pub const CHARACTER_EXIT_ZONE: &str = "CHARACTER_EXIT_ZONE";
 pub const CLIENT_REQUIRE_AROUND: &str = "CLIENT_REQUIRE_AROUND";
 pub const THERE_IS_AROUND: &str = "THERE_IS_AROUND";
 pub const CLICK_ACTION_EVENT: &str = "CLICK_ACTION_EVENT";
+pub const CLIENT_REQUIRE_NEW_RESUME_TEXT: &str = "CLIENT_REQUIRE_NEW_RESUME_TEXT";
 pub const NEW_RESUME_TEXT: &str = "NEW_RESUME_TEXT";
 pub const NEW_BUILD: &str = "NEW_BUILD";
 pub const REMOVE_BUILD: &str = "REMOVE_BUILD";
@@ -59,6 +60,7 @@ pub enum ZoneEventType {
     CharacterExit {
         character_id: String,
     },
+    ClientRequireResumeText,
     ClientRequireAround {
         zone_row_i: i32,
         zone_col_i: i32,

@@ -649,8 +649,13 @@ impl ZoneEngine {
             // Socket just connected
             if web_socket(&self.state).connected() {
                 self.socket_is_new = false;
+
                 let event = util::require_around_event(&self.state);
                 web_socket(&self.state).send_text(&event);
+
+                let event = util::require_resume_text_event();
+                web_socket(&self.state).send_text(&event);
+
                 let new_coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
                 self.last_require_around_coordinate = new_coordinates;
                 return false;
