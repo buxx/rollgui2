@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use super::{tight_display, UiDescription, UiDescriptionEvent};
+use super::{UiDescription, UiDescriptionEvent};
 use crate::{entity, ui::utils::egui_scale};
 
 pub const BIG_BUTTON_SIZE: [f32; 2] = [150.0, 150.0];
