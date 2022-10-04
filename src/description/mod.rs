@@ -190,7 +190,7 @@ impl UiDescription {
 
         if let Some(illustration_texture) = &self.illustration_texture {
             ui.horizontal_top(|ui| {
-                let width = screen_width().min(768.);
+                let width = (screen_width().min(768.) / egui_scale()) * 0.95;
                 let height = 300.0 / (768.0 / width);
                 ui.image(illustration_texture, egui::Vec2::new(width, height));
             });

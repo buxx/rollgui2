@@ -17,8 +17,8 @@ impl super::ZoneEngine {
                     .resizable(false)
                     .default_pos((0., 0.))
                     .fixed_size((
-                        screen_width() / egui_scale(),
-                        screen_height() / egui_scale(),
+                        (screen_width() / egui_scale()) - 12.0,
+                        (screen_height() / egui_scale()) - 35.0,
                     ))
                     .show(egui_ctx, |ui| {
                         ui_message = description.draw(egui_ctx, ui, description_state);
