@@ -20,7 +20,32 @@ pub fn mouse_pressed() -> bool {
 // TODO : use to_digit (failed when tried ...)
 pub fn char_to_key_code(char_: &char) -> Option<KeyCode> {
     match char_ {
+        'A' => Some(KeyCode::A),
+        'B' => Some(KeyCode::B),
+        'C' => Some(KeyCode::C),
+        'D' => Some(KeyCode::D),
+        'E' => Some(KeyCode::E),
+        'F' => Some(KeyCode::F),
+        'G' => Some(KeyCode::G),
+        'H' => Some(KeyCode::H),
+        'I' => Some(KeyCode::I),
+        'J' => Some(KeyCode::J),
+        'K' => Some(KeyCode::K),
+        'L' => Some(KeyCode::L),
+        'M' => Some(KeyCode::M),
+        'N' => Some(KeyCode::N),
+        'O' => Some(KeyCode::O),
         'P' => Some(KeyCode::P),
+        'Q' => Some(KeyCode::Q),
+        'R' => Some(KeyCode::R),
+        'S' => Some(KeyCode::S),
+        'T' => Some(KeyCode::T),
+        'U' => Some(KeyCode::U),
+        'V' => Some(KeyCode::V),
+        'W' => Some(KeyCode::W),
+        'X' => Some(KeyCode::X),
+        'Y' => Some(KeyCode::Y),
+        'Z' => Some(KeyCode::Z),
         _ => None,
     }
 }

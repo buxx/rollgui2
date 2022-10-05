@@ -23,18 +23,13 @@ pub struct Action {
 
 impl Action {
     pub fn from_quick_action(quick_action: &quick::QuickAction) -> Action {
-        let associated_key = if let Some(quick_action_key) = quick_action.quick_action_key {
-            Some(base_util::char_to_key_code(&quick_action_key).expect("Update key mapping !"))
-        } else {
-            None
-        };
         Self {
             uuid: quick_action.uuid.clone(),
             post_url: quick_action.base_url.clone(),
             cursor_class: None,
             exploitable_tiles: quick_action.exploitable_tiles.clone(),
             all_tiles_at_once: quick_action.all_tiles_at_once,
-            associated_key,
+            associated_key: quick_action.quick_action_key_code(),
         }
     }
 }

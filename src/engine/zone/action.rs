@@ -62,14 +62,7 @@ impl ZoneEngine {
                 self.tick_i,
             );
 
-            let pressed_by_key = if let Some(quick_action_key_) = &quick_action.quick_action_key {
-                is_key_pressed(
-                    base_util::char_to_key_code(quick_action_key_).expect("Update key mapping !"),
-                )
-            } else {
-                false
-            };
-
+            let pressed_by_key = quick_action.quick_action_key_pressed();
             if hover || pressed_by_key {
                 self.helper_text = Some(quick_action.name.clone());
                 let direct_click = self.click_begin_in_quick_action.unwrap_or((0., 0.))
