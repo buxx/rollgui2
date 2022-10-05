@@ -332,6 +332,13 @@ impl ZoneEngine {
                     Ok(description_string) => {
                         match entity::description::Description::from_string(&description_string) {
                             Ok(description) => {
+                                if let Some(redirect) = description.redirect {
+                                    self.description_request = Some(
+                                        self.client.get_description_request(redirect, None, None),
+                                    );
+                                    self.quick_actions = vec![];
+                                }
+
                                 let message = &description
                                     .quick_action_response
                                     .unwrap_or_else(|| description.title.unwrap_or("".to_string()));
