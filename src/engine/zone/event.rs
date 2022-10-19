@@ -6,6 +6,7 @@ impl super::ZoneEngine {
     pub fn event(&mut self, event: crate::event::ZoneEvent) {
         // This a hack because click used for build but not good reliable things
         self.pending_request_clicks = None;
+        debug!("Event received : {}", event.event_type_name);
 
         match event.event_type {
             event::ZoneEventType::ThereIsAround {
@@ -15,7 +16,6 @@ impl super::ZoneEngine {
                 character_count: _,
                 quick_actions,
             } => {
-                debug!("New quick actions ({:?})", quick_actions);
                 self.quick_actions = quick_actions;
                 self.quick_action_x_offset = None;
                 // Keep only rollgui2 quick actions (where there is exploitable tiles)
