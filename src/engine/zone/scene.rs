@@ -2,6 +2,8 @@ use crate::{engine::zone::state, graphics};
 
 use macroquad::prelude::*;
 
+use super::debug::DebugInfo;
+
 fn in_area(row_i: i32, col_i: i32, draw_area: &((i32, i32), (i32, i32))) -> bool {
     let ((row_min, col_min), (row_max, col_max)) = draw_area;
     row_i >= *row_min && row_i <= *row_max && col_i >= *col_min && col_i <= *col_max
@@ -12,7 +14,8 @@ pub fn scene(
     state: &state::ZoneState,
     tick_i: i16,
     draw_area: ((i32, i32), (i32, i32)),
-) {
+) -> DebugInfo {
+    let mut display_counter = DebugInfo::new();
     let map = &state.map;
     let tiles = &state.map.tiles;
     let player_display = &state.player_display;
@@ -31,6 +34,7 @@ pub fn scene(
             let dest_x = col_i as f32 * graphics.tile_width;
             let dest_y = row_i as f32 * graphics.tile_height;
 
+            display_counter.incr_zone_tile_count();
             graphics.draw_tile_in_camera(
                 map.concrete_width,
                 map.concrete_height,
@@ -56,6 +60,7 @@ pub fn scene(
 
         // TODO : optimize by compute each stuff_id / tile_id a zone creation
         let tile_id = graphics.find_tile_id_from_classes(&build.classes);
+        display_counter.incr_build_count();
         graphics.draw_tile_in_camera(
             map.concrete_width,
             map.concrete_height,
@@ -93,6 +98,7 @@ pub fn scene(
             let dest_x = resource.zone_col_i as f32 * graphics.tile_width;
             let dest_y = resource.zone_row_i as f32 * graphics.tile_height;
 
+            display_counter.incr_resource_count();
             graphics.draw_tile_in_camera(
                 map.concrete_width,
                 map.concrete_height,
@@ -124,6 +130,7 @@ pub fn scene(
             .collect();
 
         let tile_id = graphics.find_tile_id_from_classes(&classes);
+        display_counter.incr_stuff_count();
         graphics.draw_tile_in_camera(
             map.concrete_width,
             map.concrete_height,
@@ -147,6 +154,7 @@ pub fn scene(
         let dest_x = character.zone_col_i as f32 * graphics.tile_width;
         let dest_y = character.zone_row_i as f32 * graphics.tile_height;
 
+        display_counter.incr_character_count();
         graphics.draw_tile_in_camera(
             map.concrete_width,
             map.concrete_height,
@@ -168,6 +176,7 @@ pub fn scene(
         Some(super::PlayerRunning::Right) => "CHARACTER_RUNNING_RIGHT",
         None => "CHARACTER",
     };
+    display_counter.incr_character_count();
     graphics.draw_tile_in_camera(
         map.concrete_width,
         map.concrete_height,
@@ -179,4 +188,6 @@ pub fn scene(
         None,
         None,
     );
+
+    display_counter
 }

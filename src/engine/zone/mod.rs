@@ -7,10 +7,10 @@ use crate::{
     event as base_event, graphics,
     message::{self, MainMessage},
     ui::utils::is_mobile,
-    util as base_util,
+    util::{self as base_util, mouse_clicked},
 };
 
-use self::{gui::blink::BlinkingIcon, resume::CharacterResume};
+use self::{debug::DebugInfo, gui::blink::BlinkingIcon, resume::CharacterResume};
 
 use super::Engine;
 
@@ -18,6 +18,7 @@ pub mod action;
 pub mod animations;
 pub mod blink;
 pub mod click;
+pub mod debug;
 pub mod event;
 pub mod gui;
 pub mod inventory;
@@ -97,6 +98,9 @@ pub struct ZoneEngine {
     pub pending_request_clicks: Option<(RequestClicks, i32, i32)>,
     pub click_begin_in_quick_action: Option<(f32, f32)>,
     pub quick_action_x_offset: Option<f32>,
+    pub debug_info: DebugInfo,
+    pub display_debug_info: bool,
+    pub top_left_corner_click_counter: i32,
 }
 
 impl ZoneEngine {
@@ -154,6 +158,9 @@ impl ZoneEngine {
             pending_request_clicks: None,
             click_begin_in_quick_action: None,
             quick_action_x_offset: None,
+            debug_info: DebugInfo::new(),
+            display_debug_info: false,
+            top_left_corner_click_counter: 0,
         })
     }
 
@@ -183,6 +190,7 @@ impl ZoneEngine {
     }
 
     fn update(&mut self) {
+        let mouse_position = mouse_position();
         // Player movements
         // TODO: player moves depending on the zone tiles
         let mut player_acceleration =
@@ -301,7 +309,7 @@ impl ZoneEngine {
 
         // Mouse infos
         if base_util::mouse_pressed() && self.last_begin_click_coordinates.is_none() {
-            self.last_begin_click_coordinates = Some(Vec2::from(mouse_position()));
+            self.last_begin_click_coordinates = Some(Vec2::from(mouse_position.clone()));
         }
         if base_util::mouse_clicked() {
             self.last_begin_click_coordinates_this_frame =
@@ -309,6 +317,22 @@ impl ZoneEngine {
             self.last_begin_click_coordinates = None;
         } else {
             self.last_begin_click_coordinates_this_frame = None;
+        }
+
+        // Debug display
+        if is_key_released(KeyCode::F12) {
+            self.display_debug_info = !self.display_debug_info;
+        }
+        if mouse_clicked() {
+            if mouse_position.0 <= 150.0 && mouse_position.1 <= 150.0 {
+                self.top_left_corner_click_counter += 1;
+            } else {
+                self.top_left_corner_click_counter = 0;
+            }
+        }
+        if self.top_left_corner_click_counter == 5 {
+            self.display_debug_info = !self.display_debug_info;
+            self.top_left_corner_click_counter = 0;
         }
     }
 
@@ -611,8 +635,12 @@ impl ZoneEngine {
         displayed_area
     }
 
-    pub fn scene(&self, draw_area: ((i32, i32), (i32, i32))) {
-        scene::scene(&self.graphics, &self.state, self.tick_i, draw_area);
+    pub fn scene(&mut self, draw_area: ((i32, i32), (i32, i32))) {
+        let display_counter = scene::scene(&self.graphics, &self.state, self.tick_i, draw_area);
+        if self.frame_i % 30 == 0 {
+            self.debug_info = display_counter;
+            self.debug_info.set_fps(get_fps());
+        }
     }
 
     fn draw_zone_ux(&mut self) {
@@ -730,6 +758,10 @@ impl Engine for ZoneEngine {
 
         messages.extend(self.ui());
         egui_macroquad::draw();
+
+        if self.display_debug_info {
+            draw_text(&self.debug_info.to_string(), 32.0, 32.0, 32.0, YELLOW);
+        }
 
         messages
     }
