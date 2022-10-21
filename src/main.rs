@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Box::new(engine::root::RootScene::new(graphics.clone()));
 
     // Set egui scale
-    egui_macroquad::ui(|_mq_ctx, egui_ctx| {
+    egui_macroquad::ui(|egui_ctx| {
         egui_ctx.set_pixels_per_point(egui_scale());
     });
 

@@ -6,12 +6,12 @@ use crate::{
     ui::utils::{egui_scale, is_mobile},
     util::vname,
 };
-use egui;
+use egui::{self, TextureFilter};
 
 pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::RootEvent> {
     let mut event = None;
 
-    egui_macroquad::ui(|_mq_ctx, egui_ctx| {
+    egui_macroquad::ui(|egui_ctx| {
         if state.first_frame {
             let mut style = (*egui_ctx.style()).clone();
             // TODO : with new egui, do https://discord.com/channels/900275882684477440/900275883124858921/938081008568377354
@@ -19,8 +19,11 @@ pub fn ui(state: &mut state::RootState, graphics: &Graphics) -> Option<super::Ro
             egui_ctx.set_style(style);
 
             if let Some(image_data) = graphics.illustrations.get(&vname("root.png")) {
-                let texture: egui::TextureHandle =
-                    egui_ctx.load_texture(vname("root.png"), image_data.clone());
+                let texture: egui::TextureHandle = egui_ctx.load_texture(
+                    vname("root.png"),
+                    image_data.clone(),
+                    TextureFilter::Linear,
+                );
                 state.root_illustration = Some(texture);
             }
         }

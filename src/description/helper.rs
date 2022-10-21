@@ -1,3 +1,4 @@
+use egui::TextureFilter;
 use macroquad::prelude::*;
 
 use super::{UiDescription, UiDescriptionEvent};
@@ -30,9 +31,11 @@ impl UiDescription {
             if let Some(illustration_name) = &self.description.illustration_name {
                 if let Some(illustration_data) = self.graphics.illustrations.get(illustration_name)
                 {
-                    let illustration_texture: egui::TextureHandle = ui
-                        .ctx()
-                        .load_texture(illustration_name, illustration_data.clone());
+                    let illustration_texture: egui::TextureHandle = ui.ctx().load_texture(
+                        illustration_name,
+                        illustration_data.clone(),
+                        TextureFilter::Linear,
+                    );
                     self.illustration_texture = Some(illustration_texture);
                 } else if !self.illustration_load_requested {
                     self.illustration_load_requested = true;
@@ -52,16 +55,22 @@ impl UiDescription {
                 let tile_id = &self.graphics.find_tile_id_from_classes(classes);
                 if tile_id != "UNKNOWN" {
                     if let Some(image_data) = self.graphics.tiles_data.get(tile_id) {
-                        let texture: egui::TextureHandle =
-                            ui.ctx().load_texture(tile_id, image_data.clone());
+                        let texture: egui::TextureHandle = ui.ctx().load_texture(
+                            tile_id,
+                            image_data.clone(),
+                            TextureFilter::Linear,
+                        );
                         self.tiles_textures.insert(tile_id.to_string(), texture);
 
                         // Prepare texture with action points if needed
                         if let Some(cost) = part.cost {
                             if let Some(tile_with_ap) = self.graphics.tile_with_ap(tile_id, cost) {
                                 let name = format!("{}__{}AP", tile_id, cost);
-                                let texture: egui::TextureHandle =
-                                    ui.ctx().load_texture(&name, tile_with_ap.clone());
+                                let texture: egui::TextureHandle = ui.ctx().load_texture(
+                                    &name,
+                                    tile_with_ap.clone(),
+                                    TextureFilter::Linear,
+                                );
                                 self.tiles_textures.insert(name, texture);
                             }
                         }

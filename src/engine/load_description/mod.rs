@@ -59,7 +59,7 @@ impl super::Engine for LoadDescriptionEngine {
         }
 
         // UI
-        egui_macroquad::ui(|_mq_ctx, egui_ctx| {
+        egui_macroquad::ui(|egui_ctx| {
             egui::CentralPanel::default().show(&egui_ctx, |ui| {
                 ui.colored_label(egui::Color32::LIGHT_GRAY, "Chargement ...");
             });
