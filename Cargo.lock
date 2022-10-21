@@ -357,7 +357,7 @@ source = "git+https://github.com/optozorax/egui-macroquad.git?rev=6973d471de9369
 dependencies = [
  "egui",
  "egui-miniquad",
- "macroquad",
+ "macroquad 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -696,7 +696,22 @@ dependencies = [
  "fontdue",
  "glam",
  "image",
- "macroquad_macro",
+ "macroquad_macro 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "miniquad",
+ "quad-rand",
+ "quad-snd",
+]
+
+[[package]]
+name = "macroquad"
+version = "0.3.24"
+source = "git+https://github.com/not-fl3/macroquad.git?rev=efe788302e28ba85ac9abc92b294ed63f51609bc#efe788302e28ba85ac9abc92b294ed63f51609bc"
+dependencies = [
+ "bumpalo",
+ "fontdue",
+ "glam",
+ "image",
+ "macroquad_macro 0.1.7 (git+https://github.com/not-fl3/macroquad.git?rev=efe788302e28ba85ac9abc92b294ed63f51609bc)",
  "miniquad",
  "quad-rand",
  "quad-snd",
@@ -707,6 +722,11 @@ name = "macroquad_macro"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5cecfede1e530599c8686f7f2d609489101d3d63741a6dc423afc997ce3fcc8"
+
+[[package]]
+name = "macroquad_macro"
+version = "0.1.7"
+source = "git+https://github.com/not-fl3/macroquad.git?rev=efe788302e28ba85ac9abc92b294ed63f51609bc#efe788302e28ba85ac9abc92b294ed63f51609bc"
 
 [[package]]
 name = "malloc_buf"
@@ -1385,7 +1405,7 @@ dependencies = [
  "egui",
  "egui-macroquad",
  "image",
- "macroquad",
+ "macroquad 0.3.24 (git+https://github.com/not-fl3/macroquad.git?rev=efe788302e28ba85ac9abc92b294ed63f51609bc)",
  "quad-net",
  "quad-storage",
  "sapp-jsutils",
