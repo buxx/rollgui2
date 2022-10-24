@@ -176,3 +176,18 @@ pub fn vname(file_name: &str) -> String {
         format!("{}?v={}", file_name, VERSION)
     }
 }
+
+pub fn get_text_center(
+    text: &str,
+    font: Option<Font>,
+    font_size: u16,
+    font_scale: f32,
+    rotation: f32,
+) -> crate::Vec2 {
+    let measure = measure_text(text, font, font_size, font_scale);
+
+    let x_center = measure.width / 2.0 * rotation.cos() + measure.height / 2.0 * rotation.sin();
+    let y_center = measure.width / 2.0 * rotation.sin() - measure.height / 2.0 * rotation.cos();
+
+    crate::Vec2::new(x_center, y_center)
+}

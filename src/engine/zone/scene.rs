@@ -1,13 +1,8 @@
-use crate::{engine::zone::state, graphics};
+use crate::{engine::zone::state, graphics, util::get_text_center};
 
 use macroquad::prelude::*;
 
-use super::debug::DebugInfo;
-
-fn in_area(row_i: i32, col_i: i32, draw_area: &((i32, i32), (i32, i32))) -> bool {
-    let ((row_min, col_min), (row_max, col_max)) = draw_area;
-    row_i >= *row_min && row_i <= *row_max && col_i >= *col_min && col_i <= *col_max
-}
+use super::{debug::DebugInfo, util::in_area, ZoneEngine};
 
 pub fn scene(
     graphics: &graphics::Graphics,
@@ -190,4 +185,36 @@ pub fn scene(
     );
 
     display_counter
+}
+
+impl ZoneEngine {
+    pub fn draw_characters_names(&self, draw_area: ((i32, i32), (i32, i32))) {
+        let zoom_factor = self.zoom_mode.factor();
+        let half_tile_width = (self.graphics.tile_width * zoom_factor) / 2.0;
+        let tile_height = self.graphics.tile_width * zoom_factor;
+        let font_size: u16 = 24;
+        let font_scale = 1.0;
+
+        for character in self.state.characters.values() {
+            if !in_area(character.zone_row_i, character.zone_col_i, &draw_area) {
+                continue;
+            }
+
+            let text_center = get_text_center(&character.name, None, font_size, font_scale, 0.);
+            let dest_row_i = character.zone_row_i as f32;
+            let dest_col_i = character.zone_col_i as f32;
+            let screen_position = self.zone_position_to_screen_position(dest_row_i, dest_col_i);
+            draw_text_ex(
+                &character.name,
+                screen_position.x + half_tile_width - text_center.x,
+                screen_position.y - tile_height - text_center.y - (font_size as f32 / 2.0),
+                TextParams {
+                    font_size: font_size,
+                    font_scale: font_scale,
+                    color: RED,
+                    ..Default::default()
+                },
+            )
+        }
+    }
 }

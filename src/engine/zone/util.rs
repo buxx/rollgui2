@@ -1,3 +1,5 @@
+use macroquad::prelude::*;
+
 use crate::{entity::description::RequestClicks, event};
 
 pub fn require_around_event(state: &super::state::ZoneState) -> String {
@@ -42,4 +44,9 @@ pub fn click_action_event(request_clicks: &RequestClicks, row_i: i16, col_i: i16
         },
     })
     .unwrap()
+}
+
+pub fn in_area(row_i: i32, col_i: i32, draw_area: &((i32, i32), (i32, i32))) -> bool {
+    let ((row_min, col_min), (row_max, col_max)) = draw_area;
+    row_i >= *row_min && row_i <= *row_max && col_i >= *col_min && col_i <= *col_max
 }

@@ -590,7 +590,7 @@ impl ZoneEngine {
     fn camera(&mut self) -> ((i32, i32), (i32, i32)) {
         let screen_width = screen_width();
         let screen_height = screen_height();
-        let zoom_multiplier = self.zoom_mode.factor();
+        let zoom_multiplier = self.zoom_mode.camera_factor();
         let zoom_x = (self.state.map.concrete_width / screen_width) * zoom_multiplier;
         let zoom_y = (self.state.map.concrete_height / screen_height) * zoom_multiplier;
         let zoom = Vec2::new(zoom_x, zoom_y);
@@ -714,6 +714,22 @@ impl ZoneEngine {
 
         true
     }
+
+    pub fn zone_position_to_screen_position(&self, row_i: f32, col_i: f32) -> Vec2 {
+        let zoom_factor = self.zoom_mode.factor();
+        let absolute_position = Vec2::new(
+            col_i * self.graphics.tile_width,
+            row_i * self.graphics.tile_height,
+        );
+        let offset = Vec2::new(
+            self.state.player_display.position.x - (screen_width() / 2.0) / zoom_factor,
+            self.state.player_display.position.y - (screen_height() / 2.0) / zoom_factor,
+        );
+        let relative_position = absolute_position - offset;
+        let relative_position = relative_position * zoom_factor;
+
+        relative_position
+    }
 }
 
 impl Engine for ZoneEngine {
@@ -745,6 +761,8 @@ impl Engine for ZoneEngine {
 
         // Ui
         set_default_camera();
+        self.draw_zone_debug(draw_area);
+        self.draw_characters_names(draw_area);
         self.disable_all_user_input = false;
         messages.extend(self.draw_left_panel());
         self.draw_resume_items();
@@ -805,7 +823,7 @@ pub enum ZoomMode {
 }
 
 impl ZoomMode {
-    pub fn factor(&self) -> f32 {
+    pub fn camera_factor(&self) -> f32 {
         match self {
             ZoomMode::Large => 1.,
             ZoomMode::Normal => 2.,
@@ -817,6 +835,10 @@ impl ZoomMode {
                 }
             }
         }
+    }
+
+    pub fn factor(&self) -> f32 {
+        self.camera_factor() / 2.0
     }
 }
 
