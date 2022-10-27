@@ -11,8 +11,13 @@ const RUN_BUTTON_Y: f32 = 576.;
 const RUN_BUTTON_WIDTH: f32 = 64.;
 const RUN_BUTTON_HEIGHT: f32 = 64.;
 
-pub fn draw_zoom_button(graphics: &graphics::Graphics, active: bool) -> bool {
-    let draw_start_x = screen_width() - ZOOM_BUTTON_WIDTH as f32;
+const CHAT_BUTTON_X: f32 = 960.;
+const CHAT_BUTTON_Y: f32 = 768.;
+const CHAT_BUTTON_WIDTH: f32 = 64.;
+const CHAT_BUTTON_HEIGHT: f32 = 64.;
+
+pub fn draw_zoom_button(graphics: &graphics::Graphics, active: bool, right_offset: f32) -> bool {
+    let draw_start_x = screen_width() - ZOOM_BUTTON_WIDTH as f32 - right_offset;
     let draw_end_x = draw_start_x + ZOOM_BUTTON_WIDTH;
     let draw_start_y = 0.;
     let draw_end_y = draw_start_y + ZOOM_BUTTON_HEIGHT;
@@ -47,8 +52,8 @@ pub fn draw_zoom_button(graphics: &graphics::Graphics, active: bool) -> bool {
         && mouse_y <= draw_end_y
 }
 
-pub fn draw_run_button(graphics: &graphics::Graphics, active: bool) -> bool {
-    let draw_start_x = screen_width() - RUN_BUTTON_WIDTH as f32;
+pub fn draw_run_button(graphics: &graphics::Graphics, active: bool, right_offset: f32) -> bool {
+    let draw_start_x = screen_width() - RUN_BUTTON_WIDTH as f32 - right_offset;
     let draw_end_x = draw_start_x + RUN_BUTTON_WIDTH;
     let draw_start_y = ZOOM_BUTTON_HEIGHT;
     let draw_end_y = draw_start_y + RUN_BUTTON_HEIGHT;
@@ -71,6 +76,42 @@ pub fn draw_run_button(graphics: &graphics::Graphics, active: bool) -> bool {
                 source_y,
                 RUN_BUTTON_WIDTH,
                 RUN_BUTTON_HEIGHT,
+            )),
+            ..Default::default()
+        },
+    );
+
+    let (mouse_x, mouse_y) = mouse_position();
+    mouse_x >= draw_start_x
+        && mouse_x <= draw_end_x
+        && mouse_y >= draw_start_y
+        && mouse_y <= draw_end_y
+}
+
+pub fn draw_chat_button(graphics: &graphics::Graphics, active: bool, right_offset: f32) -> bool {
+    let draw_start_x = screen_width() - CHAT_BUTTON_WIDTH as f32 - right_offset;
+    let draw_end_x = draw_start_x + CHAT_BUTTON_WIDTH;
+    let draw_start_y = ZOOM_BUTTON_HEIGHT + RUN_BUTTON_HEIGHT;
+    let draw_end_y = draw_start_y + CHAT_BUTTON_HEIGHT;
+
+    let source_x = if active {
+        CHAT_BUTTON_X + CHAT_BUTTON_WIDTH
+    } else {
+        CHAT_BUTTON_X
+    };
+    let source_y = CHAT_BUTTON_Y;
+
+    draw_texture_ex(
+        graphics.tileset_texture,
+        draw_start_x,
+        draw_start_y,
+        WHITE,
+        DrawTextureParams {
+            source: Some(Rect::new(
+                source_x,
+                source_y,
+                CHAT_BUTTON_WIDTH,
+                CHAT_BUTTON_HEIGHT,
             )),
             ..Default::default()
         },

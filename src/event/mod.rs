@@ -101,8 +101,8 @@ pub enum ZoneEventType {
     },
     NewChatMessage {
         character_id: String,
-        conversation_id: Option<i32>,
-        conversation_title: Option<String>,
+        // conversation_id: Option<i32>,
+        // conversation_title: Option<String>,
         message: String,
     },
     AnimatedCorpseMove {
@@ -314,8 +314,8 @@ impl ZoneEvent {
                 Ok(ZoneEvent {
                     event_type_name: String::from(NEW_CHAT_MESSAGE),
                     event_type: ZoneEventType::NewChatMessage {
-                        conversation_id: new_chat_message.conversation_id,
-                        conversation_title: new_chat_message.conversation_title,
+                        // conversation_id: new_chat_message.conversation_id,
+                        // conversation_title: new_chat_message.conversation_title,
                         message: new_chat_message.message,
                         character_id: new_chat_message.character_id,
                     },

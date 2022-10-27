@@ -2,6 +2,8 @@ use macroquad::prelude::*;
 
 use crate::{description, message, ui::utils::egui_scale, util};
 
+use super::{gui::chat::display::ChatDisplayer, UserInput};
+
 impl super::ZoneEngine {
     pub fn ui(&mut self) -> Vec<message::MainMessage> {
         let mut messages = vec![];
@@ -82,6 +84,15 @@ impl super::ZoneEngine {
                     }
                     self.last_begin_click_was_in_egui = None;
                 }
+            }
+
+            if self.chat_state.is_display() {
+                let chat_display = ChatDisplayer::new(&self.chat_state).ui(egui_ctx);
+                if chat_display.input_validated {
+                    // Warning: this behavior is risky : chat_state.input_value must be reset. If not, multiple input_validated will be seen
+                    self.user_inputs.push(UserInput::SubmitChatInput);
+                }
+                self.chat_state.update_from_display(chat_display);
             }
         });
 

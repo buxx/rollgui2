@@ -63,7 +63,7 @@ impl ZoneEngine {
             );
 
             let pressed_by_key = quick_action.quick_action_key_pressed();
-            if hover || pressed_by_key {
+            if !self.chat_state.is_input_focused() && (hover || pressed_by_key) {
                 self.helper_text = Some(quick_action.name.clone());
                 let direct_click = self.click_begin_in_quick_action.unwrap_or((0., 0.))
                     == mouse_pos
