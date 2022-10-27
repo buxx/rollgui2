@@ -211,7 +211,7 @@ impl ZoneEngine {
                 TextParams {
                     font_size: font_size,
                     font_scale: font_scale,
-                    color: RED,
+                    color: Color::new(0.20, 1.0, 01.0, 1.00),
                     ..Default::default()
                 },
             )
