@@ -1,7 +1,10 @@
-use super::{gui, ZoneEngine, LEFT_PANEL_WIDTH, QUICK_ACTION_MARGIN};
+use super::{
+    gui::{self, chat::display::Display as ChatDisplay},
+    ZoneEngine, LEFT_PANEL_WIDTH, QUICK_ACTION_MARGIN,
+};
 use crate::{
     action as base_action,
-    ui::utils::is_mobile,
+    ui::utils::{egui_scale, is_mobile},
     util::{self as base_util, mouse_clicked, mouse_pressed},
 };
 use macroquad::prelude::*;
@@ -27,9 +30,19 @@ impl ZoneEngine {
             }
         }
 
+        let bottom_offset = if self.chat_state.is_display() {
+            let chat_display = ChatDisplay::from_env();
+            match chat_display {
+                ChatDisplay::Bottom => chat_display.height() * egui_scale(),
+                _ => 0.,
+            }
+        } else {
+            0.
+        };
         let start_draw_y = screen_height()
             - (gui::quick::BUTTON_HEIGHT * button_size_factor())
-            - QUICK_ACTION_MARGIN;
+            - QUICK_ACTION_MARGIN
+            - bottom_offset;
         let mut quick_action_just_clicked = false;
 
         for (i, quick_action) in self.quick_actions.iter().enumerate() {
@@ -63,7 +76,7 @@ impl ZoneEngine {
             );
 
             let pressed_by_key = quick_action.quick_action_key_pressed();
-            if hover || pressed_by_key {
+            if !self.chat_state.is_input_focused() && (hover || pressed_by_key) {
                 self.helper_text = Some(quick_action.name.clone());
                 let direct_click = self.click_begin_in_quick_action.unwrap_or((0., 0.))
                     == mouse_pos

@@ -1,11 +1,14 @@
-use super::{gui, log, ZoneEngine, LEFT_PANEL_WIDTH};
-use macroquad::prelude::*;
-
+use super::{
+    gui::{self, chat::display::Display as ChatDisplay},
+    log, ZoneEngine, LEFT_PANEL_WIDTH,
+};
 use crate::{
     message::MainMessage,
+    ui::utils::egui_scale,
     //  ui::utils::open_url,
     util as base_util,
 };
+use macroquad::prelude::*;
 
 const AVATAR_DRAW_X: f32 = 40.;
 const AVATAR_DRAW_Y: f32 = 30.;
@@ -117,8 +120,20 @@ impl ZoneEngine {
     }
 
     pub fn draw_helper_text(&self) {
+        let bottom_offset = if self.chat_state.is_display() {
+            let chat_display = ChatDisplay::from_env();
+            match chat_display {
+                ChatDisplay::Bottom => chat_display.height() * egui_scale(),
+                _ => 0.,
+            }
+        } else {
+            0.
+        };
         let draw_x = 10.;
-        let draw_y = screen_height() - log::LOG_BOX_HEIGHT - (super::HELPER_TEXT_FONT_SIZE / 2.);
+        let draw_y = screen_height()
+            - log::LOG_BOX_HEIGHT
+            - (super::HELPER_TEXT_FONT_SIZE / 2.)
+            - bottom_offset;
         draw_rectangle(
             draw_x,
             draw_y - super::HELPER_TEXT_FONT_SIZE,

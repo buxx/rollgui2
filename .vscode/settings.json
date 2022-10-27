@@ -6,6 +6,7 @@
         "Combattants",
         "DARKGRAY",
         "DARKGREEN",
+        "Displayer",
         "egui",
         "ehttp",
         "Faible",

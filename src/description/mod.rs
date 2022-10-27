@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 
+use crate::engine::zone::util::tight_display;
 use crate::entity;
 use crate::graphics;
 use crate::ui as base_ui;
@@ -12,10 +13,6 @@ pub mod grid;
 pub mod helper;
 
 pub const BIG_BUTTON_SIZE: (f32, f32) = (96.0, 96.0);
-
-fn tight_display() -> bool {
-    return screen_width() < 1280.0 || is_mobile();
-}
 
 #[derive(Clone)]
 pub struct UiDescriptionState {

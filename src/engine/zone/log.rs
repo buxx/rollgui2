@@ -1,5 +1,9 @@
 use macroquad::prelude::*;
 
+use crate::ui::utils::egui_scale;
+
+use super::gui::chat::display::Display as ChatDisplay;
+
 pub const LOG_BOX_MARGIN: f32 = 10.0;
 pub const LOG_LINE_HEIGHT: f32 = 20.0;
 pub const LOG_LINE_FONT_SIZE: f32 = 20.0;
@@ -49,8 +53,18 @@ impl std::fmt::Display for UserLogLevel {
 
 impl super::ZoneEngine {
     pub fn draw_user_logs(&self) {
+        let bottom_offset = if self.chat_state.is_display() {
+            let chat_display = ChatDisplay::from_env();
+            match chat_display {
+                ChatDisplay::Bottom => chat_display.height() * egui_scale(),
+                _ => 0.,
+            }
+        } else {
+            0.
+        };
+
         let draw_log_box_x = 0. + LOG_BOX_MARGIN;
-        let draw_log_box_y = screen_height() - LOG_BOX_MARGIN - LOG_BOX_HEIGHT;
+        let draw_log_box_y = screen_height() - LOG_BOX_MARGIN - LOG_BOX_HEIGHT - bottom_offset;
 
         draw_rectangle(
             draw_log_box_x,

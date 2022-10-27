@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{entity::description::RequestClicks, event};
+use crate::{entity::description::RequestClicks, event, ui::utils::is_mobile};
 
 pub fn require_around_event(state: &super::state::ZoneState) -> String {
     serde_json::to_string(&event::ZoneEvent {
@@ -46,7 +46,22 @@ pub fn click_action_event(request_clicks: &RequestClicks, row_i: i16, col_i: i16
     .unwrap()
 }
 
+pub fn live_message_event(character_id: &str, message: String) -> String {
+    serde_json::to_string(&event::ZoneEvent {
+        event_type_name: String::from(event::NEW_CHAT_MESSAGE),
+        event_type: event::ZoneEventType::NewChatMessage {
+            character_id: character_id.to_string(),
+            message: message,
+        },
+    })
+    .unwrap()
+}
+
 pub fn in_area(row_i: i32, col_i: i32, draw_area: &((i32, i32), (i32, i32))) -> bool {
     let ((row_min, col_min), (row_max, col_max)) = draw_area;
     row_i >= *row_min && row_i <= *row_max && col_i >= *col_min && col_i <= *col_max
+}
+
+pub fn tight_display() -> bool {
+    return screen_width() < 1280.0 || is_mobile();
 }

@@ -3,14 +3,21 @@ use quad_net::web_socket::WebSocket;
 
 use crate::{
     action as base_action, animation, client, config, description,
+    engine::zone::util::live_message_event,
     entity::{self, description::RequestClicks},
     event as base_event, graphics,
     message::{self, MainMessage},
-    ui::utils::is_mobile,
+    ui::utils::{egui_scale, is_mobile},
     util::{self as base_util, mouse_clicked},
 };
 
-use self::{debug::DebugInfo, gui::blink::BlinkingIcon, resume::CharacterResume};
+use self::{
+    debug::DebugInfo,
+    gui::{
+        blink::BlinkingIcon, chat::display::Display as ChatDisplay, chat::state::State as ChatState,
+    },
+    resume::CharacterResume,
+};
 
 use super::Engine;
 
@@ -101,6 +108,7 @@ pub struct ZoneEngine {
     pub debug_info: DebugInfo,
     pub display_debug_info: bool,
     pub top_left_corner_click_counter: i32,
+    chat_state: ChatState,
 }
 
 impl ZoneEngine {
@@ -161,6 +169,7 @@ impl ZoneEngine {
             debug_info: DebugInfo::new(),
             display_debug_info: false,
             top_left_corner_click_counter: 0,
+            chat_state: ChatState::new(),
         })
     }
 
@@ -219,6 +228,15 @@ impl ZoneEngine {
                 UserInput::SwitchRunningMode => self.running_mode = !self.running_mode,
                 UserInput::InRunningMode => self.running_mode = true,
                 UserInput::InWalkingMode => self.running_mode = false,
+                UserInput::SubmitChatInput => {
+                    info!("Send chat message");
+                    web_socket(&self.state).send_text(&live_message_event(
+                        &self.state.player.id,
+                        self.chat_state.input_value().to_string(),
+                    ));
+                    self.chat_state.reset_input_value();
+                    self.chat_state.set_request_focus();
+                }
             }
         }
 
@@ -534,6 +552,8 @@ impl ZoneEngine {
             || self.current_description.is_some()
             || self.inventory.is_some()
             || self.request_clicks.is_some()
+            || self.chat_state.is_input_focused()
+            || self.chat_state.is_mouse_hover()
         {
             return;
         }
@@ -655,8 +675,18 @@ impl ZoneEngine {
     }
 
     pub fn draw_buttons(&mut self) {
+        let right_offset = if self.chat_state.is_display() {
+            let chat_display = ChatDisplay::from_env();
+            match chat_display {
+                ChatDisplay::Right => chat_display.width() * egui_scale(),
+                ChatDisplay::Bottom => 0.,
+            }
+        } else {
+            0.
+        };
+
         let zoom_in = self.zoom_mode == ZoomMode::Double;
-        if gui::button::draw_zoom_button(&self.graphics, zoom_in) {
+        if gui::button::draw_zoom_button(&self.graphics, zoom_in, right_offset) {
             if base_util::mouse_clicked() {
                 match self.zoom_mode {
                     ZoomMode::Normal => self.user_inputs.push(UserInput::ZoomIn),
@@ -669,12 +699,30 @@ impl ZoneEngine {
             self.disable_all_user_input = true;
         }
 
-        if gui::button::draw_run_button(&self.graphics, self.running_mode) {
+        if gui::button::draw_run_button(&self.graphics, self.running_mode, right_offset) {
             if base_util::mouse_clicked() {
                 self.user_inputs.push(UserInput::SwitchRunningMode);
                 self.disable_all_user_input_until = get_time() + 0.25;
             }
 
+            self.disable_all_user_input = true;
+        }
+
+        let chat_button_active = if self.chat_state.is_display() {
+            true
+        } else if self.chat_state.have_unread() {
+            self.tick_i % 2 == 0
+                || self.tick_i % 3 == 0
+                || self.tick_i % 4 == 0
+                || self.tick_i % 5 == 0
+        } else {
+            false
+        };
+        if gui::button::draw_chat_button(&self.graphics, chat_button_active, right_offset) {
+            if base_util::mouse_clicked() {
+                self.chat_state.set_display(!self.chat_state.is_display());
+                self.disable_all_user_input_until = get_time() + 0.25;
+            }
             self.disable_all_user_input = true;
         }
     }
@@ -813,6 +861,7 @@ pub enum UserInput {
     SwitchRunningMode,
     InRunningMode,
     InWalkingMode,
+    SubmitChatInput,
 }
 
 #[derive(PartialEq)]

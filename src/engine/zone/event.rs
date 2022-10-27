@@ -1,6 +1,10 @@
 use macroquad::prelude::*;
 
-use crate::{action, animation, engine::zone::resume::CharacterResume, entity, event};
+use crate::{
+    action, animation,
+    engine::zone::{gui::chat::model::Message, resume::CharacterResume},
+    entity, event,
+};
 
 impl super::ZoneEngine {
     pub fn event(&mut self, event: crate::event::ZoneEvent) {
@@ -186,6 +190,15 @@ impl super::ZoneEngine {
                 };
                 self.user_logs
                     .push(super::log::UserLog::new(message, message_level));
+            }
+            event::ZoneEventType::NewChatMessage {
+                character_id,
+                message,
+            } => {
+                if let Some(character) = self.state.characters.get(&character_id) {
+                    self.chat_state
+                        .add_message(Message::new(character.name.clone(), message))
+                }
             }
             _ => {}
         }
