@@ -1377,7 +1377,7 @@ dependencies = [
 
 [[package]]
 name = "rollgui2"
-version = "0.11.3"
+version = "0.11.4"
 dependencies = [
  "ahash 0.8.0",
  "base64",
