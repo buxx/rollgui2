@@ -1,7 +1,8 @@
 use macroquad::prelude::*;
 
 use crate::{
-    action, animation,
+    action,
+    animation::{self, visible::VisibleAnimation},
     engine::zone::{gui::chat::model::Message, resume::CharacterResume},
     entity, event,
 };
@@ -62,7 +63,7 @@ impl super::ZoneEngine {
                             return;
                         }
                     };
-                    self.animations.push(Box::new(pop_animation));
+                    self.camera_animations.push(Box::new(pop_animation));
 
                     // Consider we can clean active exploitable tile (this can be wrong because an other action can been selected since)
                     if let Some(current_action) = &self.current_action {
@@ -197,7 +198,23 @@ impl super::ZoneEngine {
             } => {
                 if let Some(character) = self.state.characters.get(&character_id) {
                     self.chat_state
-                        .add_message(Message::new(character.name.clone(), message))
+                        .add_message(Message::new(character.name.clone(), message));
+
+                    let source = Rect {
+                        x: 352.,
+                        y: 192.,
+                        w: 32.,
+                        h: 32.,
+                    };
+                    let dest = self.zone_position_to_screen_position(
+                        (character.zone_row_i - 1) as f32 - 0.5,
+                        character.zone_col_i as f32 + 0.5,
+                    );
+                    self.ui_animations.push(Box::new(VisibleAnimation::new(
+                        source,
+                        dest,
+                        self.frame_i + 60 * 5,
+                    )));
                 }
             }
             _ => {}

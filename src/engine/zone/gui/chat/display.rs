@@ -106,8 +106,6 @@ impl<'s> ChatDisplayer<'s> {
                 .hovered(),
         };
 
-        dbg!(display_state.mouse_hover);
-
         display_state
     }
 

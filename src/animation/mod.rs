@@ -1,5 +1,6 @@
 pub mod drop;
 pub mod pop;
+pub mod visible;
 
 use crate::graphics;
 

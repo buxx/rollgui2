@@ -71,7 +71,8 @@ pub struct ZoneEngine {
     pub tick_i: i16,
     pub frame_i: i64,
     pub zoom_mode: ZoomMode,
-    pub animations: Vec<Box<dyn animation::Animation>>,
+    pub camera_animations: Vec<Box<dyn animation::Animation>>,
+    pub ui_animations: Vec<Box<dyn animation::Animation>>,
     pub last_limited_user_input: f64,
     pub disable_all_user_input_until: f64,
     pub disable_all_user_input: bool,
@@ -132,7 +133,8 @@ impl ZoneEngine {
             tick_i: 0,
             frame_i: 0,
             zoom_mode,
-            animations: vec![],
+            camera_animations: vec![],
+            ui_animations: vec![],
             last_limited_user_input: get_time(),
             disable_all_user_input_until: get_time(),
             disable_all_user_input: false,
@@ -429,9 +431,9 @@ impl ZoneEngine {
                                                     exploitable_tile.zone_row_i,
                                                     exploitable_tile.zone_col_i,
                                                 ) {
-                                                    Ok(animation) => {
-                                                        self.animations.push(Box::new(animation))
-                                                    }
+                                                    Ok(animation) => self
+                                                        .camera_animations
+                                                        .push(Box::new(animation)),
                                                     Err(error) => {
                                                         error!(
                                                             "Error during pop animation : {}",
@@ -458,7 +460,9 @@ impl ZoneEngine {
                                         zone_row_i,
                                         zone_col_i,
                                     ) {
-                                        Ok(animation) => self.animations.push(Box::new(animation)),
+                                        Ok(animation) => {
+                                            self.camera_animations.push(Box::new(animation))
+                                        }
                                         Err(error) => {
                                             error!("Error during deposit animation : {}", error);
                                         }
@@ -802,13 +806,14 @@ impl Engine for ZoneEngine {
 
         // Game
         self.scene(draw_area);
-        self.animations();
+        self.camera_animations();
         self.draw_zone_ux();
         let action_clicked = self.draw_current_action();
         self.draw_request_clicks();
 
         // Ui
         set_default_camera();
+        self.ui_animations();
         self.draw_zone_debug(draw_area);
         self.draw_characters_names(draw_area);
         self.disable_all_user_input = false;
