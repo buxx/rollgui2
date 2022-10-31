@@ -195,26 +195,35 @@ impl super::ZoneEngine {
             event::ZoneEventType::NewChatMessage {
                 character_id,
                 message,
+                system,
+                silent,
             } => {
-                if let Some(character) = self.state.characters.get(&character_id) {
-                    self.chat_state
-                        .add_message(Message::new(character.name.clone(), message));
+                if let Some(character_id) = character_id {
+                    if let Some(character) = self.state.characters.get(&character_id) {
+                        self.chat_state.add_character_message(Message::character(
+                            character.name.clone(),
+                            message,
+                        ));
 
-                    let source = Rect {
-                        x: 352.,
-                        y: 192.,
-                        w: 32.,
-                        h: 32.,
-                    };
-                    let dest = self.zone_position_to_screen_position(
-                        (character.zone_row_i - 1) as f32 - 0.5,
-                        character.zone_col_i as f32 + 0.5,
-                    );
-                    self.ui_animations.push(Box::new(VisibleAnimation::new(
-                        source,
-                        dest,
-                        self.frame_i + 60 * 5,
-                    )));
+                        let source = Rect {
+                            x: 352.,
+                            y: 192.,
+                            w: 32.,
+                            h: 32.,
+                        };
+                        let dest = self.zone_position_to_screen_position(
+                            (character.zone_row_i - 1) as f32 - 0.5,
+                            character.zone_col_i as f32 + 0.5,
+                        );
+                        self.ui_animations.push(Box::new(VisibleAnimation::new(
+                            source,
+                            dest,
+                            self.frame_i + 60 * 5,
+                        )));
+                    }
+                } else if system {
+                    self.chat_state
+                        .add_system_message(Message::system(message), silent);
                 }
             }
             _ => {}

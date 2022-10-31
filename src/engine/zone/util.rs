@@ -50,9 +50,20 @@ pub fn live_message_event(character_id: &str, message: String) -> String {
     serde_json::to_string(&event::ZoneEvent {
         event_type_name: String::from(event::NEW_CHAT_MESSAGE),
         event_type: event::ZoneEventType::NewChatMessage {
-            character_id: character_id.to_string(),
+            character_id: Some(character_id.to_string()),
             message: message,
+            // TODO : should not necessary for push message
+            system: false,
+            silent: false,
         },
+    })
+    .unwrap()
+}
+
+pub fn request_chat_event() -> String {
+    serde_json::to_string(&event::ZoneEvent {
+        event_type_name: String::from(event::REQUEST_CHAT),
+        event_type: event::ZoneEventType::RequestChat,
     })
     .unwrap()
 }

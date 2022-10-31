@@ -125,7 +125,7 @@ impl<'s> ChatDisplayer<'s> {
             // .stick_to_bottom(true)
             .show(ui, |ui| {
                 for message in self.state.messages() {
-                    ui.label(format!("{}: {}", message.author_name(), message.message()));
+                    ui.label(message.message());
                 }
             });
 

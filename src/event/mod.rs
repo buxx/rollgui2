@@ -92,18 +92,12 @@ pub enum ZoneEventType {
         zone_row_i: i32,
         zone_col_i: i32,
     },
-    RequestChat {
-        character_id: String,
-        previous_conversation_id: Option<i32>,
-        message_count: i32,
-        next: bool,
-        previous: bool,
-    },
+    RequestChat,
     NewChatMessage {
-        character_id: String,
-        // conversation_id: Option<i32>,
-        // conversation_title: Option<String>,
+        character_id: Option<String>,
         message: String,
+        system: bool,
+        silent: bool,
     },
     AnimatedCorpseMove {
         to_row_i: i32,
@@ -143,10 +137,10 @@ pub enum ZoneEventType {
 
 #[derive(SerdeSerialize, SerdeDeserialize, Debug)]
 pub struct NewChatMessage {
-    pub conversation_id: Option<i32>,
-    pub conversation_title: Option<String>,
     pub message: String,
-    pub character_id: String,
+    pub character_id: Option<String>,
+    pub silent: bool,
+    pub system: bool,
 }
 
 #[derive(SerdeSerialize, SerdeDeserialize, Debug)]
@@ -314,10 +308,10 @@ impl ZoneEvent {
                 Ok(ZoneEvent {
                     event_type_name: String::from(NEW_CHAT_MESSAGE),
                     event_type: ZoneEventType::NewChatMessage {
-                        // conversation_id: new_chat_message.conversation_id,
-                        // conversation_title: new_chat_message.conversation_title,
                         message: new_chat_message.message,
                         character_id: new_chat_message.character_id,
+                        system: new_chat_message.system,
+                        silent: new_chat_message.silent,
                     },
                 })
             }

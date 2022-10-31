@@ -743,6 +743,9 @@ impl ZoneEngine {
                 let event = util::require_resume_text_event();
                 web_socket(&self.state).send_text(&event);
 
+                let event = util::request_chat_event();
+                web_socket(&self.state).send_text(&event);
+
                 let new_coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
                 self.last_require_around_coordinate = new_coordinates;
                 return false;
