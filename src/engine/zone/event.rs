@@ -200,10 +200,8 @@ impl super::ZoneEngine {
             } => {
                 if let Some(character_id) = character_id {
                     if let Some(character) = self.state.characters.get(&character_id) {
-                        self.chat_state.add_character_message(Message::character(
-                            character.name.clone(),
-                            message,
-                        ));
+                        self.chat_state
+                            .add_character_message(Message::character(message));
 
                         let source = Rect {
                             x: 352.,
