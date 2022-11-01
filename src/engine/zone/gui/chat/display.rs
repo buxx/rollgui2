@@ -122,7 +122,6 @@ impl<'s> ChatDisplayer<'s> {
         let max_height = display.message_box_height();
         egui::ScrollArea::vertical()
             .max_height(max_height)
-            // .stick_to_bottom(true)
             .show(ui, |ui| {
                 for message in self.state.messages() {
                     ui.label(message.message());

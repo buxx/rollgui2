@@ -49,12 +49,7 @@ impl State {
         self.unread
     }
 
-    pub fn add_character_message(&mut self, message: Message) {
-        self.messages.push(message);
-        self.unread = !self.display;
-    }
-
-    pub fn add_system_message(&mut self, message: Message, silent: bool) {
+    pub fn add_message(&mut self, message: Message, silent: bool) {
         self.messages.push(message);
         if !silent {
             self.unread = !self.display;
