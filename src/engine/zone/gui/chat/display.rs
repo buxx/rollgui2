@@ -62,8 +62,8 @@ impl Display {
             Display::Right => self.height() / egui_scale(),
             Display::Bottom => self.height(),
         };
-        let top_height = 55. / egui_scale();
-        let bottom_height = 55. / egui_scale();
+        let top_height = 65. / egui_scale();
+        let bottom_height = 65. / egui_scale();
         height - top_height - bottom_height
     }
 }
@@ -126,36 +126,29 @@ impl<'s> ChatDisplayer<'s> {
                 for message in self.state.messages() {
                     ui.label(message.message());
                 }
+                if self.state.just_opened() {
+                    ui.scroll_to_cursor(Some(egui::Align::BOTTOM));
+                }
             });
 
         ui.separator();
 
-        ui.vertical_centered(|ui| {
-            ui.horizontal_wrapped(|ui| {
-                let desired_width = if is_mobile() {
-                    display.width() * 0.75
-                } else {
-                    display.width() * 0.9
-                };
-                let added_input = ui.add(
-                    egui::TextEdit::singleline(&mut display_state.input_value)
-                        .desired_width(desired_width),
-                );
-                display_state.input_focused = added_input.has_focus();
-                display_state.input_gained_focus = added_input.gained_focus();
+        ui.with_layout(egui::Layout::left_to_right(egui::Align::Min), |ui| {
+            if is_mobile() {
+                display_state.input_validated = ui.add(egui::Button::new("📝")).clicked();
+            }
 
-                if self.state.request_focus() {
-                    added_input.request_focus()
-                }
+            let chat_input = ui.add(egui::TextEdit::singleline(&mut display_state.input_value));
+            display_state.input_focused = chat_input.has_focus();
+            display_state.input_gained_focus = chat_input.gained_focus();
 
-                if self.state.surrender_focus() {
-                    added_input.surrender_focus()
-                }
+            if self.state.request_focus() {
+                chat_input.request_focus()
+            }
 
-                if is_mobile() {
-                    display_state.input_validated = ui.add(egui::Button::new("📝")).clicked();
-                }
-            });
+            if self.state.surrender_focus() {
+                chat_input.surrender_focus()
+            }
         });
     }
 }

@@ -6,6 +6,7 @@ pub struct State {
     messages: Vec<Message>,
     unread: bool,
     display: bool,
+    just_opened: bool,
     input_focused: bool,
     request_focus: bool,
     surrender_focus: bool,
@@ -19,6 +20,7 @@ impl State {
             messages: vec![],
             unread: false,
             display: false,
+            just_opened: false,
             input_focused: false,
             request_focus: false,
             surrender_focus: false,
@@ -90,6 +92,14 @@ impl State {
 
     pub fn surrender_focus(&self) -> bool {
         self.surrender_focus
+    }
+
+    pub fn set_just_opened(&mut self) {
+        self.just_opened = true;
+    }
+
+    pub fn just_opened(&self) -> bool {
+        self.just_opened
     }
 
     pub fn update_from_display(&mut self, display_state: &DisplayState) {

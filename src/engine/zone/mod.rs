@@ -732,6 +732,7 @@ impl ZoneEngine {
         if gui::button::draw_chat_button(&self.graphics, chat_button_active, right_offset) {
             if base_util::mouse_clicked() {
                 self.chat_state.set_display(!self.chat_state.is_display());
+                self.chat_state.set_just_opened();
                 self.disable_all_user_input_until = get_time() + 0.25;
             }
             self.disable_all_user_input = true;
