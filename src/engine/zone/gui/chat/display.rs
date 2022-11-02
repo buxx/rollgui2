@@ -1,4 +1,4 @@
-use crate::ui::utils::egui_scale;
+use crate::ui::utils::{egui_scale, is_mobile};
 use egui::{Context, Pos2, Ui};
 use macroquad::prelude::*;
 
@@ -131,15 +131,31 @@ impl<'s> ChatDisplayer<'s> {
         ui.separator();
 
         ui.vertical_centered(|ui| {
-            let added_input = ui.add(
-                egui::TextEdit::singleline(&mut display_state.input_value)
-                    .desired_width(display.width() * 0.9),
-            );
-            display_state.input_focused = added_input.has_focus();
+            ui.horizontal_wrapped(|ui| {
+                let desired_width = if is_mobile() {
+                    display.width() * 0.75
+                } else {
+                    display.width() * 0.9
+                };
+                let added_input = ui.add(
+                    egui::TextEdit::singleline(&mut display_state.input_value)
+                        .desired_width(desired_width),
+                );
+                display_state.input_focused = added_input.has_focus();
+                display_state.input_gained_focus = added_input.gained_focus();
 
-            if self.state.request_focus() {
-                added_input.request_focus()
-            }
+                if self.state.request_focus() {
+                    added_input.request_focus()
+                }
+
+                if self.state.surrender_focus() {
+                    added_input.surrender_focus()
+                }
+
+                if is_mobile() {
+                    display_state.input_validated = ui.add(egui::Button::new("📝")).clicked();
+                }
+            });
         });
     }
 }

@@ -7,7 +7,10 @@ use crate::{
     entity::{self, description::RequestClicks},
     event as base_event, graphics,
     message::{self, MainMessage},
-    ui::utils::{egui_scale, is_mobile},
+    ui::{
+        text_input::TextInputRequest,
+        utils::{egui_scale, is_mobile},
+    },
     util::{self as base_util, mouse_clicked},
 };
 
@@ -110,6 +113,7 @@ pub struct ZoneEngine {
     pub display_debug_info: bool,
     pub top_left_corner_click_counter: i32,
     chat_state: ChatState,
+    chat_text_input_request: Option<TextInputRequest>,
 }
 
 impl ZoneEngine {
@@ -172,6 +176,7 @@ impl ZoneEngine {
             display_debug_info: false,
             top_left_corner_click_counter: 0,
             chat_state: ChatState::new(),
+            chat_text_input_request: None,
         })
     }
 
@@ -237,7 +242,9 @@ impl ZoneEngine {
                         self.chat_state.input_value().to_string(),
                     ));
                     self.chat_state.reset_input_value();
-                    self.chat_state.set_request_focus();
+                    if !is_mobile() {
+                        self.chat_state.set_request_focus();
+                    }
                 }
             }
         }
@@ -785,6 +792,15 @@ impl ZoneEngine {
 
         relative_position
     }
+
+    fn manage_text_inputs(&mut self) {
+        if let Some(request) = &mut self.chat_text_input_request {
+            if let Some(value) = request.try_recv() {
+                self.chat_state.set_input_value(value);
+                self.chat_state.set_surrender_focus();
+            }
+        }
+    }
 }
 
 impl Engine for ZoneEngine {
@@ -801,6 +817,7 @@ impl Engine for ZoneEngine {
         self.consume_events();
         self.user_inputs();
         self.update();
+        self.manage_text_inputs();
         self.proceed_quick_action_requests();
         messages.extend(self.proceed_description_requests());
         self.proceed_inventory_requests();

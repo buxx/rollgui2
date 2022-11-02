@@ -1,6 +1,13 @@
 use macroquad::prelude::*;
 
-use crate::{description, message, ui::utils::egui_scale, util};
+use crate::{
+    description, message,
+    ui::{
+        text_input::TextInputRequest,
+        utils::{egui_scale, is_mobile},
+    },
+    util,
+};
 
 use super::{gui::chat::display::ChatDisplayer, UserInput};
 
@@ -88,11 +95,20 @@ impl super::ZoneEngine {
 
             if self.chat_state.is_display() {
                 let chat_display = ChatDisplayer::new(&self.chat_state).ui(egui_ctx);
-                if chat_display.input_validated {
+                if chat_display.input_validated && self.chat_state.input_value().trim().len() > 0 {
                     // Warning: this behavior is risky : chat_state.input_value must be reset. If not, multiple input_validated will be seen
                     self.user_inputs.push(UserInput::SubmitChatInput);
                 }
-                self.chat_state.update_from_display(chat_display);
+
+                if chat_display.input_gained_focus && is_mobile() {
+                    self.chat_text_input_request = Some(TextInputRequest::new(
+                        "Message de chat".to_string(),
+                        "chat".to_string(),
+                        self.chat_state.input_value().to_string(),
+                    ))
+                }
+
+                self.chat_state.update_from_display(&chat_display);
             }
         });
 

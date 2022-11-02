@@ -1,3 +1,5 @@
+use crate::ui::utils::is_mobile;
+
 use super::model::Message;
 
 pub struct State {
@@ -6,6 +8,7 @@ pub struct State {
     display: bool,
     input_focused: bool,
     request_focus: bool,
+    surrender_focus: bool,
     input_value: String,
     mouse_hover: bool,
 }
@@ -18,6 +21,7 @@ impl State {
             display: false,
             input_focused: false,
             request_focus: false,
+            surrender_focus: false,
             input_value: "".to_string(),
             mouse_hover: false,
         }
@@ -27,7 +31,7 @@ impl State {
         self.display = display;
         if self.display {
             self.unread = false;
-            self.request_focus = true;
+            self.request_focus = !is_mobile();
         } else {
             self.input_focused = false;
         }
@@ -64,6 +68,10 @@ impl State {
         &self.input_value
     }
 
+    pub fn set_input_value(&mut self, value: String) {
+        self.input_value = value
+    }
+
     pub fn reset_input_value(&mut self) {
         self.input_value = "".to_string()
     }
@@ -76,8 +84,16 @@ impl State {
         self.request_focus
     }
 
-    pub fn update_from_display(&mut self, display_state: DisplayState) {
-        self.input_value = display_state.input_value;
+    pub fn set_surrender_focus(&mut self) {
+        self.surrender_focus = true;
+    }
+
+    pub fn surrender_focus(&self) -> bool {
+        self.surrender_focus
+    }
+
+    pub fn update_from_display(&mut self, display_state: &DisplayState) {
+        self.input_value = display_state.input_value.clone();
         self.input_focused = display_state.input_focused;
         self.mouse_hover = display_state.mouse_hover;
         if display_state.input_focused {
@@ -88,6 +104,7 @@ impl State {
 
 pub struct DisplayState {
     pub input_focused: bool,
+    pub input_gained_focus: bool,
     pub input_validated: bool,
     pub input_value: String,
     pub mouse_hover: bool,
@@ -97,6 +114,7 @@ impl DisplayState {
     pub fn from_state(state: &State) -> Self {
         Self {
             input_focused: state.input_focused,
+            input_gained_focus: false,
             input_validated: false,
             input_value: state.input_value().to_string(),
             mouse_hover: false,
