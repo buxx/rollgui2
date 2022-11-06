@@ -79,6 +79,7 @@ pub struct Description {
     pub is_grid: bool,
     pub reload_zone: bool,
     pub reload_inventory: bool,
+    pub open_new_tab: Option<String>,
 }
 
 impl Description {

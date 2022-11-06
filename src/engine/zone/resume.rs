@@ -118,6 +118,7 @@ pub struct CharacterResume {
     pub follower: i32,
     pub follow: i32,
     pub fighters: i32,
+    pub messages: i32,
 }
 
 impl CharacterResume {
@@ -132,6 +133,7 @@ impl CharacterResume {
         let mut follow: Option<i32> = None;
         let mut follower: Option<i32> = None;
         let mut fighters: Option<i32> = None;
+        let mut messages: Option<i32> = None;
 
         for item in &resume_texts {
             match &item.name.as_str() {
@@ -186,6 +188,13 @@ impl CharacterResume {
                         return Err("Unable to understand Combattants : no value".to_string());
                     }
                 }
+                &"Messages" => {
+                    if let Some(value) = item.value_float {
+                        messages = Some(value as i32)
+                    } else {
+                        return Err("Unable to understand Messages : no value".to_string());
+                    }
+                }
                 _ => {}
             }
         }
@@ -201,6 +210,7 @@ impl CharacterResume {
             Some(follow),
             Some(follower),
             Some(fighters),
+            Some(messages),
         ) = (
             health.clone(),
             action_points.clone(),
@@ -212,6 +222,7 @@ impl CharacterResume {
             follow,
             follower,
             fighters,
+            messages,
         ) {
             return Ok(Self {
                 health,
@@ -224,6 +235,7 @@ impl CharacterResume {
                 follower,
                 follow,
                 fighters,
+                messages,
             });
         }
 
@@ -261,6 +273,10 @@ impl CharacterResume {
 
         if follower.is_none() {
             return Err("No PV follower found".to_string());
+        };
+
+        if messages.is_none() {
+            return Err("No messages found".to_string());
         };
 
         return Err("No PV resume found".to_string());
