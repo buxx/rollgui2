@@ -61,6 +61,7 @@ pub enum Button {
     Zone,
     Exit,
     Book,
+    RolePlay,
     Business,
     Account,
 }
@@ -106,6 +107,9 @@ impl Button {
             }
             Button::Account => {
                 ButtonAction::OpenWebBrowser(format!("{}/account/manage", SERVER_ADDRESS))
+            }
+            Button::RolePlay => {
+                ButtonAction::OpenDescription(format!("/character/{}/open-rp", state.player.id))
             }
             Button::Exit => ButtonAction::Exit,
         }
@@ -214,6 +218,10 @@ pub fn draw_buttons(
         ),
         (
             Button::Book,
+            Rect::new(BOOK_BUTTON_X, BOOK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
+        ),
+        (
+            Button::RolePlay,
             Rect::new(BOOK_BUTTON_X, BOOK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
         ),
         (
