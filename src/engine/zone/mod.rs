@@ -9,7 +9,7 @@ use crate::{
     message::{self, MainMessage},
     ui::{
         text_input::TextInputRequest,
-        utils::{egui_scale, is_mobile},
+        utils::{egui_scale, is_mobile, open_url},
     },
     util::{self as base_util, mouse_clicked},
 };
@@ -523,6 +523,9 @@ impl ZoneEngine {
                                             self.client.clone(),
                                             self.state.player.id.clone(),
                                         )];
+                                    } else if let Some(open_new_tab) = &description.open_new_tab {
+                                        println!("Open new tab : {}", open_new_tab);
+                                        open_url(open_new_tab);
                                     } else {
                                         if description.reload_inventory {
                                             if self.inventory_state.is_some() {

@@ -61,7 +61,6 @@ pub enum Button {
     Zone,
     Exit,
     Book,
-    RolePlay,
     Business,
     Account,
 }
@@ -98,18 +97,14 @@ impl Button {
                 "/zones/{}/{}/describe/{}",
                 state.player.world_row_i, state.player.world_col_i, state.player.id
             )),
-            Button::Book => ButtonAction::OpenDescription(format!(
-                "/_describe/character/{}/events",
-                state.player.id
-            )),
+            Button::Book => {
+                ButtonAction::OpenDescription(format!("/character/{}/open-rp", state.player.id))
+            }
             Button::Business => {
                 ButtonAction::OpenDescription(format!("/business/{}", state.player.id))
             }
             Button::Account => {
                 ButtonAction::OpenWebBrowser(format!("{}/account/manage", SERVER_ADDRESS))
-            }
-            Button::RolePlay => {
-                ButtonAction::OpenDescription(format!("/character/{}/open-rp", state.player.id))
             }
             Button::Exit => ButtonAction::Exit,
         }
@@ -170,7 +165,8 @@ pub fn draw_panel_background(graphics: &graphics::Graphics) {
 pub fn draw_buttons(
     graphics: &graphics::Graphics,
     loading: &Option<Button>,
-    highlight_button: Option<Button>,
+    loading_button: Option<Button>,
+    highlight_button: Option<&Button>,
 ) -> Option<Button> {
     let buttons = [
         (
@@ -218,10 +214,6 @@ pub fn draw_buttons(
         ),
         (
             Button::Book,
-            Rect::new(BOOK_BUTTON_X, BOOK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
-        ),
-        (
-            Button::RolePlay,
             Rect::new(BOOK_BUTTON_X, BOOK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT),
         ),
         (
@@ -284,13 +276,18 @@ pub fn draw_buttons(
 
         // Draw button icon
         if !is_loading {
+            let final_button_source_rect = if highlight_button == Some(button) {
+                button_source_rect.offset(Vec2::new(button_source_rect.w, 0.))
+            } else {
+                *button_source_rect
+            };
             draw_texture_ex(
                 graphics.tileset_texture,
                 draw_to_x,
                 draw_to_y,
                 WHITE,
                 DrawTextureParams {
-                    source: Some(*button_source_rect),
+                    source: Some(final_button_source_rect),
                     dest_size: Some(Vec2::new(DISPLAY_BUTTON_WIDTH, DISPLAY_BUTTON_HEIGHT)),
                     ..Default::default()
                 },
@@ -309,7 +306,7 @@ pub fn draw_buttons(
             );
         }
 
-        if let Some(highlight_button_) = &highlight_button {
+        if let Some(highlight_button_) = &loading_button {
             if highlight_button_ == button {
                 draw_rectangle_lines(
                     draw_to_x,

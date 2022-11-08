@@ -1,10 +1,10 @@
 use super::{
-    gui::{self, chat::display::Display as ChatDisplay},
+    gui::{self, chat::display::Display as ChatDisplay, panel::Button},
     log, ZoneEngine, LEFT_PANEL_WIDTH,
 };
 use crate::{
     message::MainMessage,
-    ui::utils::egui_scale,
+    ui::utils::{egui_scale, open_url},
     //  ui::utils::open_url,
     util as base_util,
 };
@@ -17,12 +17,20 @@ const AVATAR_DRAW_HEIGHT: f32 = 102.;
 
 impl ZoneEngine {
     pub fn draw_left_panel(&mut self) -> Vec<MainMessage> {
-        let highlight_button = self.get_highlighted_left_panel_button();
+        let loading_button = self.get_highlighted_left_panel_button();
+        let mut highlight_button = None;
+
+        if let Some(resume) = &self.resume {
+            if resume.messages > 0 && self.tick_i % 6 == 0 || self.tick_i % 5 == 0 {
+                highlight_button = Some(&Button::Book);
+            }
+        }
 
         gui::panel::draw_panel_background(&self.graphics);
         if let Some(button) = gui::panel::draw_buttons(
             &self.graphics,
             &self.current_left_panel_button,
+            loading_button,
             highlight_button,
         ) {
             self.disable_all_user_input = true;
@@ -55,7 +63,8 @@ impl ZoneEngine {
                     }
                     gui::panel::ButtonAction::OpenWebBrowser(url) => {
                         println!("Open url {} with web browser", url);
-                        // open_url(url);
+                        open_url(url);
+                        self.current_left_panel_button = None;
                     }
                     gui::panel::ButtonAction::Exit => return vec![MainMessage::Exit],
                 }
