@@ -1,6 +1,6 @@
 [package]
 name = "rollgui2"
-version = "0.11.6"
+version = "0.12.0"
 edition = "2021"
 
 [profile.dev.package.'*']
