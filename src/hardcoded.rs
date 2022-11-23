@@ -132,7 +132,7 @@ pub fn get_tiles_list() -> Vec<(&'static str, i16, i16, i16)> {
         ("MORTIER_PILON", 5, 26, 1),
         ("CHARCOAL", 5, 27, 1),
         ("ROUET", 5, 28, 1),
-        ("SPINDLE", 3, 29, 6),
+        ("SPINDLE", 3, 29, 1),
         ("LITTLE_FISHING_NET", 5, 29, 1),
         ("STONE_ANVIL", 5, 30, 1),
         ("IRON_ANVIL", 5, 31, 1),
