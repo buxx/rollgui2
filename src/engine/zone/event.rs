@@ -90,6 +90,7 @@ impl super::ZoneEngine {
                 zone_row_i,
                 zone_col_i,
                 character_id,
+                spritesheet_id,
             } => {
                 self.state.characters.insert(
                     character_id.clone(),
@@ -97,6 +98,7 @@ impl super::ZoneEngine {
                         character_id.clone(),
                         zone_row_i,
                         zone_col_i,
+                        spritesheet_id,
                     ),
                 );
                 self.user_logs.push(super::log::UserLog::new(

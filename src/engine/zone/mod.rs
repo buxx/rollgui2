@@ -757,6 +757,15 @@ impl ZoneEngine {
                 let event = util::request_chat_event();
                 web_socket(&self.state).send_text(&event);
 
+                if self.state.player.spritesheet_id.is_none() {
+                    // Request character spritesheet creation
+                    self.description_request = Some(self.client.get_description_request(
+                        format!("/character/{}/spritesheet-setup", self.state.player.id),
+                        None,
+                        None,
+                    ));
+                }
+
                 let new_coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
                 self.last_require_around_coordinate = new_coordinates;
                 return false;

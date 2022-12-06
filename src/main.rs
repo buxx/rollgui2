@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use util::texture_from_cache_or_from_file;
 
 use crate::{
-    ui::utils::{egui_scale, loaded},
+    ui::utils::{egui_scale, loaded, open_url},
     util::{set_auth_token, set_remember_me, vname},
 };
 
@@ -112,6 +112,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     ));
                 }
                 message::MainMessage::SetDescriptionEngine(description, client) => {
+                    if let Some(url) = &description.open_new_tab {
+                        println!("Open new tab : {}", url);
+                        open_url(url);
+                    }
+
                     current_scene = Box::new(engine::description::DescriptionEngine::new(
                         description,
                         // FIXME : how ot cost ?

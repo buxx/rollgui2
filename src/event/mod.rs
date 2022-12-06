@@ -56,6 +56,7 @@ pub enum ZoneEventType {
         zone_row_i: i32,
         zone_col_i: i32,
         character_id: String,
+        spritesheet_id: Option<String>,
     },
     CharacterExit {
         character_id: String,
@@ -186,14 +187,22 @@ impl ZoneEvent {
                 event_type_name: String::from(SERVER_PERMIT_CLOSE),
                 event_type: ZoneEventType::ServerPermitClose,
             }),
-            &CHARACTER_ENTER_ZONE => Ok(ZoneEvent {
-                event_type_name: String::from(CHARACTER_ENTER_ZONE),
-                event_type: ZoneEventType::CharacterEnter {
-                    zone_row_i: data["zone_row_i"].as_i64().unwrap() as i32,
-                    zone_col_i: data["zone_col_i"].as_i64().unwrap() as i32,
-                    character_id: String::from(data["character_id"].as_str().unwrap()),
-                },
-            }),
+            &CHARACTER_ENTER_ZONE => {
+                let spritesheet_id = if let Some(spritesheet_id) = data["spritesheet_id"].as_str() {
+                    Some(spritesheet_id.to_string())
+                } else {
+                    None
+                };
+                Ok(ZoneEvent {
+                    event_type_name: String::from(CHARACTER_ENTER_ZONE),
+                    event_type: ZoneEventType::CharacterEnter {
+                        zone_row_i: data["zone_row_i"].as_i64().unwrap() as i32,
+                        zone_col_i: data["zone_col_i"].as_i64().unwrap() as i32,
+                        character_id: String::from(data["character_id"].as_str().unwrap()),
+                        spritesheet_id,
+                    },
+                })
+            }
             &CHARACTER_EXIT_ZONE => Ok(ZoneEvent {
                 event_type_name: String::from(CHARACTER_EXIT_ZONE),
                 event_type: ZoneEventType::CharacterExit {

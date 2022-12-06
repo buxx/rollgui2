@@ -13,10 +13,16 @@ pub struct Character {
     pub world_col_i: i32,
     pub avatar_uuid: Option<AvatarUuid>,
     pub avatar_is_validated: bool,
+    pub spritesheet_id: Option<String>,
 }
 
 impl Character {
-    pub fn minimal(id: String, zone_row_i: i32, zone_col_i: i32) -> Self {
+    pub fn minimal(
+        id: String,
+        zone_row_i: i32,
+        zone_col_i: i32,
+        spritesheet_id: Option<String>,
+    ) -> Self {
         Self {
             id,
             name: "".to_string(),
@@ -26,6 +32,7 @@ impl Character {
             zone_col_i,
             avatar_uuid: None,
             avatar_is_validated: false,
+            spritesheet_id,
         }
     }
 
