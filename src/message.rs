@@ -31,5 +31,6 @@ pub enum MainMessage {
     CharacterCreated(Client, String), // login, password, character_id
     SetEngine(Box<dyn engine::Engine>),
     LoadIllustration(String),
+    LoadCharacterSpritesheet(String, String),
     Exit,
 }

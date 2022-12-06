@@ -4,11 +4,13 @@ use crate::{
     action,
     animation::{self, visible::VisibleAnimation},
     engine::zone::{gui::chat::model::Message, resume::CharacterResume},
-    entity, event,
+    entity, event, message,
 };
 
 impl super::ZoneEngine {
-    pub fn event(&mut self, event: crate::event::ZoneEvent) {
+    pub fn event(&mut self, event: crate::event::ZoneEvent) -> Vec<message::MainMessage> {
+        let mut messages = vec![];
+
         // This a hack because click used for build but not good reliable things
         self.pending_request_clicks = None;
         debug!("Event received : {}", event.event_type_name);
@@ -60,7 +62,7 @@ impl super::ZoneEngine {
                         Ok(pop_animation_) => pop_animation_,
                         Err(error) => {
                             error!("Error during pop animation : {}", error);
-                            return;
+                            return messages;
                         }
                     };
                     self.camera_animations.push(Box::new(pop_animation));
@@ -90,6 +92,7 @@ impl super::ZoneEngine {
                 zone_row_i,
                 zone_col_i,
                 character_id,
+                spritesheet_filename,
             } => {
                 self.state.characters.insert(
                     character_id.clone(),
@@ -97,12 +100,34 @@ impl super::ZoneEngine {
                         character_id.clone(),
                         zone_row_i,
                         zone_col_i,
+                        spritesheet_filename.clone(),
                     ),
                 );
                 self.user_logs.push(super::log::UserLog::new(
                     "Un personnage vient d'arriver".to_string(),
                     super::log::UserLogLevel::Info,
                 ));
+                if let Some(spritesheet_filename) = spritesheet_filename {
+                    messages.push(message::MainMessage::LoadCharacterSpritesheet(
+                        character_id.clone(),
+                        spritesheet_filename.clone(),
+                    ));
+                };
+            }
+            event::ZoneEventType::CharacterSpritesheetChange {
+                character_id,
+                spritesheet_filename,
+            } => {
+                messages.push(message::MainMessage::LoadCharacterSpritesheet(
+                    character_id.clone(),
+                    spritesheet_filename.clone(),
+                ));
+                if let Some(character) = self.state.characters.get_mut(&character_id) {
+                    character.spritesheet_filename = Some(spritesheet_filename.clone());
+                }
+                if self.state.player.id == character_id {
+                    self.state.player.spritesheet_filename = Some(spritesheet_filename.clone());
+                }
             }
             event::ZoneEventType::CharacterExit { character_id } => {
                 self.state.characters.remove(&character_id);
@@ -227,7 +252,9 @@ impl super::ZoneEngine {
                 }
             }
             _ => {}
-        }
+        };
+
+        messages
     }
 
     pub fn update_current_action_according_new_quick_actions(&mut self) {

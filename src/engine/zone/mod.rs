@@ -72,6 +72,7 @@ pub struct ZoneEngine {
     pub socket_is_new: bool,
     pub tick_last: f64,
     pub tick_i: i16,
+    pub tick9_i: i16,
     pub frame_i: i64,
     pub zoom_mode: ZoomMode,
     pub camera_animations: Vec<Box<dyn animation::Animation>>,
@@ -135,6 +136,7 @@ impl ZoneEngine {
             socket_is_new: true,
             tick_last: get_time(),
             tick_i: 0,
+            tick9_i: 0,
             frame_i: 0,
             zoom_mode,
             camera_animations: vec![],
@@ -183,10 +185,16 @@ impl ZoneEngine {
     fn update_tick_i(&mut self) {
         let now = get_time();
         if now - self.tick_last >= 0.166 {
-            self.tick_i += 1;
             self.tick_last = now;
+
+            self.tick_i += 1;
             if self.tick_i >= config::SPRITES_COUNT {
                 self.tick_i = 0;
+            }
+
+            self.tick9_i += 1;
+            if self.tick9_i >= config::SPRITES_COUNT {
+                self.tick9_i = 0;
             }
         }
     }
@@ -366,7 +374,7 @@ impl ZoneEngine {
     fn recv_events(&mut self) -> Vec<message::MainMessage> {
         while let Some(data) = web_socket(&self.state).try_recv() {
             match base_event::ZoneEvent::from_u8(data) {
-                Ok(event) => self.event(event),
+                Ok(event) => return self.event(event),
                 Err(error) => return vec![message::MainMessage::SetErrorEngine(error)],
             }
         }
@@ -669,14 +677,6 @@ impl ZoneEngine {
         displayed_area
     }
 
-    pub fn scene(&mut self, draw_area: ((i32, i32), (i32, i32))) {
-        let display_counter = scene::scene(&self.graphics, &self.state, self.tick_i, draw_area);
-        if self.frame_i % 30 == 0 {
-            self.debug_info = display_counter;
-            self.debug_info.set_fps(get_fps());
-        }
-    }
-
     fn draw_zone_ux(&mut self) {
         while let Some((row_i, col_i)) = self.highlight_tiles.pop() {
             self.graphics.draw_tile_highlight(
@@ -742,7 +742,9 @@ impl ZoneEngine {
         }
     }
 
-    fn manage_fresh_socket(&mut self) -> bool {
+    fn manage_fresh_socket(&mut self) -> (bool, Vec<message::MainMessage>) {
+        let mut messages = vec![];
+
         if self.socket_is_new {
             // Socket just connected
             if web_socket(&self.state).connected() {
@@ -757,15 +759,40 @@ impl ZoneEngine {
                 let event = util::request_chat_event();
                 web_socket(&self.state).send_text(&event);
 
+                if !self.state.player.spritesheet_set {
+                    // Request character spritesheet creation
+                    self.description_request = Some(self.client.get_description_request(
+                        format!("/character/{}/spritesheet-setup", self.state.player.id),
+                        None,
+                        None,
+                    ));
+                }
+
+                if let Some(player_spritesheet) = &self.state.player.spritesheet_filename {
+                    messages.push(message::MainMessage::LoadCharacterSpritesheet(
+                        self.state.player.id.clone(),
+                        player_spritesheet.clone(),
+                    ))
+                }
+
+                for (character_id, character) in &self.state.characters {
+                    if let Some(player_spritesheet) = &character.spritesheet_filename {
+                        messages.push(message::MainMessage::LoadCharacterSpritesheet(
+                            character_id.clone(),
+                            player_spritesheet.clone(),
+                        ))
+                    }
+                }
+
                 let new_coordinates = (self.state.player.zone_row_i, self.state.player.zone_col_i);
                 self.last_require_around_coordinate = new_coordinates;
-                return false;
+                return (false, messages);
             }
 
             // Indicate to do nothing while socket is not connected
-            return true;
+            return (true, messages);
         }
-        return false;
+        return (false, messages);
     }
 
     fn possible_build_is_traversable(
@@ -810,11 +837,12 @@ impl ZoneEngine {
 impl Engine for ZoneEngine {
     fn tick(&mut self) -> Vec<message::MainMessage> {
         // wasm web socket connection must be awaited
-        if self.manage_fresh_socket() {
-            return vec![];
-        }
-
         let mut messages = vec![];
+        let (fresh_socket, messages_) = self.manage_fresh_socket();
+        messages.extend(messages_);
+        if fresh_socket {
+            return messages;
+        }
 
         self.update_tick_i();
         self.update_frame_i();

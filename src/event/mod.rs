@@ -14,6 +14,7 @@ pub const PLAYER_MOVE: &str = "PLAYER_MOVE";
 pub const CLIENT_WANT_CLOSE: &str = "CLIENT_WANT_CLOSE";
 pub const SERVER_PERMIT_CLOSE: &str = "SERVER_PERMIT_CLOSE";
 pub const CHARACTER_ENTER_ZONE: &str = "CHARACTER_ENTER_ZONE";
+pub const CHARACTER_SPRITESHEET_CHANGE: &str = "CHARACTER_SPRITESHEET_CHANGE";
 pub const CHARACTER_EXIT_ZONE: &str = "CHARACTER_EXIT_ZONE";
 pub const CLIENT_REQUIRE_AROUND: &str = "CLIENT_REQUIRE_AROUND";
 pub const THERE_IS_AROUND: &str = "THERE_IS_AROUND";
@@ -56,6 +57,11 @@ pub enum ZoneEventType {
         zone_row_i: i32,
         zone_col_i: i32,
         character_id: String,
+        spritesheet_filename: Option<String>,
+    },
+    CharacterSpritesheetChange {
+        character_id: String,
+        spritesheet_filename: String,
     },
     CharacterExit {
         character_id: String,
@@ -186,12 +192,30 @@ impl ZoneEvent {
                 event_type_name: String::from(SERVER_PERMIT_CLOSE),
                 event_type: ZoneEventType::ServerPermitClose,
             }),
-            &CHARACTER_ENTER_ZONE => Ok(ZoneEvent {
-                event_type_name: String::from(CHARACTER_ENTER_ZONE),
-                event_type: ZoneEventType::CharacterEnter {
-                    zone_row_i: data["zone_row_i"].as_i64().unwrap() as i32,
-                    zone_col_i: data["zone_col_i"].as_i64().unwrap() as i32,
+            &CHARACTER_ENTER_ZONE => {
+                let spritesheet_filename =
+                    if let Some(spritesheet_filename) = data["spritesheet_filename"].as_str() {
+                        Some(spritesheet_filename.to_string())
+                    } else {
+                        None
+                    };
+                Ok(ZoneEvent {
+                    event_type_name: String::from(CHARACTER_ENTER_ZONE),
+                    event_type: ZoneEventType::CharacterEnter {
+                        zone_row_i: data["zone_row_i"].as_i64().unwrap() as i32,
+                        zone_col_i: data["zone_col_i"].as_i64().unwrap() as i32,
+                        character_id: String::from(data["character_id"].as_str().unwrap()),
+                        spritesheet_filename,
+                    },
+                })
+            }
+            &CHARACTER_SPRITESHEET_CHANGE => Ok(ZoneEvent {
+                event_type_name: String::from(CHARACTER_SPRITESHEET_CHANGE),
+                event_type: ZoneEventType::CharacterSpritesheetChange {
                     character_id: String::from(data["character_id"].as_str().unwrap()),
+                    spritesheet_filename: String::from(
+                        data["spritesheet_filename"].as_str().unwrap(),
+                    ),
                 },
             }),
             &CHARACTER_EXIT_ZONE => Ok(ZoneEvent {

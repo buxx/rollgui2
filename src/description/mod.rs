@@ -306,7 +306,7 @@ impl UiDescription {
                     None => {}
                 }
             } else if part.is_form {
-                if tight_display() {
+                if self.description.force_tight || tight_display() {
                     ui.vertical(|ui| {
                         match self.draw_form(ui, part, state) {
                             Some(event_) => event = Some(event_),
@@ -346,7 +346,8 @@ impl UiDescription {
             }
             ui.end_row();
         }
-        if ui.button("Valider").clicked() {
+        let submit_label = part.submit_label.clone().unwrap_or("Valider".to_string());
+        if ui.button(submit_label).clicked() {
             if let Some(url) = &part.form_action {
                 if part.form_values_in_query {
                     event = Some(UiDescriptionEvent::ValidateFormInQuery(url.clone()));
