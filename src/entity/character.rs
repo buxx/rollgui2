@@ -13,7 +13,7 @@ pub struct Character {
     pub world_col_i: i32,
     pub avatar_uuid: Option<AvatarUuid>,
     pub avatar_is_validated: bool,
-    pub spritesheet_id: Option<String>,
+    pub spritesheet_filename: Option<String>,
 }
 
 impl Character {
@@ -21,7 +21,7 @@ impl Character {
         id: String,
         zone_row_i: i32,
         zone_col_i: i32,
-        spritesheet_id: Option<String>,
+        spritesheet_filename: Option<String>,
     ) -> Self {
         Self {
             id,
@@ -32,7 +32,7 @@ impl Character {
             zone_col_i,
             avatar_uuid: None,
             avatar_is_validated: false,
-            spritesheet_id,
+            spritesheet_filename,
         }
     }
 

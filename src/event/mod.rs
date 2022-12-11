@@ -56,7 +56,7 @@ pub enum ZoneEventType {
         zone_row_i: i32,
         zone_col_i: i32,
         character_id: String,
-        spritesheet_id: Option<String>,
+        spritesheet_filename: Option<String>,
     },
     CharacterExit {
         character_id: String,
@@ -188,18 +188,19 @@ impl ZoneEvent {
                 event_type: ZoneEventType::ServerPermitClose,
             }),
             &CHARACTER_ENTER_ZONE => {
-                let spritesheet_id = if let Some(spritesheet_id) = data["spritesheet_id"].as_str() {
-                    Some(spritesheet_id.to_string())
-                } else {
-                    None
-                };
+                let spritesheet_filename =
+                    if let Some(spritesheet_filename) = data["spritesheet_filename"].as_str() {
+                        Some(spritesheet_filename.to_string())
+                    } else {
+                        None
+                    };
                 Ok(ZoneEvent {
                     event_type_name: String::from(CHARACTER_ENTER_ZONE),
                     event_type: ZoneEventType::CharacterEnter {
                         zone_row_i: data["zone_row_i"].as_i64().unwrap() as i32,
                         zone_col_i: data["zone_col_i"].as_i64().unwrap() as i32,
                         character_id: String::from(data["character_id"].as_str().unwrap()),
-                        spritesheet_id,
+                        spritesheet_filename,
                     },
                 })
             }

@@ -183,6 +183,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     current_scene.replace_graphics(graphics.clone());
                     current_scene.signal_illustration_loaded(&illustration_name);
                 }
+                message::MainMessage::LoadCharacterSpritesheet(
+                    character_id,
+                    spritesheet_filename,
+                ) => {
+                    info!(
+                        "Load character {} spritesheet {}",
+                        &character_id, &spritesheet_filename
+                    );
+                    let character_spritesheet_texture =
+                        texture_from_cache_or_from_file(&format!("media/{}", spritesheet_filename))
+                            .await?;
+                    graphics
+                        .add_character_spritesheet(&character_id, character_spritesheet_texture);
+                    current_scene.replace_graphics(graphics.clone());
+                }
                 message::MainMessage::SetWorldEngine(client, player) => {
                     current_scene = Box::new(WorldEngine::new(graphics.clone(), client, player))
                 }

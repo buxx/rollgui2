@@ -39,6 +39,7 @@ pub struct Part {
     pub max_value: Option<f32>,
     pub cost: Option<f32>,
     pub use_classes2_for_button: bool,
+    pub dont_wrap: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -80,6 +81,7 @@ pub struct Description {
     pub reload_zone: bool,
     pub reload_inventory: bool,
     pub open_new_tab: Option<String>,
+    pub force_tight: bool,
 }
 
 impl Description {

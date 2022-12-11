@@ -4,6 +4,7 @@ use std::io::Cursor;
 
 use macroquad::prelude::*;
 
+use crate::engine::zone::PlayerRunning;
 use crate::util::bytes_from_cache_or_file;
 use crate::{hardcoded::get_tiles_list, tileset, types::AvatarUuid};
 
@@ -83,6 +84,7 @@ pub struct Graphics {
     pub tile_height: f32,
     pub avatars: HashMap<AvatarUuid, Texture2D>,
     pub illustrations: HashMap<String, egui::ImageData>,
+    pub character_spritesheets: HashMap<String, Texture2D>,
 }
 
 impl Graphics {
@@ -127,6 +129,7 @@ impl Graphics {
             tile_height,
             avatars: HashMap::new(),
             illustrations: HashMap::new(),
+            character_spritesheets: HashMap::new(),
         }
     }
 
@@ -202,6 +205,45 @@ impl Graphics {
         }
 
         None
+    }
+
+    pub fn draw_character_in_camera(
+        &self,
+        area_width: f32,
+        area_height: f32,
+        dest_x: f32,
+        dest_y: f32,
+        tick_i: i16,
+        character_id: &str,
+        running: &Option<PlayerRunning>,
+    ) {
+        let (x, y) = match running {
+            Some(PlayerRunning::Top) => (0. + (64. * tick_i as f32), 512.),
+            Some(PlayerRunning::Down) => (0. + (64. * tick_i as f32), 640.),
+            Some(PlayerRunning::Left) => (0. + (64. * tick_i as f32), 576.),
+            Some(PlayerRunning::Right) => (0. + (64. * tick_i as f32), 704.),
+            None => (0., 640.),
+        };
+        let source = Rect::new(x, y, 64., 64.);
+        if let Some(texture) = self.character_spritesheets.get(character_id) {
+            let camera_dest_x = dest_x / area_width;
+            // Invert the value because the camera is Y inverted
+            let camera_dest_y = -(dest_y / area_height);
+            let dest_size_x = (self.tile_width / area_width) * 2.;
+            let dest_size_y = (self.tile_height / area_height) * 2.;
+
+            draw_texture_ex(
+                *texture,
+                camera_dest_x - (dest_size_x / 3.7),
+                camera_dest_y + dest_size_y,
+                WHITE,
+                DrawTextureParams {
+                    source: Some(source),
+                    dest_size: Some(Vec2::new(dest_size_x, -dest_size_y)),
+                    ..Default::default()
+                },
+            );
+        }
     }
 
     pub fn draw_tile_in_camera(
@@ -294,6 +336,15 @@ impl Graphics {
 
     pub fn add_avatar_texture(&mut self, avatar_uuid: AvatarUuid, texture: Texture2D) {
         self.avatars.insert(avatar_uuid, texture);
+    }
+
+    pub fn add_character_spritesheet(&mut self, character_id: &str, texture: Texture2D) {
+        self.character_spritesheets
+            .insert(character_id.to_string(), texture);
+    }
+
+    pub fn add_character_spritesheet_texture(&mut self, character_id: String, texture: Texture2D) {
+        self.character_spritesheets.insert(character_id, texture);
     }
 
     pub async fn load_illustration(&mut self, illustration_name: &str) {
